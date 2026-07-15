@@ -1,0 +1,388 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F4EF; --surface:#FFFFFF; --tint:#EBF2EE;
+    --ink:#1B1D1A; --ink-soft:#565C55; --muted:#93958D;
+    --accent:#1F6F54; --accent-soft:#DCEAE3; --accent-strong:#14503C;
+    --amber:#C77D22; --amber-soft:#F5E6D3;
+    --rust:#AD5439; --rust-soft:#F3E1DA;
+    --dg-blue:#3B6FA0; --dg-blue-soft:#DCE7F0;
+    --dg-purple:#6E5A9E; --dg-purple-soft:#E7E2F0;
+    --line:#DEDCD2; --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;font-size:15px;line-height:1.65;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;font-weight:600;margin:0;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .wrap{max-width:980px;margin:0 auto;padding:44px 28px 100px;}
+  header.top h1{font-size:27px;margin-bottom:8px;}
+  header.top p{color:var(--ink-soft);max-width:680px;margin:0 0 6px;}
+  header.top .eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+  nav.toc{background:var(--surface);border:0.5px solid var(--line);border-radius:12px;padding:16px 20px;margin:28px 0 8px;}
+  nav.toc div{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px;}
+  nav.toc a{display:inline-block;font-size:13.5px;color:var(--accent-strong);text-decoration:none;margin:2px 14px 2px 0;}
+  nav.toc a:hover{text-decoration:underline;}
+  section{margin-top:52px;scroll-margin-top:20px;}
+  section > h2{font-size:20px;margin-bottom:6px;}
+  section > .sub{color:var(--ink-soft);font-size:14px;margin:0 0 20px;max-width:700px;}
+  .card{background:var(--surface);border:0.5px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:16px;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);}
+  td{padding:9px 10px;border-bottom:0.5px solid var(--line);vertical-align:top;}
+  td.field{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--accent-strong);white-space:nowrap;}
+  td.type{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);white-space:nowrap;}
+  .table-name{display:inline-block;background:var(--tint);color:var(--accent-strong);font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 12px;border-radius:6px;margin-bottom:10px;}
+  .endpoint{display:flex;gap:12px;align-items:baseline;padding:10px 0;border-top:0.5px solid var(--line);}
+  .endpoint:first-child{border-top:none;}
+  .verb{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;flex-shrink:0;width:44px;text-align:center;}
+  .verb.get{background:var(--dg-blue-soft);color:var(--dg-blue);}
+  .verb.post{background:var(--accent-soft);color:var(--accent-strong);}
+  .path{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink);white-space:nowrap;}
+  .desc{font-size:13.5px;color:var(--ink-soft);}
+  .principle{display:flex;gap:14px;padding:14px 0;border-top:0.5px solid var(--line);}
+  .principle:first-child{border-top:none;}
+  .principle .n{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--accent);font-size:14px;flex-shrink:0;width:22px;}
+  .principle h3{font-size:14.5px;margin-bottom:4px;}
+  .principle p{margin:0;color:var(--ink-soft);font-size:13.5px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr;}}
+  .stack-item{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-top:0.5px solid var(--line);}
+  .stack-item:first-child{border-top:none;}
+  .stack-item .name{font-family:'JetBrains Mono',monospace;font-size:13.5px;color:var(--accent-strong);}
+  .stack-item .why{font-size:13px;color:var(--ink-soft);text-align:right;max-width:60%;}
+  .flag{display:inline-block;font-size:11px;background:var(--rust-soft);color:var(--rust);padding:2px 9px;border-radius:20px;font-weight:500;margin-left:8px;}
+  ol.open-items{padding-left:20px;margin:0;}
+  ol.open-items li{padding:8px 0;font-size:14px;}
+  ol.open-items li b{color:var(--ink);}
+  .diagram-wrap{background:var(--surface);border:0.5px solid var(--line);border-radius:14px;padding:20px;overflow-x:auto;}
+  footer.note{margin-top:60px;font-size:12.5px;color:var(--muted);border-top:0.5px solid var(--line);padding-top:20px;}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Backend build plan — draft for review before implementation</div>
+    <h1>Testimonial app — server-side architecture</h1>
+    <p>Everything the mobile app hands off to once a segment leaves the device: upload, transcription, sentiment analysis, and branded rendering. Written to be read once fully before any of it gets built.</p>
+  </header>
+
+  <nav class="toc">
+    <div>On this page</div>
+    <a href="#overview">System overview</a>
+    <a href="#diagram">End-to-end diagram</a>
+    <a href="#schema">Database schema</a>
+    <a href="#identity">Identity &amp; scoping</a>
+    <a href="#pipeline">Job pipeline</a>
+    <a href="#api">API surface</a>
+    <a href="#principles">Engineering principles</a>
+    <a href="#stack">Stack &amp; rationale</a>
+    <a href="#open">Open items to decide</a>
+  </nav>
+
+  <section id="overview">
+    <h2>System overview</h2>
+    <p class="sub">The shape of it, before the detail.</p>
+    <div class="card">
+      <p style="margin:0 0 12px;">Postgres is the single source of truth for everything — not just data, but <i>state</i>. There's no separate queue system yet: a plain <span class="mono">jobs</span> table, polled by a background worker, does that job at this scale. Express stays thin — it issues presigned URLs, confirms uploads, writes rows, and reads them back. It never does the actual work of transcribing or rendering itself.</p>
+      <p style="margin:0 0 12px;">From the moment a segment is uploaded, two pipelines run independently and never block each other: a <b>per-segment pipeline</b> (audio → transcript → sentiment) and a <b>per-distributor pipeline</b> (five segments → branded reel). They only share one thing: the segment's own file, sitting in S3.</p>
+      <p style="margin:0;">The mobile app never talks to S3, ElevenLabs, or Claude directly except for the one presigned upload — everything else it needs comes back through Express as a plain read.</p>
+    </div>
+  </section>
+
+  <section id="diagram">
+    <h2>End-to-end flow</h2>
+    <p class="sub">Fans out into two independent pipelines after upload, fans back in at the read layer.</p>
+    <div class="diagram-wrap">
+<svg width="100%" viewBox="0 0 1000 1080" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>End-to-end system flow for the testimonial app backend</title>
+<desc>Mobile app uploads a segment via a presigned URL to S3 and confirms to Express, which writes to Postgres. A background worker polls the jobs table and runs two independent pipelines: a per-segment pipeline through ffmpeg, ElevenLabs Scribe, and Claude for transcription and sentiment, and a per-distributor pipeline through nexrender for the branded reel. Both write back to Postgres, which Express reads to serve the mobile app's My Videos screen.</desc>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<style>
+  .b{stroke-width:0.5;}
+  .b1{fill:var(--accent-soft);stroke:var(--accent);} .b1 text{fill:var(--accent-strong);}
+  .b2{fill:var(--dg-blue-soft);stroke:var(--dg-blue);} .b2 text{fill:var(--dg-blue);}
+  .b3{fill:var(--amber-soft);stroke:var(--amber);} .b3 text{fill:#8A5A16;}
+  .b4{fill:var(--dg-purple-soft);stroke:var(--dg-purple);} .b4 text{fill:var(--dg-purple);}
+  .b5{fill:var(--rust-soft);stroke:var(--rust);} .b5 text{fill:var(--rust);}
+  .th{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;}
+  .ts{font-family:'Inter',sans-serif;font-size:11.5px;}
+  .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;fill:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+  .arr{stroke:var(--muted);stroke-width:1.3;fill:none;}
+</style>
+
+<text class="lbl" x="20" y="26">Capture — already built</text>
+<g class="b b1"><rect x="260" y="30" width="480" height="64" rx="9"/>
+<text class="th" x="500" y="52" text-anchor="middle" dominant-baseline="central">Mobile app</text>
+<text class="ts" x="500" y="72" text-anchor="middle" dominant-baseline="central">Records 5 segments locally, one per question</text></g>
+
+<line x1="500" y1="94" x2="500" y2="136" class="arr" marker-end="url(#ah)"/>
+
+<text class="lbl" x="20" y="130">Upload</text>
+<g class="b b2"><rect x="260" y="138" width="480" height="64" rx="9"/>
+<text class="th" x="500" y="160" text-anchor="middle" dominant-baseline="central">Express API</text>
+<text class="ts" x="500" y="180" text-anchor="middle" dominant-baseline="central">Issues presigned URL, confirms upload complete</text></g>
+
+<line x1="500" y1="202" x2="270" y2="244" class="arr" marker-end="url(#ah)"/>
+<line x1="500" y1="202" x2="730" y2="244" class="arr" marker-end="url(#ah)"/>
+
+<text class="lbl" x="20" y="238">System of record</text>
+<g class="b b2"><rect x="60" y="246" width="420" height="64" rx="9"/>
+<text class="th" x="270" y="268" text-anchor="middle" dominant-baseline="central">S3 — raw segments</text>
+<text class="ts" x="270" y="288" text-anchor="middle" dominant-baseline="central">Device uploads directly, bypassing Express</text></g>
+<g class="b b2"><rect x="520" y="246" width="420" height="64" rx="9"/>
+<text class="th" x="730" y="268" text-anchor="middle" dominant-baseline="central">Postgres — segments + jobs</text>
+<text class="ts" x="730" y="288" text-anchor="middle" dominant-baseline="central">Segment row written, job queued</text></g>
+
+<line x1="270" y1="310" x2="500" y2="352" class="arr" marker-end="url(#ah)"/>
+<line x1="730" y1="310" x2="500" y2="352" class="arr" marker-end="url(#ah)"/>
+
+<text class="lbl" x="20" y="346">Processing</text>
+<g class="b b3"><rect x="260" y="354" width="480" height="64" rx="9"/>
+<text class="th" x="500" y="376" text-anchor="middle" dominant-baseline="central">Background worker</text>
+<text class="ts" x="500" y="396" text-anchor="middle" dominant-baseline="central">Polls the jobs table, claims one job at a time</text></g>
+
+<line x1="500" y1="418" x2="270" y2="460" class="arr" marker-end="url(#ah)"/>
+<line x1="500" y1="418" x2="730" y2="460" class="arr" marker-end="url(#ah)"/>
+
+<text class="lbl" x="20" y="454">Per-segment — transcription</text>
+<text class="lbl" x="540" y="454">Per-segment — render</text>
+
+<g class="b b4"><rect x="60" y="462" width="420" height="64" rx="9"/>
+<text class="th" x="270" y="484" text-anchor="middle" dominant-baseline="central">Extract audio</text>
+<text class="ts" x="270" y="504" text-anchor="middle" dominant-baseline="central">ffmpeg, per segment</text></g>
+<g class="b b5"><rect x="520" y="462" width="420" height="64" rx="9"/>
+<text class="th" x="730" y="484" text-anchor="middle" dominant-baseline="central">Render trigger</text>
+<text class="ts" x="730" y="504" text-anchor="middle" dominant-baseline="central">Fires per segment, same as transcription</text></g>
+
+<line x1="270" y1="526" x2="270" y2="554" class="arr" marker-end="url(#ah)"/>
+<line x1="730" y1="526" x2="730" y2="554" class="arr" marker-end="url(#ah)"/>
+
+<g class="b b4"><rect x="60" y="556" width="420" height="64" rx="9"/>
+<text class="th" x="270" y="578" text-anchor="middle" dominant-baseline="central">Transcribe</text>
+<text class="ts" x="270" y="598" text-anchor="middle" dominant-baseline="central">ElevenLabs Scribe — text + SRT/VTT export</text></g>
+<g class="b b5"><rect x="520" y="556" width="420" height="64" rx="9"/>
+<text class="th" x="730" y="578" text-anchor="middle" dominant-baseline="central">Render</text>
+<text class="ts" x="730" y="598" text-anchor="middle" dominant-baseline="central">nexrender + After Effects, captions from SRT</text></g>
+
+<line x1="270" y1="620" x2="270" y2="648" class="arr" marker-end="url(#ah)"/>
+<line x1="730" y1="620" x2="730" y2="648" class="arr" marker-end="url(#ah)"/>
+
+<g class="b b4"><rect x="60" y="650" width="420" height="64" rx="9"/>
+<text class="th" x="270" y="672" text-anchor="middle" dominant-baseline="central">Sentiment + themes</text>
+<text class="ts" x="270" y="692" text-anchor="middle" dominant-baseline="central">Claude API, per segment</text></g>
+<g class="b b5"><rect x="520" y="650" width="420" height="64" rx="9"/>
+<text class="th" x="730" y="672" text-anchor="middle" dominant-baseline="central">Upload branded reel</text>
+<text class="ts" x="730" y="692" text-anchor="middle" dominant-baseline="central">S3 — rendered output</text></g>
+
+<line x1="270" y1="714" x2="270" y2="742" class="arr" marker-end="url(#ah)"/>
+<line x1="730" y1="714" x2="730" y2="742" class="arr" marker-end="url(#ah)"/>
+
+<g class="b b4"><rect x="60" y="744" width="420" height="64" rx="9"/>
+<text class="th" x="270" y="766" text-anchor="middle" dominant-baseline="central">Postgres — write results</text>
+<text class="ts" x="270" y="786" text-anchor="middle" dominant-baseline="central">transcripts + sentiment_results</text></g>
+<g class="b b5"><rect x="520" y="744" width="420" height="64" rx="9"/>
+<text class="th" x="730" y="766" text-anchor="middle" dominant-baseline="central">Postgres — write result</text>
+<text class="ts" x="730" y="786" text-anchor="middle" dominant-baseline="central">rendered_videos row, keyed to segment_id</text></g>
+
+<line x1="270" y1="808" x2="500" y2="850" class="arr" marker-end="url(#ah)"/>
+<line x1="730" y1="808" x2="500" y2="850" class="arr" marker-end="url(#ah)"/>
+
+<text class="lbl" x="20" y="844">Read path</text>
+<g class="b b2"><rect x="260" y="852" width="480" height="64" rx="9"/>
+<text class="th" x="500" y="874" text-anchor="middle" dominant-baseline="central">Express API</text>
+<text class="ts" x="500" y="894" text-anchor="middle" dominant-baseline="central">Read endpoints — status + presigned playback URLs</text></g>
+
+<line x1="500" y1="916" x2="500" y2="958" class="arr" marker-end="url(#ah)"/>
+
+<g class="b b1"><rect x="260" y="960" width="480" height="64" rx="9"/>
+<text class="th" x="500" y="982" text-anchor="middle" dominant-baseline="central">Mobile app</text>
+<text class="ts" x="500" y="1002" text-anchor="middle" dominant-baseline="central">My Videos — status + playback</text></g>
+
+<rect x="60" y="1050" width="12" height="12" rx="2" class="b b1"/><text x="78" y="1056" class="ts" fill="var(--ink-soft)">Client app</text>
+<rect x="200" y="1050" width="12" height="12" rx="2" class="b b2"/><text x="218" y="1056" class="ts" fill="var(--ink-soft)">API / storage</text>
+<rect x="360" y="1050" width="12" height="12" rx="2" class="b b3"/><text x="378" y="1056" class="ts" fill="var(--ink-soft)">Worker</text>
+<rect x="480" y="1050" width="12" height="12" rx="2" class="b b4"/><text x="498" y="1056" class="ts" fill="var(--ink-soft)">Transcription + analysis</text>
+<rect x="700" y="1050" width="12" height="12" rx="2" class="b b5"/><text x="718" y="1056" class="ts" fill="var(--ink-soft)">Video render</text>
+</svg>
+    </div>
+  </section>
+
+  <section id="schema">
+    <h2>Database schema</h2>
+    <p class="sub">Seven tables. Every distributor row is tied to a client, and every query that reads distributor data must go through that scope — this is what makes cross-client and cross-distributor data leakage structurally impossible rather than just avoided by convention.</p>
+
+    <div class="card">
+      <span class="table-name">clients</span>
+      <table><tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+      <tr><td class="field">id</td><td class="type">uuid, pk</td><td class="desc">—</td></tr>
+      <tr><td class="field">name</td><td class="type">text</td><td class="desc">e.g. "IFB Appliances"</td></tr>
+      <tr><td class="field">branding_config</td><td class="type">jsonb</td><td class="desc">Logo, colors, nexrender template reference</td></tr>
+      <tr><td class="field">created_at</td><td class="type">timestamptz</td><td class="desc">—</td></tr></table>
+    </div>
+
+    <div class="card">
+      <span class="table-name">distributors</span>
+      <table><tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+      <tr><td class="field">id</td><td class="type">uuid, pk</td><td class="desc">—</td></tr>
+      <tr><td class="field">client_id</td><td class="type">uuid, fk</td><td class="desc">→ clients.id</td></tr>
+      <tr><td class="field">name</td><td class="type">text</td><td class="desc">—</td></tr>
+      <tr><td class="field">phone</td><td class="type">text</td><td class="desc">Or whatever identifier the client provides</td></tr>
+      <tr><td class="field">invite_token</td><td class="type">text, unique</td><td class="desc">The identity carried in the invite link — no login step</td></tr>
+      <tr><td class="field">language_pref</td><td class="type">text</td><td class="desc">—</td></tr>
+      <tr><td class="field">created_at</td><td class="type">timestamptz</td><td class="desc">—</td></tr></table>
+    </div>
+
+    <div class="card">
+      <span class="table-name">segments</span>
+      <table><tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+      <tr><td class="field">id</td><td class="type">uuid, pk</td><td class="desc">—</td></tr>
+      <tr><td class="field">distributor_id</td><td class="type">uuid, fk</td><td class="desc">→ distributors.id</td></tr>
+      <tr><td class="field">question_index</td><td class="type">int</td><td class="desc">1–5</td></tr>
+      <tr><td class="field">video_key</td><td class="type">text</td><td class="desc">S3 object key — never store a full URL, generate presigned URLs on read</td></tr>
+      <tr><td class="field">status</td><td class="type">enum</td><td class="desc">recorded_local · uploaded · transcribing · transcribed · failed</td></tr>
+      <tr><td class="field">duration_seconds</td><td class="type">int</td><td class="desc">—</td></tr>
+      <tr><td class="field">created_at / updated_at</td><td class="type">timestamptz</td><td class="desc">—</td></tr></table>
+      <p style="margin:12px 0 0;font-size:12.5px;color:var(--ink-soft);">Unique constraint on <span class="mono">(distributor_id, question_index)</span> — a retake upserts this same row rather than creating a duplicate. This is what makes retake a plain re-run of upload, not a separate feature.</p>
+      <p style="margin:10px 0 0;font-size:12.5px;color:var(--ink-soft);"><b style="color:var(--ink);">Playback source:</b> My Videos should default to the local file already on the device — no reason to pay for an S3 read on every open when the video is sitting right there. The app caches, per segment, the <span class="mono">updated_at</span> it last synced. On load, compare that against the current <span class="mono">updated_at</span> already returned by the segments read endpoint below — if they match, play local; if they differ (or the local file is simply missing), fall back to fetching from S3. No separate video-id field needed — <span class="mono">updated_at</span> already carries this for free, and it changes automatically on every retake, which is exactly the signal that matters.</p>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <span class="table-name">transcripts</span>
+        <table><tr><th>Field</th><th>Type</th></tr>
+        <tr><td class="field">id</td><td class="type">uuid, pk</td></tr>
+        <tr><td class="field">segment_id</td><td class="type">uuid, fk, unique</td></tr>
+        <tr><td class="field">text</td><td class="type">text</td></tr>
+        <tr><td class="field">language_detected</td><td class="type">text</td></tr>
+        <tr><td class="field">srt_key / vtt_key</td><td class="type">text</td></tr>
+        <tr><td class="field">created_at</td><td class="type">timestamptz</td></tr></table>
+      </div>
+      <div class="card">
+        <span class="table-name">sentiment_results</span>
+        <table><tr><th>Field</th><th>Type</th></tr>
+        <tr><td class="field">id</td><td class="type">uuid, pk</td></tr>
+        <tr><td class="field">segment_id</td><td class="type">uuid, fk, unique</td></tr>
+        <tr><td class="field">sentiment_score</td><td class="type">numeric</td></tr>
+        <tr><td class="field">themes</td><td class="type">jsonb</td></tr>
+        <tr><td class="field">summary</td><td class="type">text</td></tr>
+        <tr><td class="field">created_at</td><td class="type">timestamptz</td></tr></table>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <span class="table-name">jobs</span>
+        <table><tr><th>Field</th><th>Type</th></tr>
+        <tr><td class="field">id</td><td class="type">uuid, pk</td></tr>
+        <tr><td class="field">type</td><td class="type">enum</td></tr>
+        <tr><td class="field">payload</td><td class="type">jsonb</td></tr>
+        <tr><td class="field">status</td><td class="type">enum</td></tr>
+        <tr><td class="field">attempts</td><td class="type">int, default 0</td></tr>
+        <tr><td class="field">last_error</td><td class="type">text, nullable</td></tr>
+        <tr><td class="field">created_at / updated_at</td><td class="type">timestamptz</td></tr></table>
+        <p style="margin:12px 0 0;font-size:12.5px;color:var(--ink-soft);"><span class="mono">type</span> is <span class="mono">transcribe_segment</span> or <span class="mono">render_distributor</span>; <span class="mono">payload</span> holds the relevant id. This one table is the entire queue for now.</p>
+      </div>
+      <div class="card">
+        <span class="table-name">rendered_videos</span>
+        <table><tr><th>Field</th><th>Type</th></tr>
+        <tr><td class="field">id</td><td class="type">uuid, pk</td></tr>
+        <tr><td class="field">segment_id</td><td class="type">uuid, fk, unique</td></tr>
+        <tr><td class="field">video_key</td><td class="type">text</td></tr>
+        <tr><td class="field">status</td><td class="type">enum</td></tr>
+        <tr><td class="field">created_at / updated_at</td><td class="type">timestamptz</td></tr></table>
+        <p style="margin:12px 0 0;font-size:12.5px;color:var(--ink-soft);">One branded reel per question, not one merged video per distributor — each question stands alone for v1. A single merged, all-5-questions cut is a legitimate future option (self-serve toggle, or client-requested) but deliberately out of scope until it's actually needed. Same local-first-with-<span class="mono">updated_at</span>-check pattern applies once downloaded.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="identity">
+    <h2>Identity &amp; scoping</h2>
+    <p class="sub">Two phases, one seam between them.</p>
+    <div class="card">
+      <h3 style="font-size:15px;margin-bottom:8px;">Phase A — now, testing only</h3>
+      <p style="margin:0 0 12px;">Plain username/password login, 5 seeded dummy distributor accounts, no signup and no password-reset flow — this is test tooling, not a feature to build out. Worth seeding the 5 across <b>two</b> dummy clients rather than one, so client-level scoping actually gets exercised during testing, not just distributor-level. A <span class="mono">POST /login</span> issues a session token on successful auth.</p>
+      <h3 style="font-size:15px;margin:16px 0 8px;">Phase B — client-ready</h3>
+      <p style="margin:0 0 12px;">A distributor's invite link carries an <span class="mono">invite_token</span>; the app exchanges it for a session credential on first open instead of a password.</p>
+      <h3 style="font-size:15px;margin:16px 0 8px;">Why the swap is cheap</h3>
+      <p style="margin:0;">Both phases end at the exact same place: one middleware, run on every route, resolves <i>whatever credential came in</i> into <span class="mono">{ distributor_id, client_id }</span> and attaches it to the request. Every data-access function downstream requires that context as an argument, not an optional one — there's no code path that can query <span class="mono">segments</span> or <span class="mono">transcripts</span> without it already in hand. Because of that, moving from Phase A to Phase B only ever touches the login step itself — nothing about routes, scoping, or data access changes when the credential mechanism does.</p>
+    </div>
+  </section>
+
+  <section id="pipeline">
+    <h2>Job pipeline</h2>
+    <p class="sub">Two independent chains, both driven off the same jobs table.</p>
+    <div class="card">
+      <h3 style="font-size:15px;margin-bottom:8px;">Claiming a job safely</h3>
+      <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">The worker claims a row with <span class="mono">UPDATE jobs SET status='processing' WHERE id = (SELECT id FROM jobs WHERE status='pending' ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED) RETURNING *</span> — a well-established Postgres pattern for exactly this, not an improvised shortcut. It's what makes "no Redis yet" a legitimate architectural choice rather than a corner cut, and it upgrades cleanly to a real queue later without changing how job payloads are shaped.</p>
+    </div>
+    <div class="card">
+      <h3 style="font-size:15px;margin-bottom:8px;">Per-segment (transcribe_segment)</h3>
+      <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Extract audio with ffmpeg → send to ElevenLabs Scribe for transcript + SRT/VTT → send transcript text to Claude for sentiment + themes → write both results → mark segment <span class="mono">transcribed</span>. Before calling either paid API, check whether a result already exists for this segment — a retried job must never re-transcribe or re-bill work that already succeeded.</p>
+    </div>
+    <div class="card">
+      <h3 style="font-size:15px;margin-bottom:8px;">Per-segment (render_segment)</h3>
+      <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">Since each question gets its own branded reel rather than one merged video, this fires at the same point as <span class="mono">transcribe_segment</span> — as soon as that one segment is confirmed uploaded, not after all 5. Feeds nexrender with that single clip + client branding config (+ SRT captions once available), uploads the output, writes <span class="mono">rendered_videos</span>.</p>
+      <p style="margin:10px 0 0;font-size:13.5px;color:var(--ink-soft);">This also quietly resolves the stale-render problem flagged below — a retake just re-runs <span class="mono">render_segment</span> for that one question, the same overwrite-in-place pattern already used for segments and transcripts. Nothing merged, nothing to invalidate elsewhere.</p>
+    </div>
+  </section>
+
+  <section id="api">
+    <h2>API surface</h2>
+    <p class="sub">Small on purpose. Retake reuses the upload endpoints — it doesn't need its own.</p>
+    <div class="card">
+      <div class="endpoint"><span class="verb post">POST</span><span class="path">/login</span><span class="desc">Phase A only. Username + password against the 5 seeded accounts, issues a session token. Replaced by token exchange in Phase B — nothing else on this list changes.</span></div>
+      <div class="endpoint"><span class="verb post">POST</span><span class="path">/segments/upload-url</span><span class="desc">Body: question_index. Returns a short-lived presigned S3 PUT URL scoped to one object key.</span></div>
+      <div class="endpoint"><span class="verb post">POST</span><span class="path">/segments/confirm</span><span class="desc">Body: question_index, video_key, duration. Upserts the segment row, queues a transcribe_segment job.</span></div>
+      <div class="endpoint"><span class="verb get">GET</span><span class="path">/distributors/me/segments</span><span class="desc">Returns all 5 segments, status, and presigned playback URLs for My Videos.</span></div>
+      <div class="endpoint"><span class="verb get">GET</span><span class="path">/distributors/me/rendered-video</span><span class="desc">Returns the branded reel's status and presigned URL once ready.</span></div>
+      <div class="endpoint"><span class="verb get">GET</span><span class="path">/clients/:id/insights</span><span class="desc">Aggregated sentiment/theme report — stub for now, real work is Phase 7.</span></div>
+    </div>
+  </section>
+
+  <section id="principles">
+    <h2>Engineering principles applied</h2>
+    <p class="sub">Not abstract advice — each one maps to a specific decision above.</p>
+    <div class="card">
+      <div class="principle"><span class="n">01</span><div><h3>Separation of concerns</h3><p>Route handlers, job processing, and data access live in distinct layers. A change to how rendering works shouldn't risk touching how uploads are confirmed.</p></div></div>
+      <div class="principle"><span class="n">02</span><div><h3>Idempotent job handlers</h3><p>Every paid-API call checks for an existing result first. A retried job is always safe to re-run.</p></div></div>
+      <div class="principle"><span class="n">03</span><div><h3>One source of truth for scoping</h3><p>Distributor/client context resolved once, in one middleware, required by every data-access function — not re-implemented per route.</p></div></div>
+      <div class="principle"><span class="n">04</span><div><h3>Fail-fast configuration</h3><p>Required env vars (API keys, DB URL, bucket name) validated at process startup. A missing key crashes the server immediately and loudly, not confusingly mid-request later.</p></div></div>
+      <div class="principle"><span class="n">05</span><div><h3>Migrations, never manual schema edits</h3><p>Every schema change goes through Prisma migrate — reviewable, reversible, and readable as documentation.</p></div></div>
+      <div class="principle"><span class="n">06</span><div><h3>Explicit state, not scattered booleans</h3><p>Segment, job, and render status are all enums with defined values — "what's happening right now" is always answerable from one column.</p></div></div>
+      <div class="principle"><span class="n">07</span><div><h3>Bounded retries</h3><p><span class="mono">attempts</span> and <span class="mono">last_error</span> on the jobs table mean a failing job retries a few times, then stops and surfaces — never loops forever, never silently vanishes.</p></div></div>
+      <div class="principle"><span class="n">08</span><div><h3>Least-privilege, short-lived access</h3><p>Presigned URLs are scoped to a single object key with a short expiry. The app itself never holds broad bucket credentials.</p></div></div>
+      <div class="principle"><span class="n">09</span><div><h3>Traceable failures</h3><p>Structured logging with job/segment id on every entry — working solo means a 2am failure needs to be diagnosable from a log line, not from memory.</p></div></div>
+    </div>
+  </section>
+
+  <section id="stack">
+    <h2>Stack &amp; rationale</h2>
+    <div class="card">
+      <div class="stack-item"><span class="name">Express</span><span class="why">Already comfortable with it; heavily represented in Claude Code's training data</span></div>
+      <div class="stack-item"><span class="name">Postgres</span><span class="why">Data is genuinely relational — distributor → segments → transcripts → sentiment</span></div>
+      <div class="stack-item"><span class="name">Prisma</span><span class="why">schema.prisma is reviewable as documentation, not just code</span></div>
+      <div class="stack-item"><span class="name">Postgres-backed jobs table</span><span class="why">No Redis needed yet — SKIP LOCKED is a real pattern, not a shortcut. Upgrades to BullMQ later without reshaping job payloads</span></div>
+      <div class="stack-item"><span class="name">S3</span><span class="why">Existing account and experience — R2's egress savings don't matter until real scale</span></div>
+      <div class="stack-item"><span class="name">AWS App Runner + RDS</span><span class="why">Managed deploy and TLS, no OS to patch, stays inside the one AWS account already in use</span></div>
+    </div>
+  </section>
+
+  <section id="open">
+    <h2>Open items to decide before coding starts</h2>
+    <div class="card">
+      <ol class="open-items">
+        <li><b>S3 key naming convention</b> — needs to be deterministic per segment (e.g. <span class="mono">clients/{client_id}/distributors/{distributor_id}/segments/{question_index}.mp4</span>) so a retake overwrites the same key rather than creating orphaned files.</li>
+        <li><b>Presigned URL expiry</b> — upload URLs should be short (~15 min); playback URLs can be longer-lived but should be freshly generated each time My Videos loads, not cached.</li>
+        <li><b>Retry policy specifics</b> — how many attempts before a job is marked failed, and what delay between them.</li>
+        <li><b>Environment separation</b> — settled for now: everything runs in dev only. Revisit before any real client data touches the system.</li>
+        <li><b>Retention</b> — how long raw segments stay in S3 after processing completes; ties directly into the compliance/consent work already planned. Deferred, discuss later.</li>
+        <li><b>Seed data for Phase A</b> — decide the 5 dummy accounts' details now, split across 2 dummy clients so client-level scoping gets tested, not just distributor-level.</li>
+        <li><b>Local-cache sync check</b> — confirm the segments read endpoint returns <span class="mono">updated_at</span> per segment by default, since the mobile app's local-first playback logic depends on comparing against it every time My Videos loads.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer class="note">Build order once this is reviewed: schema and migrations first, then the upload + confirm endpoints, then the worker and per-segment pipeline, then the per-distributor render trigger, then the read endpoints My Videos depends on.</footer>
+</div>
