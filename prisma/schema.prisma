@@ -1,0 +1,132 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Client {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String
+  branding_config Json
+  created_at      DateTime @default(now()) @db.Timestamptz
+
+  distributors Distributor[]
+
+  @@map("clients")
+}
+
+model Distributor {
+  id            String   @id @default(uuid()) @db.Uuid
+  client_id     String   @db.Uuid
+  name          String
+  phone         String
+  invite_token  String   @unique
+  language_pref String
+  created_at    DateTime @default(now()) @db.Timestamptz
+
+  client   Client    @relation(fields: [client_id], references: [id])
+  segments Segment[]
+
+  @@map("distributors")
+}
+
+enum SegmentStatus {
+  recorded_local
+  uploaded
+  transcribing
+  transcribed
+  failed
+}
+
+model Segment {
+  id               String        @id @default(uuid()) @db.Uuid
+  distributor_id   String        @db.Uuid
+  question_index   Int
+  video_key        String
+  status           SegmentStatus @default(recorded_local)
+  duration_seconds Int
+  created_at       DateTime      @default(now()) @db.Timestamptz
+  updated_at       DateTime      @updatedAt @db.Timestamptz
+
+  distributor      Distributor      @relation(fields: [distributor_id], references: [id])
+  transcript       Transcript?
+  sentiment_result SentimentResult?
+  rendered_video   RenderedVideo?
+
+  @@unique([distributor_id, question_index])
+  @@map("segments")
+}
+
+model Transcript {
+  id                String   @id @default(uuid()) @db.Uuid
+  segment_id        String   @unique @db.Uuid
+  text              String
+  language_detected String
+  srt_key           String
+  vtt_key           String
+  created_at        DateTime @default(now()) @db.Timestamptz
+
+  segment Segment @relation(fields: [segment_id], references: [id])
+
+  @@map("transcripts")
+}
+
+model SentimentResult {
+  id              String   @id @default(uuid()) @db.Uuid
+  segment_id      String   @unique @db.Uuid
+  sentiment_score Decimal
+  themes          Json
+  summary         String
+  created_at      DateTime @default(now()) @db.Timestamptz
+
+  segment Segment @relation(fields: [segment_id], references: [id])
+
+  @@map("sentiment_results")
+}
+
+enum JobType {
+  transcribe_segment
+  render_segment
+}
+
+enum JobStatus {
+  pending
+  processing
+  done
+  failed
+}
+
+model Job {
+  id         String    @id @default(uuid()) @db.Uuid
+  type       JobType
+  payload    Json
+  status     JobStatus @default(pending)
+  attempts   Int       @default(0)
+  last_error String?
+  created_at DateTime  @default(now()) @db.Timestamptz
+  updated_at DateTime  @updatedAt @db.Timestamptz
+
+  @@map("jobs")
+}
+
+enum RenderedVideoStatus {
+  pending
+  rendering
+  rendered
+  failed
+}
+
+model RenderedVideo {
+  id         String              @id @default(uuid()) @db.Uuid
+  segment_id String              @unique @db.Uuid
+  video_key  String
+  status     RenderedVideoStatus @default(pending)
+  created_at DateTime            @default(now()) @db.Timestamptz
+  updated_at DateTime            @updatedAt @db.Timestamptz
+
+  segment Segment @relation(fields: [segment_id], references: [id])
+
+  @@map("rendered_videos")
+}

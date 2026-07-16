@@ -15,7 +15,7 @@ plan — this file should stay accurate across sessions, the same way CLAUDE.md 
 ---
 
 ## 0 — Scaffold
-- [ ] Done
+- [x] Done
 
 ```
 /goal package.json exists with Express + TypeScript configured, the folder 
@@ -27,7 +27,7 @@ commit — or stop after 10 turns and report what's incomplete.
 ```
 
 ## 1 — Schema
-- [ ] Done
+- [x] Done
 
 ```
 /goal prisma/schema.prisma matches all 7 tables in backend-plan.html exactly — 
@@ -38,8 +38,16 @@ database, and npx prisma validate passes — or stop after 10 turns and report t
 blocker.
 ```
 
+Deviations: Prisma 7 dropped `datasource.url` from `schema.prisma` — connection
+config now lives in `prisma.config.ts` (datasource.url + migrations.seed), and
+`PrismaClient` now requires an explicit driver adapter (`@prisma/adapter-pg`)
+rather than reading `DATABASE_URL` implicitly. The jobs table's render job type
+is named `render_segment`, not `render_distributor` — backend-plan.html uses
+both names inconsistently; `render_segment` matches the per-segment-render
+decision in CLAUDE.md and this file's own step 4 wording.
+
 ## 2 — Seed data
-- [ ] Done
+- [x] Done
 
 ```
 /goal prisma/seed.ts creates 2 dummy clients and 5 dummy distributors split 
@@ -48,8 +56,13 @@ database with exactly these rows, and a query confirms all 7 rows exist — or
 stop after 8 turns and report the blocker.
 ```
 
+Seeded: IFB Appliances (Ramesh Traders, Suresh Electronics, Patel Home
+Appliances) and Voltas (Sharma Cooling Solutions, Kumar Sales Corp) — a 3/2
+split. Seed command wired via `prisma.config.ts`'s `migrations.seed` (Prisma 7
+moved this out of `package.json`).
+
 ## 3 — Auth
-- [ ] Done
+- [x] Done
 
 ```
 /goal POST /login authenticates against the seeded accounts and returns a 
@@ -59,8 +72,25 @@ invalid token demonstrably fails rather than returning data — or stop after 12
 turns and report the blocker.
 ```
 
+Deviations: backend-plan.html's schema section for `distributors` has no
+username/password columns (only `invite_token`, meant for Phase B), so Phase A
+credentials live outside the DB — `src/config/seedAccounts.ts` is a hardcoded
+array of the 5 usernames/bcrypt-hashed passwords, each keyed to a seeded
+distributor's `invite_token`. `POST /login` checks that array, then looks up
+the matching distributor row for `{ id, client_id }` and signs a JWT (30d
+expiry, `SESSION_SECRET`) as the session token — stateless, since no sessions
+table exists in the 7-table schema. `src/middleware/auth.ts` verifies the
+`Authorization: Bearer` header on every request and attaches
+`req.auth = { distributor_id, client_id }`; missing/invalid tokens get a 401
+before any handler runs. Verified live: valid login → token; wrong password →
+401; `GET /me` (new minimal protected demo route) with valid token returns the
+exact `distributor_id`/`client_id` matching the DB row; missing or garbage
+token on `/me` → 401 with no data leaked. `tsconfig.json` gained an explicit
+`"include": ["src/**/*"]` — `prisma.config.ts`/`prisma/seed.ts` were tripping
+`rootDir` checks in `tsc --noEmit`, unrelated to this step but blocking it.
+
 ## 4 — Upload flow
-- [ ] Done
+- [x] Done
 
 ```
 /goal POST /segments/upload-url returns a valid presigned S3 URL scoped to one 
@@ -69,6 +99,21 @@ object key, POST /segments/confirm upserts the segment row respecting the
 both a transcribe_segment job and a render_segment job in the jobs table — or 
 stop after 12 turns and report the blocker.
 ```
+
+`src/services/s3.ts` builds the key as
+`clients/{client_id}/distributors/{distributor_id}/segments/{question_index}.mp4`
+per the naming convention in backend-plan.html's open items, and signs a PUT
+URL with a 15-minute expiry (also per that section). Both routes require auth
+and pull `distributor_id`/`client_id` from `req.auth`, never the request body.
+`POST /segments/confirm` upserts on the `distributor_id_question_index`
+compound key inside a `$transaction` alongside the two job inserts, so a
+retake updates the existing row and both jobs are only ever queued together.
+Verified live: first confirm creates a segment + 2 jobs; confirming the same
+question_index again updates the same row (same id, new video_key/duration,
+`created_at` unchanged) instead of duplicating; a second question_index
+creates a second row. `psql` confirmed exactly one `transcribe_segment` and
+one `render_segment` job per confirm call, all `pending`, correctly keyed to
+`segment_id` in `payload`.
 
 ## 5 — Worker skeleton
 - [ ] Done
