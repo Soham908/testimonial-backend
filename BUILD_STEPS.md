@@ -116,7 +116,7 @@ one `render_segment` job per confirm call, all `pending`, correctly keyed to
 `segment_id` in `payload`.
 
 ## 5 — Worker skeleton
-- [ ] Done
+- [x] Done
 
 ```
 /goal worker.ts runs as an independent process from the API, polls the jobs 
@@ -125,6 +125,26 @@ job and marks it processing then done, and two worker instances running at the
 same time never claim the same job — or stop after 10 turns and report the 
 blocker.
 ```
+
+`src/worker.ts` is a standalone entry point (`npm run worker`), separate from
+`src/index.ts` — no Express involved. Claiming uses the exact
+`UPDATE ... WHERE id = (SELECT ... FOR UPDATE SKIP LOCKED) RETURNING *`
+pattern from backend-plan.html's pipeline section via `$queryRaw`; completion
+goes through the typed Prisma client. Handler dispatch is a `Record<type,
+handler>` map, currently empty — steps 6/7 plug in real
+`transcribe_segment`/`render_segment` handlers there, and a job with no
+handler just gets marked done (no work defined yet).
+
+Verified live: single worker correctly moved one job pending → processing →
+done (checked the raw claim SQL in isolation via `psql` first, then the full
+worker). For the concurrency requirement, seeded 1500 pending jobs and ran two
+worker processes at once (`worker-A`, `worker-B`) — both claimed jobs
+throughout the run (738 vs. 762), all 1500 ended `done` with zero retries, and
+diffing each worker's claimed-job-id log showed **zero overlap**, confirming
+`SKIP LOCKED` held under real concurrent load rather than one worker just
+finishing before the other started (an earlier 40-job run wasn't a valid
+test — worker A drained the whole queue before worker B's process finished
+cold-starting).
 
 ## 6 — Transcription pipeline
 - [ ] Done
