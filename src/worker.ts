@@ -1,20 +1,13 @@
 import { prisma } from "./db/prisma";
-
-type JobRow = {
-  id: string;
-  type: string;
-  payload: unknown;
-  status: string;
-  attempts: number;
-  last_error: string | null;
-  created_at: Date;
-  updated_at: Date;
-};
+import type { JobRow } from "./jobs/types";
+import { transcribeSegmentHandler } from "./jobs/transcribeSegment";
 
 type JobHandler = (job: JobRow) => Promise<void>;
 
-// Real handlers land in build steps 6 (transcribe_segment) and 7 (render_segment).
-const handlers: Partial<Record<string, JobHandler>> = {};
+// render_segment handler lands in build step 7.
+const handlers: Partial<Record<string, JobHandler>> = {
+  transcribe_segment: transcribeSegmentHandler,
+};
 
 const POLL_INTERVAL_MS = 1000;
 const WORKER_ID = process.env.WORKER_ID ?? `worker-${process.pid}`;

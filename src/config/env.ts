@@ -6,24 +6,31 @@ const REQUIRED_VARS = [
   "AWS_SECRET_ACCESS_KEY",
   "S3_BUCKET_NAME",
   "ELEVENLABS_API_KEY",
-  "ANTHROPIC_API_KEY",
-  "NEXRENDER_SERVER_URL",
-  "NEXRENDER_API_KEY",
+  "GEMINI_API_KEY",
 ] as const;
 
-type RequiredVar = (typeof REQUIRED_VARS)[number];
+// Not required yet — wired in at build step 7 (render pipeline).
+const OPTIONAL_VARS = ["NEXRENDER_SERVER_URL", "NEXRENDER_API_KEY"] as const;
 
-function loadEnv(): Record<RequiredVar, string> & { PORT: number } {
+type RequiredVar = (typeof REQUIRED_VARS)[number];
+type OptionalVar = (typeof OPTIONAL_VARS)[number];
+
+function loadEnv(): Record<RequiredVar, string> &
+  Partial<Record<OptionalVar, string>> & { PORT: number } {
   const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
   }
 
-  const env = Object.fromEntries(
+  const required = Object.fromEntries(
     REQUIRED_VARS.map((key) => [key, process.env[key] as string]),
   ) as Record<RequiredVar, string>;
 
-  return { ...env, PORT: Number(process.env.PORT) || 3000 };
+  const optional = Object.fromEntries(
+    OPTIONAL_VARS.map((key) => [key, process.env[key]]),
+  ) as Partial<Record<OptionalVar, string>>;
+
+  return { ...required, ...optional, PORT: Number(process.env.PORT) || 3000 };
 }
 
 export const config = loadEnv();

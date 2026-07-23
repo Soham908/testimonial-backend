@@ -115,6 +115,23 @@ creates a second row. `psql` confirmed exactly one `transcribe_segment` and
 one `render_segment` job per confirm call, all `pending`, correctly keyed to
 `segment_id` in `payload`.
 
+**Post-step-6 hardening**: `POST /segments/confirm` previously trusted the
+client's claim that the upload succeeded — the only way we'd ever find out
+otherwise was a worker job failing much later on a nonexistent file. Added
+`objectExists()` (`src/services/s3.ts`, `HeadObjectCommand`) as a check before
+the upsert/job-queue transaction; a missing object now returns
+`404 { error: "video_not_found" }` immediately and touches nothing in the DB
+(so a failed retake can't clobber a previous good upload). Non-obvious bug hit
+building this: our IAM user is scoped to `GetObject`/`PutObject` only (no
+`ListBucket`, deliberately least-privilege), and S3's `HeadObject` returns
+**403, not 404**, for a nonexistent key when the caller lacks `ListBucket` — it
+won't confirm-or-deny existence without list permission. Handled in code
+(treat 403 as not-found, since every key checked here is one we generated
+ourselves) rather than widening the IAM policy; `ListBucket` would make this
+more precise (a real 404) but wasn't judged worth loosening the policy for.
+Verified live: confirm with a nonexistent `video_key` → 404, zero DB rows
+created; confirm with a real just-uploaded video → unchanged 200 happy path.
+
 ## 5 — Worker skeleton
 - [x] Done
 
@@ -147,7 +164,7 @@ test — worker A drained the whole queue before worker B's process finished
 cold-starting).
 
 ## 6 — Transcription pipeline
-- [ ] Done
+- [x] Done
 
 ```
 /goal the transcribe_segment job handler extracts audio via ffmpeg, sends it to 
@@ -157,6 +174,51 @@ extraction and writes sentiment_results, and re-running the job when a result
 already exists does not call either paid API again — or stop after 15 turns and 
 report the blocker.
 ```
+
+Deviations: **Gemini, not Claude** — testing-phase call by the user (org has free
+Gemini access; Claude is the intended post-testing swap). `src/services/gemini.ts`
+uses `@google/genai` with `responseMimeType: "application/json"` +
+`responseSchema` for structured `{ sentiment_score, themes, summary }` output.
+Model is `gemini-flash-latest` (the version-pinned `gemini-2.5-flash` returned a
+404 — retired for new API keys — so the auto-updating alias was used instead to
+avoid repeating this when models rotate). `env.ts`'s required var is now
+`GEMINI_API_KEY`, not `ANTHROPIC_API_KEY`; `backend-plan.html` still says Claude
+and needs a follow-up doc pass (user-deferred, not done here). `NEXRENDER_*` vars
+were downgraded from required to optional in `env.ts` since step 7 hasn't wired
+them in yet — the fail-fast startup check would otherwise block steps 6/8/9 on
+render-server config that isn't used yet.
+
+`src/services/ffmpeg.ts` shells out to `ffmpeg -vn -acodec libmp3lame` to pull
+audio directly from a presigned S3 GET URL (ffmpeg's HTTP demuxer range-requests
+only the bytes it needs — S3 supports that) rather than downloading the full
+video to local disk first via the SDK. First version did the SDK download, which
+duplicated the client's own upload transfer (~10s combined on a 100MB/58s test
+video, more than either paid API call) for no benefit; switched after stage
+timing (added as permanent structured logging, `stage=X ms=Y` per segment) made
+the waste visible. Verified: same output audio duration as the source
+(58.28s vs 58.33s — range-seeking didn't truncate), ~22% faster than the
+download-then-extract sequence it replaced. `src/services/elevenlabs.ts` posts
+multipart form data (`scribe_v1`, `timestamps_granularity: word`) via native
+`fetch`/`FormData`/`Blob` — no extra SDK needed. `src/services/captions.ts`
+groups word-level timestamps into ~10-word cues to build SRT/VTT text, uploaded
+to S3 alongside the transcript row. Idempotency is per-result, not per-job: the
+handler checks `transcripts` and `sentiment_results` independently, so a job
+that has a transcript but no sentiment yet (e.g. a previous run failed after
+ElevenLabs succeeded) skips ElevenLabs and only calls Gemini.
+
+Verified live end-to-end on 3 real videos (`assets/question_{1,2,3}.mp4`,
+Hindi/English testimonials, ~60s each) driven through the actual
+login → upload-url → S3 PUT → confirm → worker flow, not synthetic data. All 3
+transcribed correctly (Hindi detected, code-mixed text preserved), SRT/VTT
+confirmed present in S3 via `HeadObject`, sentiment scores + themes + summaries
+came back coherent and specific to each transcript's content, segment status
+reached `transcribed` in all 3 cases. Idempotency verified directly: re-queuing
+a `transcribe_segment` job for an already-fully-processed segment completed in
+546ms (vs. the original multi-second real-API run) with no duplicate
+`sentiment_results` row — confirming both paid APIs were actually skipped, not
+just fast. Two live env bugs were caught and fixed in the process, not just
+code: `AWS_REGION` was set to a full endpoint URL instead of a bare region code,
+and the Gemini model name needed the `-latest` alias swap above.
 
 ## 7 — Render pipeline
 - [ ] Done

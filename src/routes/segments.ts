@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../db/prisma";
-import { buildSegmentVideoKey, getUploadUrl } from "../services/s3";
+import { buildSegmentVideoKey, getUploadUrl, objectExists } from "../services/s3";
 
 export const segmentsRouter = Router();
 
@@ -40,6 +40,14 @@ segmentsRouter.post("/segments/confirm", async (req, res) => {
   }
 
   const { distributor_id } = req.auth!;
+
+  if (!(await objectExists(video_key))) {
+    res.status(404).json({
+      error: "video_not_found",
+      message: "The uploaded video could not be found in storage. Please retry the upload.",
+    });
+    return;
+  }
 
   const segment = await prisma.$transaction(async (tx) => {
     const seg = await tx.segment.upsert({
