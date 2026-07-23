@@ -74,12 +74,18 @@ model Transcript {
 }
 
 model SentimentResult {
-  id              String   @id @default(uuid()) @db.Uuid
-  segment_id      String   @unique @db.Uuid
-  sentiment_score Decimal
-  themes          Json
-  summary         String
-  created_at      DateTime @default(now()) @db.Timestamptz
+  id                  String   @id @default(uuid()) @db.Uuid
+  segment_id          String   @unique @db.Uuid
+  sentiment_score     Decimal
+  themes              Json
+  summary             String
+  best_quote          String
+  is_relevant         Boolean
+  moderation_flag     Boolean
+  contains_complaint  Boolean
+  actionable_feedback String?
+  highlight_score     Decimal
+  created_at          DateTime @default(now()) @db.Timestamptz
 
   segment Segment @relation(fields: [segment_id], references: [id])
 

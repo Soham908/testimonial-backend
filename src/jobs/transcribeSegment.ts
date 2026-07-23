@@ -82,6 +82,12 @@ export async function transcribeSegmentHandler(job: JobRow): Promise<void> {
             sentiment_score: analysis.sentiment_score,
             themes: analysis.themes,
             summary: analysis.summary,
+            best_quote: analysis.best_quote,
+            is_relevant: analysis.is_relevant,
+            moderation_flag: analysis.moderation_flag,
+            contains_complaint: analysis.contains_complaint,
+            actionable_feedback: analysis.actionable_feedback,
+            highlight_score: analysis.highlight_score,
           },
         }),
       );

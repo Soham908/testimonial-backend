@@ -74,3 +74,39 @@ segmentsRouter.post("/segments/confirm", async (req, res) => {
 
   res.json({ segment });
 });
+
+// Temporary test-only endpoint for inspecting sentiment analysis output.
+// Scoped by client_id (not distributor_id) since this is company/admin data,
+// never the distributor's own — matches the same boundary GET
+// /distributors/me/segments must respect once it exists (step 8). This isn't
+// part of the documented API surface in backend-plan.html; the real version
+// is that doc's GET /clients/:id/insights (Phase 7, needs admin auth that
+// doesn't exist yet in Phase A).
+segmentsRouter.get("/segments/sentiment", async (req, res) => {
+  const { client_id } = req.auth!;
+
+  const segments = await prisma.segment.findMany({
+    where: { distributor: { client_id }, sentiment_result: { isNot: null } },
+    select: {
+      id: true,
+      question_index: true,
+      distributor: { select: { name: true } },
+      sentiment_result: {
+        select: {
+          sentiment_score: true,
+          themes: true,
+          summary: true,
+          best_quote: true,
+          is_relevant: true,
+          moderation_flag: true,
+          contains_complaint: true,
+          actionable_feedback: true,
+          highlight_score: true,
+          created_at: true,
+        },
+      },
+    },
+  });
+
+  res.json({ results: segments });
+});
