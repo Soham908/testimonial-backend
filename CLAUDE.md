@@ -1,5 +1,28 @@
 # Project context — testimonial app backend
 
+##
+note for me - things that need to be resolved in the future, super important
+how to handle people talking too much, for example video goes above 1 min, how to handle that
+how to handle, each mobile phone giving different ratio output for the video
+if we want to send this via Whatsapp, how to ensure that the video is small enough size for the testimonial video or anything, the video needs to be a servable size right not 100mb
+render pipeline caption burn-in reads the segment video twice (once for audio
+extraction in transcribe_segment, once again for burning subtitles before
+sending to nexrender) and stores an extra full-size video copy in S3 as an
+intermediate artifact — chosen deliberately for speed of first implementation,
+not because it's the right long-term shape. Revisit once there's real usage:
+burn captions on nexrender's final output instead (using a fixed per-question
+time offset, since the intro VO durations are static) to cut this down to one
+extra pass instead of two, with no extra stored video at all.
+nexrender template's answer segment has a static/fixed duration right now
+(step 7 test render came out 30s despite a ~58s source clip) — needs to be
+made dynamic instead, driven by the actual footage length. User has already
+worked out an approach for this from prior testing, not yet implemented here.
+first real step-7 render came out zoomed in — the answer footage got
+cropped/scaled to fill the template's expected frame rather than fitting it
+cleanly, likely the aspect-ratio mismatch from the "different phone ratios"
+item above actually showing up in practice. Needs a fix on the template
+and/or how footage is fit into it.
+
 ## What this is
 Server-side counterpart to the React Native testimonial app. Handles everything
 once a recorded segment leaves the device: upload, transcription, sentiment

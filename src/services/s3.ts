@@ -1,3 +1,5 @@
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
 import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { config } from "../config/env";
@@ -19,6 +21,13 @@ export function buildSegmentVideoKey(
   questionIndex: number,
 ): string {
   return `clients/${clientId}/distributors/${distributorId}/segments/${questionIndex}.mp4`;
+}
+
+// Intermediate artifact, never read back through any API — feeds nexrender
+// only. Deterministic from video_key, same convention as srt/vtt keys, so
+// no DB column is needed to track it; existence is the idempotency check.
+export function buildCaptionedVideoKey(videoKey: string): string {
+  return videoKey.replace(/\.[^.]+$/, ".captioned.mp4");
 }
 
 export function getUploadUrl(key: string): Promise<string> {
@@ -61,5 +70,22 @@ export async function uploadTextObject(
 ): Promise<void> {
   await s3.send(
     new PutObjectCommand({ Bucket: config.S3_BUCKET_NAME, Key: key, Body: body, ContentType: contentType }),
+  );
+}
+
+export async function uploadFileObject(
+  key: string,
+  filePath: string,
+  contentType: string,
+): Promise<void> {
+  const { size } = await stat(filePath);
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: config.S3_BUCKET_NAME,
+      Key: key,
+      Body: createReadStream(filePath),
+      ContentLength: size,
+      ContentType: contentType,
+    }),
   );
 }

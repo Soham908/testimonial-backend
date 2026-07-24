@@ -221,7 +221,7 @@ code: `AWS_REGION` was set to a full endpoint URL instead of a bare region code,
 and the Gemini model name needed the `-latest` alias swap above.
 
 ## 7 — Render pipeline
-- [ ] Done
+- [x] Done
 
 ```
 /goal the render_segment job handler calls nexrender with the segment's clip 
@@ -229,6 +229,92 @@ and the client's branding config, uploads the rendered output to S3, and writes
 the resulting row to rendered_videos — or stop after 15 turns and report the 
 blocker.
 ```
+
+Deviations: **caption burn-in happens before nexrender, not after** — the
+opposite order from the original plan note below (kept for history). Reasoning
+changed twice: first for correctness (burning on the final composited output
+would misalign captions by the intro segment's duration — no offset math
+needed if it's burned onto the raw answer clip first, since burned-in text is
+locked to that clip's own timeline regardless of where nexrender places it).
+Then the user explicitly deprioritized the resulting cost (segment video read
+twice, one extra S3 object) in favor of shipping — noted as a deliberate
+speed-over-elegance tradeoff in `CLAUDE.md`'s future-work section, not
+forgotten. `transcribeSegmentHandler` (step 6) now has a third independent
+idempotent stage — `ffmpeg_burn_captions` — that burns the segment's own
+`.srt` onto the raw video via `ffmpeg`'s `subtitles` filter and uploads the
+result to a deterministic `.captioned.mp4` key (`buildCaptionedVideoKey`,
+`src/services/s3.ts`); no new DB column, existence-check is the idempotency
+guard, same pattern as everything else in this pipeline.
+
+This introduced a real dependency that didn't exist before: `render_segment`
+needs that captioned video, which only exists once `transcribe_segment`
+finishes. So `render_segment` is **no longer queued at confirm-time**
+(`POST /segments/confirm` in `segments.ts` now only queues
+`transcribe_segment`) — `transcribeSegmentHandler` queues `render_segment`
+itself at the end, guarded against duplicate queuing via a JSON-path lookup
+on existing jobs for that `segment_id`. Still fires per-segment, just
+triggered by that segment's transcription finishing rather than by upload
+confirm — not a violation of "render fires the same point as transcription,
+not gated on all 5" from backend-plan.html.
+
+Real template info came from the user's own nexrender-cloud dashboard testing,
+not guesswork: template id `01KY9MN1XA629BAZYSV18G69HQ`, composition
+`MainComp`, two sub-segments — intro (`Question_VO_Place` audio, drives
+segment duration; `Question_Text_Place` text) and answer
+(`Answer_Video_Place` video; `Distributor_Name` text). `Question_VO_Place` is
+a **static, pre-recorded per-question asset** (5 AI-generated voiceover
+files, reused across every distributor for that question), not derived per
+segment — uploaded once to `static/question-vo/{n}.mp3` in our own bucket;
+`src/config/questions.ts` maps `question_index` to both the question text and
+this VO key. `prisma/seed.ts`'s `branding_config.nexrender_template` and the
+already-seeded DB rows were updated from placeholder names to this real ID
+(both clients share it for now — one rough shared template, not yet
+per-client branded).
+
+`src/services/nexrender.ts`: `createJob`/`getJob`/`pollJobUntilDone` against
+nexrender-cloud's REST API, confirmed via their docs (`POST /v2/jobs`,
+`GET /v2/jobs/{id}`, statuses `queued`→`render:dorender`→`finished`/`error`).
+S3 push-upload credentials registered once via their secrets API
+(`PUT /v2/secrets`, names `S3_ACCESS_KEY_ID`/`S3_ACCESS_KEY_SECRET`),
+referenced in job payloads as `${secrets.*}` rather than embedded raw.
+`rendered_videos` gets an early `status: "rendering"` row (video_key already
+known from the job-creation response's `outputUrl`, not just at completion) —
+`renderSegmentHandler` polls synchronously to completion, blocking that
+worker for the render's duration; accepted for now (matches the "ship first"
+call above), same kind of future-optimization item as the double video read.
+
+Two real bugs, not just config, caught by testing against the live API:
+1. ffmpeg's `subtitles` filter cannot be made to accept an absolute Windows
+   path via colon-escaping — tested single- and double-backslash escapes,
+   both failed the same way (`Unable to parse ... as image size`). Fixed by
+   running ffmpeg with `cwd` set to the working directory and passing bare
+   relative filenames instead of fighting the escaping (`burnCaptions` in
+   `src/services/ffmpeg.ts`).
+2. nexrender's S3 upload step failed twice with "bucket must be addressed
+   using the specified endpoint" — first guess (fixing `outputUrl` to a
+   region-specific host) was wrong and didn't fix it; the actual cause was a
+   separate `upload.params.endpoint` field that silently defaults to the
+   generic `https://s3.amazonaws.com` (us-east-1) unless set explicitly,
+   which breaks for any other region including ours (`ap-south-1`). Fixed by
+   setting `endpoint` explicitly in `renderSegmentHandler`.
+
+Verified live end-to-end against a real previously-uploaded segment (not
+synthetic): caption burn-in produced a real captioned `.mp4` in S3, confirmed
+via `HeadObject`; the render job submitted, rendered on nexrender-cloud's
+infrastructure, pushed a real 45MB `.mp4` to our bucket; `rendered_videos`
+reached `status: "rendered"` with the correct `video_key`; `ffprobe` against
+a presigned URL for it confirmed a valid h264/aac 1080×1920 file. One
+observation, not a bug: the rendered output is 30s despite the source answer
+clip being ~58s — the template's answer segment appears to have a
+fixed/trimmed duration rather than adapting to source length, directly
+relevant to the "people talking too much" item already in `CLAUDE.md`.
+
+Plan note from before implementation (kept for history, superseded by the
+deviations above): this was originally going to be a two-stage render with
+captions burned *after* nexrender's output. Base URL fix
+(`https://api.nexrender.com/api`) and the general API shape (job creation,
+template upload mirroring our own S3 presigned-URL pattern, secrets) were
+confirmed via docs research before any of this was built.
 
 ## 8 — Read endpoints
 - [ ] Done

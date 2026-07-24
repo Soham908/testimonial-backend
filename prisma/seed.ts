@@ -11,7 +11,9 @@ async function main() {
       branding_config: {
         logo_url: "https://assets.example.com/ifb/logo.png",
         primary_color: "#C0392B",
-        nexrender_template: "ifb-reel-v1",
+        // Shared rough test template for now — both clients point at the same
+        // real nexrender-cloud template until distinct branded ones exist.
+        nexrender_template: "01KY9MN1XA629BAZYSV18G69HQ",
       },
     },
   });
@@ -22,7 +24,8 @@ async function main() {
       branding_config: {
         logo_url: "https://assets.example.com/voltas/logo.png",
         primary_color: "#1F6F54",
-        nexrender_template: "voltas-reel-v1",
+        // Same shared rough test template — see note on IFB above.
+        nexrender_template: "01KY9MN1XA629BAZYSV18G69HQ",
       },
     },
   });

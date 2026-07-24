@@ -1,12 +1,13 @@
 import { prisma } from "./db/prisma";
 import type { JobRow } from "./jobs/types";
 import { transcribeSegmentHandler } from "./jobs/transcribeSegment";
+import { renderSegmentHandler } from "./jobs/renderSegment";
 
 type JobHandler = (job: JobRow) => Promise<void>;
 
-// render_segment handler lands in build step 7.
 const handlers: Partial<Record<string, JobHandler>> = {
   transcribe_segment: transcribeSegmentHandler,
+  render_segment: renderSegmentHandler,
 };
 
 const POLL_INTERVAL_MS = 1000;

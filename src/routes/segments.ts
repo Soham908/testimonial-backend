@@ -62,11 +62,11 @@ segmentsRouter.post("/segments/confirm", async (req, res) => {
       },
     });
 
-    await tx.job.createMany({
-      data: [
-        { type: "transcribe_segment", payload: { segment_id: seg.id } },
-        { type: "render_segment", payload: { segment_id: seg.id } },
-      ],
+    // render_segment isn't queued here — it depends on the captioned video
+    // transcribe_segment produces, so transcribe_segment queues it once that's
+    // ready (see src/jobs/transcribeSegment.ts).
+    await tx.job.create({
+      data: { type: "transcribe_segment", payload: { segment_id: seg.id } },
     });
 
     return seg;

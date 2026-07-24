@@ -7,10 +7,11 @@ const REQUIRED_VARS = [
   "S3_BUCKET_NAME",
   "ELEVENLABS_API_KEY",
   "GEMINI_API_KEY",
+  "NEXRENDER_SERVER_URL",
+  "NEXRENDER_API_KEY",
 ] as const;
 
-// Not required yet — wired in at build step 7 (render pipeline).
-const OPTIONAL_VARS = ["NEXRENDER_SERVER_URL", "NEXRENDER_API_KEY"] as const;
+const OPTIONAL_VARS = [] as const;
 
 type RequiredVar = (typeof REQUIRED_VARS)[number];
 type OptionalVar = (typeof OPTIONAL_VARS)[number];

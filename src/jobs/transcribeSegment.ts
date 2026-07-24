@@ -1,9 +1,15 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { prisma } from "../db/prisma";
-import { getDownloadUrl, uploadTextObject } from "../services/s3";
-import { extractAudio } from "../services/ffmpeg";
+import {
+  getDownloadUrl,
+  uploadTextObject,
+  uploadFileObject,
+  objectExists,
+  buildCaptionedVideoKey,
+} from "../services/s3";
+import { extractAudio, burnCaptions } from "../services/ffmpeg";
 import { transcribeAudio } from "../services/elevenlabs";
 import { buildSrt, buildVtt } from "../services/captions";
 import { analyzeSentiment } from "../services/gemini";
@@ -70,6 +76,22 @@ export async function transcribeSegmentHandler(job: JobRow): Promise<void> {
       );
     }
 
+    const captionedVideoKey = buildCaptionedVideoKey(segment.video_key);
+    if (!(await objectExists(captionedVideoKey))) {
+      await timeStage(segment_id, "ffmpeg_burn_captions", async () => {
+        const [videoUrl, srtUrl] = await Promise.all([
+          getDownloadUrl(segment.video_key),
+          getDownloadUrl(transcript.srt_key),
+        ]);
+        const srtRes = await fetch(srtUrl);
+        const srtText = await srtRes.text();
+        await writeFile(join(tmpDir, "captions.srt"), srtText);
+
+        await burnCaptions(videoUrl, tmpDir, "captions.srt", "captioned.mp4");
+        await uploadFileObject(captionedVideoKey, join(tmpDir, "captioned.mp4"), "video/mp4");
+      });
+    }
+
     const existingSentiment = await prisma.sentimentResult.findUnique({ where: { segment_id } });
     if (!existingSentiment) {
       const analysis = await timeStage(segment_id, "gemini_analyze_sentiment", () =>
@@ -94,6 +116,18 @@ export async function transcribeSegmentHandler(job: JobRow): Promise<void> {
     }
 
     await prisma.segment.update({ where: { id: segment_id }, data: { status: "transcribed" } });
+
+    // render_segment depends on the captioned video this job just produced, so
+    // it's queued here rather than alongside transcribe_segment at confirm-time
+    // — still fires per-segment, just triggered by this job's completion
+    // instead of upload confirm. Guard against duplicate queuing on retries.
+    const existingRenderJob = await prisma.job.findFirst({
+      where: { type: "render_segment", payload: { path: ["segment_id"], equals: segment_id } },
+    });
+    if (!existingRenderJob) {
+      await prisma.job.create({ data: { type: "render_segment", payload: { segment_id } } });
+    }
+
     console.log(`[transcribe_segment] segment=${segment_id} stage=TOTAL ms=${Date.now() - handlerStart}`);
   } catch (err) {
     await prisma.segment.update({ where: { id: segment_id }, data: { status: "failed" } });
