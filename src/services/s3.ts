@@ -6,6 +6,12 @@ import { config } from "../config/env";
 
 const UPLOAD_URL_EXPIRY_SECONDS = 15 * 60;
 const DOWNLOAD_URL_EXPIRY_SECONDS = 15 * 60;
+// Longer-lived than the internal worker download URLs above — these are
+// handed to the mobile app for My Videos playback, generated fresh on every
+// read rather than cached (per backend-plan.html's read-endpoints notes), so
+// there's no reason to keep them as short as the worker's own short-lived
+// fetches.
+const PLAYBACK_URL_EXPIRY_SECONDS = 60 * 60;
 
 const s3 = new S3Client({
   region: config.AWS_REGION,
@@ -38,6 +44,11 @@ export function getUploadUrl(key: string): Promise<string> {
 export function getDownloadUrl(key: string): Promise<string> {
   const command = new GetObjectCommand({ Bucket: config.S3_BUCKET_NAME, Key: key });
   return getSignedUrl(s3, command, { expiresIn: DOWNLOAD_URL_EXPIRY_SECONDS });
+}
+
+export function getPlaybackUrl(key: string): Promise<string> {
+  const command = new GetObjectCommand({ Bucket: config.S3_BUCKET_NAME, Key: key });
+  return getSignedUrl(s3, command, { expiresIn: PLAYBACK_URL_EXPIRY_SECONDS });
 }
 
 export async function objectExists(key: string): Promise<boolean> {

@@ -317,7 +317,7 @@ template upload mirroring our own S3 presigned-URL pattern, secrets) were
 confirmed via docs research before any of this was built.
 
 ## 8 — Read endpoints
-- [ ] Done
+- [x] Done
 
 ```
 /goal GET /distributors/me/segments returns all 5 segments with status and a 
@@ -325,6 +325,57 @@ valid presigned playback URL for each, GET /distributors/me/rendered-video
 returns the reel's status and presigned URL once ready, and both responses 
 include each row's updated_at — or stop after 10 turns and report the blocker.
 ```
+
+Deviations: **`GET /distributors/me/rendered-videos` (plural), returning an
+array — not the singular object both this goal and backend-plan.html's API
+surface section describe.** `rendered_videos` is keyed on `segment_id`, not
+`distributor_id` (per CLAUDE.md's locked "one branded reel per question, not
+one merged video" decision), so a distributor with multiple rendered
+questions has multiple rows — a singular response can't represent that
+without silently dropping data. Confirmed with the user before building
+rather than guessing; the doc's wording predates that schema consequence
+being fully carried through. `src/routes/distributors.ts` holds both routes,
+registered in `index.ts` behind the existing `authMiddleware`, scoped by
+`req.auth.distributor_id` — no route param, matching the "me" convention
+`meRouter`/`segmentsRouter` already use.
+
+`GET /distributors/me/segments` returns whatever segment rows exist for the
+distributor (0–5, ordered by `question_index`), not synthesized placeholder
+entries for questions never recorded — nothing in the plan doc calls for
+placeholders, and the mobile app's local-first playback logic (per
+backend-plan.html's "Playback source" note) only needs `updated_at` for
+segments it already has a local file for.
+
+Added `getPlaybackUrl` to `src/services/s3.ts` — a 1-hour-expiry presigned
+GET, separate from the existing 15-minute `getDownloadUrl` used internally by
+the worker for its own short-lived fetches. The plan only says playback URLs
+should be "longer-lived" without pinning a number; 1 hour was my own call,
+generated fresh on every request per the doc's explicit "not cached"
+instruction (confirmed live: repeated calls return different signatures).
+
+For `rendered_videos`, `video_key` is written (and non-null) as soon as
+nexrender accepts the job — before the file exists in S3 — so
+`playback_url` is only populated once `status === "rendered"`; `null`
+otherwise, rather than a URL that would 404.
+
+Unrelated one-line fix needed to run the server for verification:
+`package.json`'s `dev` script was `tsx --env-file=.env watch src/index.ts` —
+tsx's CLI only recognizes `watch` as a subcommand as the first argument, so
+with a flag ahead of it, `watch` was being parsed as the entry script instead
+(`Cannot find module '.../watch'`). Reordered to
+`tsx watch --env-file=.env src/index.ts`, confirmed via `tsx --help`'s
+documented `tsx [flags...] [script path]` / `tsx <command>` usage forms.
+
+Verified live end-to-end against real data from steps 6/7 (not synthetic):
+logged in as `ramesh` (3 transcribed segments, 1 rendered video) — both
+routes returned correctly shaped JSON scoped to just that distributor;
+fetched the returned `playback_url` directly and got a real 103MB video back
+(`HTTP 200`). Logged in as `kumar` (different distributor, different
+client) — `segments` returned only his own single uploaded segment, and
+`rendered-videos` returned `[]` (not an error) since no render has completed
+for him yet, confirming cross-distributor scoping and the empty-array case
+both work. A request with no `Authorization` header got a 401 with no data,
+same as the existing auth middleware guarantees on every other route.
 
 ## 9 — End-to-end smoke test
 - [ ] Done
