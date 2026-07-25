@@ -9,8 +9,18 @@ const COMPOSITION = "MainComp";
 
 type BrandingConfig = { nexrender_template?: string };
 
+async function timeStage<T>(segmentId: string, stage: string, fn: () => Promise<T>): Promise<T> {
+  const start = Date.now();
+  try {
+    return await fn();
+  } finally {
+    console.log(`[render_segment] segment=${segmentId} stage=${stage} ms=${Date.now() - start}`);
+  }
+}
+
 export async function renderSegmentHandler(job: JobRow): Promise<void> {
   const { segment_id } = job.payload as { segment_id: string };
+  const handlerStart = Date.now();
 
   const segment = await prisma.segment.findUniqueOrThrow({
     where: { id: segment_id },
@@ -67,7 +77,7 @@ export async function renderSegmentHandler(job: JobRow): Promise<void> {
     },
   };
 
-  const created = await createJob(payload);
+  const created = await timeStage(segment_id, "nexrender_submit", () => createJob(payload));
   if (!created.outputUrl) {
     throw new Error(`nexrender job ${created.id} response had no outputUrl`);
   }
@@ -79,7 +89,9 @@ export async function renderSegmentHandler(job: JobRow): Promise<void> {
     update: { video_key: videoKey, status: "rendering" },
   });
 
-  const finished = await pollJobUntilDone(created.id);
+  const finished = await timeStage(segment_id, "nexrender_poll_until_done", () =>
+    pollJobUntilDone(created.id),
+  );
 
   if (finished.status !== "finished") {
     await prisma.renderedVideo.update({ where: { segment_id }, data: { status: "failed" } });
@@ -89,4 +101,5 @@ export async function renderSegmentHandler(job: JobRow): Promise<void> {
   }
 
   await prisma.renderedVideo.update({ where: { segment_id }, data: { status: "rendered" } });
+  console.log(`[render_segment] segment=${segment_id} stage=TOTAL ms=${Date.now() - handlerStart}`);
 }

@@ -378,7 +378,7 @@ both work. A request with no `Authorization` header got a 401 with no data,
 same as the existing auth middleware guarantees on every other route.
 
 ## 9 — End-to-end smoke test
-- [ ] Done
+- [x] Done
 
 ```
 /goal a single real test video, pushed through the full flow, results in a 
@@ -386,3 +386,67 @@ segment row, a transcript, a sentiment result, and a rendered reel, all
 retrievable through the read endpoints with correct URLs — or stop after 15 
 turns and report exactly which stage broke.
 ```
+
+Ran 3 real, previously-unseen videos (`assets/goal_9_question_{2,3,4}.mp4`,
+~35–37s each, distinct real content), not just the one the goal asked for —
+against a completely untouched distributor (`sharma`, Voltas) so timing and
+idempotency behavior reflected true cold-path processing, not partial/
+already-processed data from earlier sessions. Added matching `stage=X ms=Y`
++ `TOTAL` timing to `renderSegment.ts` (`nexrender_submit`,
+`nexrender_poll_until_done`) before running, mirroring the logging
+`transcribeSegment.ts` already had — needed to answer the user's explicit
+ask for per-stage timing across the whole pipeline, not just transcription.
+
+**One real finding, not a bug**: the video confirmed at `question_index: 4`
+transcribed and got sentiment-analyzed fine, but failed at render with
+`No question config for question_index 4` — `src/config/questions.ts` only
+has entries for questions 1–3 (4/5 deliberately commented out, matching the
+mobile app's `AppFlow.tsx` where the same two questions are commented out of
+`PLACEHOLDER_QUESTIONS`). Confirmed with the user this is a real
+active-question-set mismatch, not something to route around silently — user
+chose to re-point that same video to `question_index: 1` (unused for
+`sharma`) rather than activate question 4 as a side effect of a smoke test.
+That re-run succeeded fully. Net result: **3 full successes** (question
+indices 1, 2, 3 for `sharma`) plus one correctly-failed render on an
+inactive question index, which is itself useful signal — the render guard
+fails clean with no partial `rendered_videos` row, no crash, no orphaned
+render job.
+
+Verified for all 3 successful segments: `segments` table status
+`transcribed`, `transcripts` row present (distinct, coherent English text
+per video — confirmed content actually differs, not a copy-paste artifact),
+`sentiment_results` row present (score 0.85–0.9, `is_relevant: true`,
+distinct summaries matching each transcript), `rendered_videos` row at
+`status: rendered`. All retrieved through `GET /distributors/me/segments`
+and `GET /distributors/me/rendered-videos` (both built in step 8) — every
+`playback_url` fetched directly and confirmed real (`HTTP 200`, ~45MB per
+rendered reel, matching the raw ~8MB inputs post-branding). The
+question-4-shaped gap (segment exists, transcript/sentiment exist, no
+`rendered_video` row) is exactly what `GET /distributors/me/rendered-videos`
+was designed to represent — confirmed live, not just in theory.
+
+Full per-stage timing (3 successful runs, `sharma`/Voltas, single worker
+process, no concurrency):
+
+| stage | q1 (re-pointed) | q2 | q3 | avg |
+|---|---|---|---|---|
+| upload (client PUT) | 1614ms | 1594ms | 1795ms | ~1.7s |
+| confirm (incl. S3 HeadObject + DB) | 132ms | 276ms | 142ms | ~0.18s |
+| ffmpeg_extract_audio | 1476ms | 2213ms | 1678ms | ~1.8s |
+| elevenlabs_transcribe | 3161ms | 4637ms | 3457ms | ~3.8s |
+| s3_upload_captions | 174ms | 154ms | 167ms | ~0.16s |
+| ffmpeg_burn_captions | 7446ms | 7963ms | 9312ms | ~8.2s |
+| gemini_analyze_sentiment | 9254ms | 10438ms | 5903ms | ~8.5s |
+| **transcribe_segment TOTAL** | 21562ms | 25611ms | 20595ms | **~22.6s** |
+| nexrender_submit | 871ms | 889ms | 303ms | ~0.7s |
+| nexrender_poll_until_done | 40248ms | 33743ms | 40418ms | ~38.1s |
+| **render_segment TOTAL** | 41174ms | 34752ms | 40816ms | **~38.9s** |
+| **upload → fully rendered, wall clock** | ~64.5s | ~62.2s | ~63.3s | **~63.3s** |
+
+For a ~35s source clip, end-to-end wall time (single worker, no queueing
+delay) runs ~1.8x the clip's own length — dominated by nexrender's actual
+render time (~60% of total), then Gemini sentiment (~14%) and the ffmpeg
+caption-burn pass (~13%, the known double-read cost already flagged in
+`CLAUDE.md`'s future-work notes). Rough cost estimate deferred to
+`learnings.md` per the user's request — computed once, after the test, not
+per-step.

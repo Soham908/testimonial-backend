@@ -7,13 +7,14 @@ to rediscover" summary: API details, real bugs hit, gotchas, and open items.
 
 ## Where things stand
 
-Steps 0–7 committed (log below). **Step 8 (read endpoints) is done and
-verified live but not yet committed** — `git status` currently shows
-`BUILD_STEPS.md`, `CLAUDE.md`, `package.json`, `src/index.ts`,
-`src/services/s3.ts` modified and `src/routes/distributors.ts` new. Review
-and commit before starting step 9.
+Steps 0–8 committed (log below). **Step 9 (end-to-end smoke test) is done and
+verified live, not yet committed** — modified: `BUILD_STEPS.md`, this file,
+`src/jobs/renderSegment.ts` (added timing instrumentation). No new files this
+step. All 10 build steps are now functionally complete; only the commit is
+outstanding.
 
 ```
+64b25f2 Implement read endpoints for My Videos (build step 8)
 102f901 Implement render pipeline with nexrender-cloud (build step 7)
 a8061b9 Extend sentiment analysis with quote, relevance, moderation, and complaint signals
 9902d87 Implement transcription pipeline with Gemini sentiment analysis (build step 6)
@@ -22,8 +23,9 @@ db5c904 Add worker skeleton with SKIP LOCKED job claiming (build step 5)
 36b0f6c Scaffold Express + TypeScript backend
 ```
 
-Remaining: **Step 9 (end-to-end smoke test)** — see `BUILD_STEPS.md` for the
-exact `/goal` text.
+Remaining: nothing build-step-wise — all 10 steps (0–9) in `BUILD_STEPS.md`
+are checked off. Next work is either polish on the flagged future items, or
+whatever the user directs next.
 
 ## Architecture decisions made this session (not in the original plan doc)
 
@@ -301,6 +303,95 @@ fix attempt touched `outputUrl` instead and did nothing.
   route. Needs to be designed and built as its own phase; this data is
   intentionally never distributor-facing.
 
+## Step 9: timing + rough cost estimate
+
+Full per-stage timing table is in `BUILD_STEPS.md`'s step 9 section — this is
+just the cost side, computed once at the end per the user's request, using
+actual measured usage from the 3 successful runs (35–37s clips) plus pricing
+pulled from a live web search on 2026-07-25 (not from training-data memory,
+which would likely be stale for anything this pricing-sensitive). **Treat
+all of this as rough, directional planning, not a number to budget against
+precisely** — a couple of the source prices below were inconsistent across
+search results and should be re-verified against the actual billing
+consoles/dashboards before being relied on.
+
+**Per-video marginal processing cost** (the 4 paid/metered things this
+pipeline actually calls):
+- **nexrender render**: $0.21/render-minute on their Pay-As-You-Go plan
+  ([nexrender.com/pricing](https://www.nexrender.com/pricing)). Measured
+  render time (`nexrender_poll_until_done`) averaged ~38s = 0.63 min →
+  **~$0.13/video**. By far the largest per-video line item.
+- **ElevenLabs Scribe**: search results disagreed — official pricing page
+  snippet said $0.22/hour of input audio, an older ElevenLabs announcement
+  said $0.40/hour, one blog conflated it with a $0.22/1,000-token figure
+  that's a different unit entirely
+  ([elevenlabs.io/pricing/api](https://elevenlabs.io/pricing/api)). Using
+  $0.22–0.40/hour against ~36s of audio → **~$0.002–0.004/video**. Small
+  either way, but worth confirming the real number if volume grows.
+- **Gemini sentiment call**: `GEMINI_API_KEY` uses the `gemini-flash-latest`
+  alias (chosen in step 6 specifically so it auto-updates instead of
+  breaking on model retirement) — which means the actual model, and
+  therefore the actual price, can move without this codebase changing.
+  Current Flash-tier pricing found ranges from $0.50/$3 per million
+  input/output tokens up to $1.50/$7.50 for the newest Flash model
+  ([cloudzero.com/blog/gemini-pricing](https://www.cloudzero.com/blog/gemini-pricing/)).
+  Estimated ~700 input tokens (transcript + prompt/schema) + ~200 output
+  tokens per call → **~$0.002–0.006/video** depending on where the alias
+  currently points.
+- **S3** (storage + requests + the pipeline's own internal transfers —
+  ffmpeg pulling the raw video, nexrender pulling the captioned video + VO
+  audio): storage for the ~61MB retained per video (raw + captioned
+  intermediate + final render) is ~$0.0014/month at $0.023/GB-month
+  ([aws.amazon.com/s3/pricing](https://aws.amazon.com/s3/pricing/)); internal
+  transfer during processing is roughly 25–30MB at the $0.109/GB ap-south-1
+  egress rate → **~$0.003/video**. Requests (PUT/GET/HEAD) are a fraction of
+  a cent.
+
+**Total marginal cost per video processed**: roughly **$0.14–0.15**, almost
+entirely the nexrender render-minute charge — everything else combined is a
+rounding error next to it.
+
+**The number that actually matters more than the per-video figure**:
+nexrender's Pay-As-You-Go plan has a **$119/month base fee** on top of the
+per-minute charge, not a pure usage meter
+([nexrender.com/pricing](https://www.nexrender.com/pricing)). At low volume
+that fixed floor dominates completely — e.g. at 10 videos/month, real
+cost-per-video is closer to **~$12** once the $119 floor is amortized in,
+not $0.14; it only approaches the marginal $0.14 rate at high volume (many
+hundreds/month). Worth checking which nexrender plan is actually subscribed
+to and what real expected monthly volume looks like — this is a bigger lever
+than any network/egress optimization below.
+
+**Structural hosting cost for a public deployment** (not tied to video
+volume, this is what "running on a publicly accessible server" adds):
+- **App Runner** (API server): $0.064/vCPU-hr + $0.007/GB-hr while active,
+  $0.007/GB-hr provisioned even when idle
+  ([aws.amazon.com/apprunner/pricing](https://aws.amazon.com/apprunner/pricing/)).
+  Rough small-service estimate: **~$30–60/month**.
+- **Worker process**: it's a persistent polling loop (`worker.ts`), not
+  request-driven, so it doesn't fit App Runner's scale-to-zero model the way
+  the API does — would need its own small always-on compute (Fargate task or
+  small EC2 instance). Rough estimate: **~$15–30/month**.
+- **RDS Postgres** (`db.t4g.micro`): ~$11.68/month compute
+  ([economize.cloud](https://www.economize.cloud/resources/aws/pricing/rds/db.t4g.micro/))
+  + ~$1/month storage at current DB size.
+- **S3 storage**: scales with total videos ever processed, not monthly
+  volume — negligible until there are thousands of testimonials
+  (~$0.023/GB-month).
+- **Egress for end-user playback**: this is the genuinely variable,
+  hard-to-predict one — every time someone actually watches/downloads a
+  rendered reel (WhatsApp share, repeat views), that's ~45MB × $0.109/GB ≈
+  **$0.005/view**, and it scales with how widely a reel gets shared, not
+  with how many were created. A reel that gets forwarded around could cost
+  more in egress than it did to render.
+
+**Rough total floor to have this running publicly at low volume**: roughly
+**~$180–220/month** (hosting ~$60–100 + nexrender's $119 base), before
+counting per-video processing (~$0.14 each) or playback egress (usage-
+dependent). This is a genuinely rough estimate for planning purposes, not a
+number to hold AWS/nexrender to — re-verify against actual billing consoles
+before treating any of it as final.
+
 ## Test/seed data currently in the dev DB
 
 - 2 clients: IFB Appliances, Voltas — both `branding_config.nexrender_template`
@@ -308,11 +399,20 @@ fix attempt touched `outputUrl` instead and did nothing.
 - 5 seeded distributor accounts (Phase A, `src/config/seedAccounts.ts`):
   `ramesh`/`ramesh123` (IFB), `suresh`/`suresh123` (IFB), `patel`/`patel123`
   (IFB), `sharma`/`sharma123` (Voltas), `kumar`/`kumar123` (Voltas).
-- Real test videos pushed through the full pipeline this session:
+- Real test videos pushed through the full pipeline in earlier sessions:
   `assets/question_1-3.mp4` (gitignored, not committed — ~100MB each) under
   `ramesh`; one more under `suresh`; one under `patel` (uploaded but not fully
   processed through render in every test run — check job/segment status
   before assuming it's complete).
+- **Step 9 smoke test data (this session)**: `sharma` (Voltas, previously
+  untouched) now has 3 fully-rendered segments — `assets/goal_9_question_2.mp4`
+  and `_3.mp4` at their natural question_index, and `_4.mp4` re-confirmed
+  under `question_index: 1` after the original `question_index: 4` upload hit
+  the known "questions 4/5 not configured" gap (still sits in the DB at
+  `question_index: 4`, status `transcribed`, no `rendered_video` row — left
+  as-is, useful as a real example of the partial-completion case). All 4
+  files gitignored, not committed, ~8MB each (much smaller than the earlier
+  ~100MB test clips).
 - One old orphaned placeholder segment under "Kumar Sales Corp" with a fake
   `video_key` from very early step-4 testing — never actually uploaded to S3,
   no jobs ever attached to it, harmless, safe to ignore or clean up later.
@@ -353,11 +453,12 @@ prisma/schema.prisma, seed.ts
 ## What the next session should probably do first
 
 1. Read `BUILD_STEPS.md` to confirm current step checkboxes match this file's
-   claim (steps 0–8 done, step 8 uncommitted).
-2. Commit step 8 (`BUILD_STEPS.md`, `CLAUDE.md`, `package.json`,
-   `src/index.ts`, `src/services/s3.ts`, `src/routes/distributors.ts`) if not
-   already done.
-3. Start Step 9: end-to-end smoke test — one real video through the whole
-   flow, retrievable through the step-8 read endpoints with correct URLs.
+   claim (steps 0–9 all done, step 9 uncommitted as of this writing).
+2. Commit step 9 (`BUILD_STEPS.md`, `learnings.md`,
+   `src/jobs/renderSegment.ts`) if not already done.
+3. All build steps are complete — next work is one of: the flagged future
+   items (orphaned uploads, nexrender webhook, admin dashboard, aspect
+   ratio/duration/long-recording handling), or an actual deployment pass
+   (App Runner + RDS), or whatever the user directs.
 4. Remember the restart-after-changes gotcha before assuming a fix took
    effect.
