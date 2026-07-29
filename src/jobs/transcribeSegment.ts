@@ -24,6 +24,7 @@ async function timeStage<T>(
   stage: string,
   fn: () => Promise<T>,
 ): Promise<T> {
+  console.log(`[transcribe_segment] segment=${segmentId} stage=${stage} starting`);
   const start = Date.now();
   try {
     return await fn();

@@ -29,8 +29,23 @@ async function claimJob(): Promise<JobRow | null> {
   return rows[0] ?? null;
 }
 
+// execFile-based errors (ffmpeg) carry the real failure reason on .stderr/.code/
+// .signal rather than always folding it into .message — capture those explicitly
+// so a bare "Command failed: ffmpeg ..." with no detail never happens again.
+function formatError(err: unknown): string {
+  if (!(err instanceof Error)) {
+    return String(err);
+  }
+  const anyErr = err as Error & { stderr?: string; code?: number | string; signal?: string };
+  const parts = [anyErr.message];
+  if (anyErr.stderr) parts.push(`stderr: ${anyErr.stderr}`);
+  if (anyErr.code !== undefined) parts.push(`exit code: ${anyErr.code}`);
+  if (anyErr.signal) parts.push(`signal: ${anyErr.signal}`);
+  return parts.join(" | ");
+}
+
 async function processJob(job: JobRow): Promise<void> {
-  console.log(`[${WORKER_ID}] claimed job ${job.id} (${job.type})`);
+  console.log(`[${WORKER_ID}] claimed job ${job.id} (${job.type}) payload=${JSON.stringify(job.payload)}`);
 
   try {
     const handler = handlers[job.type];
@@ -44,15 +59,16 @@ async function processJob(job: JobRow): Promise<void> {
     });
     console.log(`[${WORKER_ID}] completed job ${job.id}`);
   } catch (err) {
+    const detail = formatError(err);
     await prisma.job.update({
       where: { id: job.id },
       data: {
         status: "failed",
         attempts: { increment: 1 },
-        last_error: err instanceof Error ? err.message : String(err),
+        last_error: detail,
       },
     });
-    console.error(`[${WORKER_ID}] job ${job.id} failed:`, err);
+    console.error(`[${WORKER_ID}] job ${job.id} (${job.type}) failed: ${detail}`);
   }
 }
 

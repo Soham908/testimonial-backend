@@ -20,6 +20,10 @@ segmentsRouter.post("/segments/upload-url", async (req, res) => {
   const video_key = buildSegmentVideoKey(client_id, distributor_id, question_index);
   const upload_url = await getUploadUrl(video_key);
 
+  console.log(
+    `[segments] upload-url issued distributor=${distributor_id} question_index=${question_index} video_key=${video_key}`,
+  );
+
   res.json({ upload_url, video_key });
 });
 
@@ -42,6 +46,9 @@ segmentsRouter.post("/segments/confirm", async (req, res) => {
   const { distributor_id } = req.auth!;
 
   if (!(await objectExists(video_key))) {
+    console.warn(
+      `[segments] confirm rejected: video_not_found distributor=${distributor_id} question_index=${question_index} video_key=${video_key}`,
+    );
     res.status(404).json({
       error: "video_not_found",
       message: "The uploaded video could not be found in storage. Please retry the upload.",
@@ -71,6 +78,10 @@ segmentsRouter.post("/segments/confirm", async (req, res) => {
 
     return seg;
   });
+
+  console.log(
+    `[segments] confirm received distributor=${distributor_id} question_index=${question_index} segment=${segment.id} — queued transcribe_segment`,
+  );
 
   res.json({ segment });
 });

@@ -10,6 +10,7 @@ const COMPOSITION = "MainComp";
 type BrandingConfig = { nexrender_template?: string };
 
 async function timeStage<T>(segmentId: string, stage: string, fn: () => Promise<T>): Promise<T> {
+  console.log(`[render_segment] segment=${segmentId} stage=${stage} starting`);
   const start = Date.now();
   try {
     return await fn();
