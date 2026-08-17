@@ -27,6 +27,12 @@ function loadEnv(): Record<RequiredVar, string> &
     REQUIRED_VARS.map((key) => [key, process.env[key] as string]),
   ) as Record<RequiredVar, string>;
 
+  // JWTs are the only thing standing between an unauthenticated request and
+  // req.auth — a short/guessable secret makes every session forgeable.
+  if (required.SESSION_SECRET.length < 32) {
+    throw new Error("SESSION_SECRET must be at least 32 characters long");
+  }
+
   const optional = Object.fromEntries(
     OPTIONAL_VARS.map((key) => [key, process.env[key]]),
   ) as Partial<Record<OptionalVar, string>>;

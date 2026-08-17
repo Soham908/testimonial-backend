@@ -37,6 +37,8 @@ response shapes below will change when that happens, only the base URL.
 - Success `200`: `{ "token": string }` — a JWT, 30-day expiry.
 - Failure `401`: `{ "error": "Invalid username or password" }`
 - Failure `400` (missing/wrong-typed fields): `{ "error": "username and password are required" }`
+- Failure `429` (rate-limited — more than 10 attempts from the same IP in 15
+  minutes): `{ "error": "Too many login attempts, please try again later" }`
 
 Every request after login must include:
 ```
@@ -69,16 +71,22 @@ the signed URL itself.
 
 `POST /segments/confirm`
 - Requires auth.
-- Body: `{ "question_index": number, "video_key": string, "duration": number }`
-  — `video_key` is exactly what `upload-url` returned; `duration` is the
-  clip length in seconds (a plain number, not a string).
+- Body: `{ "question_index": number, "duration": number }` — `duration` is the
+  clip length in seconds (a plain number, not a string), must be > 0.
+- **`video_key` is no longer read from the request body** — the backend
+  derives it itself from the token's `distributor_id`/`client_id` plus
+  `question_index` (same value `upload-url` already returned you, just no
+  longer trusted from the client). Still fine to send it, it's just ignored
+  now — this was a security fix (a client could otherwise confirm a key
+  belonging to a different distributor), not a shape change you need to act
+  on.
 - Success `200`: `{ "segment": { "id", "distributor_id", "question_index", "video_key", "status", "duration_seconds", "created_at", "updated_at" } }`
   — the app doesn't need to do anything with this beyond knowing it
   succeeded; the same data comes back (fresher) from the read endpoints
   below.
-- Failure `400`: `{ "error": "question_index must be an integer between 1 and 5" }`,
-  `{ "error": "video_key is required" }`, or `{ "error": "duration is required" }`
-  depending on which field is missing/wrong-typed.
+- Failure `400`: `{ "error": "question_index must be an integer between 1 and 5" }`
+  or `{ "error": "duration must be a positive number" }` depending on which
+  field is missing/invalid.
 - Failure `404` (upload didn't actually reach S3 — safe to retry, nothing
   was written): `{ "error": "video_not_found", "message": "The uploaded video could not be found in storage. Please retry the upload." }`
 - Calling `confirm` again for the same `question_index` (a retake) updates

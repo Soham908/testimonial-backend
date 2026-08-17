@@ -28,22 +28,26 @@ segmentsRouter.post("/segments/upload-url", async (req, res) => {
 });
 
 segmentsRouter.post("/segments/confirm", async (req, res) => {
-  const { question_index, video_key, duration } = req.body ?? {};
+  const { question_index, duration } = req.body ?? {};
 
   if (!isValidQuestionIndex(question_index)) {
     res.status(400).json({ error: "question_index must be an integer between 1 and 5" });
     return;
   }
-  if (typeof video_key !== "string" || video_key.length === 0) {
-    res.status(400).json({ error: "video_key is required" });
-    return;
-  }
-  if (typeof duration !== "number" || !Number.isFinite(duration)) {
-    res.status(400).json({ error: "duration is required" });
+  if (typeof duration !== "number" || !Number.isFinite(duration) || duration <= 0) {
+    res.status(400).json({ error: "duration must be a positive number" });
     return;
   }
 
-  const { distributor_id } = req.auth!;
+  const { distributor_id, client_id } = req.auth!;
+  // Derived server-side from the caller's own auth-scoped ids, never taken
+  // from the request body — the client-supplied video_key used to be trusted
+  // as-is, and since keys are fully predictable
+  // (clients/{client_id}/distributors/{distributor_id}/segments/{n}.mp4), a
+  // caller could otherwise confirm a key belonging to another distributor's
+  // real upload and have it recorded as their own segment.
+  const video_key = buildSegmentVideoKey(client_id, distributor_id, question_index);
+  const duration_seconds = Math.round(duration);
 
   if (!(await objectExists(video_key))) {
     console.warn(
@@ -59,12 +63,12 @@ segmentsRouter.post("/segments/confirm", async (req, res) => {
   const segment = await prisma.$transaction(async (tx) => {
     const seg = await tx.segment.upsert({
       where: { distributor_id_question_index: { distributor_id, question_index } },
-      update: { video_key, duration_seconds: duration, status: "uploaded" },
+      update: { video_key, duration_seconds, status: "uploaded" },
       create: {
         distributor_id,
         question_index,
         video_key,
-        duration_seconds: duration,
+        duration_seconds,
         status: "uploaded",
       },
     });

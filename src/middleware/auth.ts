@@ -17,7 +17,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
   }
 
   try {
-    const payload = jwt.verify(token, config.SESSION_SECRET) as SessionPayload;
+    const payload = jwt.verify(token, config.SESSION_SECRET, { algorithms: ["HS256"] }) as SessionPayload;
     req.auth = { distributor_id: payload.distributor_id, client_id: payload.client_id };
     next();
   } catch {

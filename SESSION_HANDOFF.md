@@ -153,6 +153,130 @@ assuming that).
   `src/services/nexrender.ts` or the template config.
 
 ---
+
+## Session handoff — 2026-08-17: security/best-practices audit + fixes
+
+Full pass over the whole repo (`git status` was clean going in — no other
+work in flight): routes, middleware, services, jobs, worker, schema, and
+every project doc, checking for setup problems, best-practices gaps, and
+security issues, then fixing what was safe to fix directly. Not a
+`BUILD_STEPS.md` step — general hardening, done as its own scoped task.
+
+**Environment note**: `node_modules/` didn't exist in this checkout at all —
+nothing here had ever actually been typechecked or built in this working
+directory before today. Ran `npm install`, generated the Prisma client
+(schema-only, no real DB connection needed for that), and confirmed `tsc
+--noEmit` and `npm run build` both pass clean, before and after every change
+below.
+
+### Fixed — security
+
+1. **IDOR in `POST /segments/confirm`** (`src/routes/segments.ts`) — the
+   real finding. The route trusted a client-supplied `video_key` as-is.
+   Since keys are fully predictable
+   (`clients/{client_id}/distributors/{distributor_id}/segments/{n}.mp4`),
+   any authenticated distributor could confirm a key belonging to a
+   *different* distributor and have that video recorded as their own
+   segment — cross-tenant data exposure. Fixed: `video_key` is now always
+   derived server-side from the caller's own `req.auth` (`client_id` +
+   `distributor_id` + `question_index`); the client-sent value is no longer
+   read at all. `API_CONTRACT.md`'s `/segments/confirm` section updated to
+   match — `video_key` is no longer part of the request body contract
+   (still harmless if the mobile app keeps sending it, just ignored).
+2. **JWT algorithm confusion** — `jwt.sign`/`jwt.verify`
+   (`src/routes/login.ts`, `src/middleware/auth.ts`) didn't pin an
+   algorithm. Both now explicitly use `HS256`.
+3. **Login timing side-channel** (`src/routes/login.ts`) — requests for an
+   unknown username skipped `bcrypt.compare` entirely, making them
+   measurably faster than a wrong-password request for a real username —
+   an attacker could use that timing gap to enumerate valid usernames.
+   Fixed: always compares against a real hash, falling back to a fixed
+   dummy hash (`DUMMY_HASH`, same cost factor as real accounts) when the
+   account isn't found.
+4. **No rate limiting anywhere** — added `express-rate-limit`: a strict
+   limiter on `POST /login` (10 requests/15min/IP,
+   `src/routes/login.ts`), and a general one across the whole API (300
+   requests/15min/IP, `src/index.ts`). `API_CONTRACT.md` documents the new
+   `429` response on `/login`.
+5. **No security headers** — added `helmet()` in `src/index.ts`.
+6. **Stack-trace leakage risk** — there was no error-handling middleware in
+   `src/index.ts`, so an uncaught exception fell through to Express's
+   *default* handler, which includes the stack trace in the response body
+   unless `NODE_ENV` is exactly `"production"` — easy to forget on a real
+   deploy. Added a proper error-handling middleware: logs server-side,
+   returns a generic `{ error: "internal_server_error" }` (`500`), with a
+   special case for malformed-JSON bodies (`400`, `invalid_json`) instead
+   of masking those as server errors.
+7. **Unvalidated `SESSION_SECRET` strength** — `src/config/env.ts` now
+   fails fast at startup if it's under 32 characters (JWTs are the only
+   thing gating `req.auth`, so a short/guessable secret makes every session
+   forgeable). **This can break an existing local `.env` if that secret is
+   shorter than 32 chars — check/regenerate it before assuming a "missing
+   env var"-shaped startup failure is something else.**
+8. Added `app.set("trust proxy", 1)` in `src/index.ts` — App Runner (the
+   planned eventual host, per `CLAUDE.md`) terminates TLS and proxies in
+   front of the app; trusting the first hop makes `req.ip` and the rate
+   limiter above key on the real client IP instead of the proxy's. Harmless
+   locally (no proxy in front in dev, so behavior is unchanged there).
+
+### Fixed — correctness / cleanup
+
+9. `duration` from the client (`src/routes/segments.ts`) was written
+   straight into an `Int` column (`duration_seconds`) with no rounding or
+   positivity check — a float duration from the mobile app would have
+   thrown at the Prisma layer. Now validated as a positive finite number
+   and rounded server-side before the write.
+10. `.gitignore` listed `.env.example` as ignored, even though it's
+    intentionally committed (confirmed via `git ls-files` — it was already
+    tracked). Misleading, and would silently block re-adding it if it were
+    ever deleted. Removed that line.
+11. `.env.example`'s `NEXRENDER_SERVER_URL` default was missing the `/api`
+    path segment — exactly the mistake `learnings.md` already documents
+    costing real debugging time in step 7 ("easy to drop by mistake").
+    Fixed the example value and added a comment explaining why it matters
+    (the API responds just enough without `/api` to make the omission
+    non-obvious until a real render call fails).
+12. Added a JSON `404` handler in `src/index.ts` (previously fell through
+    to Express's default HTML "Cannot GET ..." response).
+
+### Flagged, not touched — needs a judgment call, not a mechanical fix
+
+- **`GET /segments/sentiment`** (`src/routes/segments.ts`) — already
+  commented in-code as temporary/test-only, but it's live and scoped only
+  by `client_id`, so any distributor can currently see every *other*
+  distributor's sentiment/moderation/complaint data under the same client.
+  Fine for internal testing; not something to ship without real admin auth
+  (same gap `CLAUDE.md`'s "admin dashboard was forgotten" note already
+  tracks).
+- **Seeded passwords** (`ramesh123` etc., `src/config/seedAccounts.ts`) are
+  weak, but that's the documented, deliberate Phase-A tradeoff (replaced
+  wholesale by invite-token exchange in Phase B) — not something to patch
+  without changing the auth model itself.
+- `npm audit` reports 6 vulnerabilities, all inside `prisma`'s own
+  dev-tooling transitive deps (`@prisma/dev` → `@hono/node-server`,
+  `fast-uri`, `hono`, `valibot`) — none of these are reachable at runtime
+  through this app's own code paths. Didn't run `npm audit fix` since it
+  could pull in a Prisma version bump; not worth that risk for
+  non-runtime-reachable issues.
+- No CORS setup — not needed yet since only the mobile app calls this API
+  directly (no browser client). Revisit once/if a browser-based admin
+  dashboard exists.
+
+### New dependencies
+
+`helmet` and `express-rate-limit` added to `package.json` dependencies (not
+dev-only — both run in the request path). `package-lock.json` updated
+accordingly.
+
+### Files touched this session
+
+`.env.example`, `.gitignore`, `API_CONTRACT.md`, `package.json`,
+`package-lock.json`, `src/config/env.ts`, `src/index.ts`,
+`src/middleware/auth.ts`, `src/routes/login.ts`, `src/routes/segments.ts`.
+Not yet committed as of this writing — same as step 9 in `learnings.md`,
+ask the user before committing/pushing.
+
+---
 *This file was NOT committed/pushed automatically — ask the user whether
 they want it committed and pushed to `origin/master` so it's pullable from
 the other laptop, since that's a shared/remote-visible action.*
