@@ -273,10 +273,227 @@ accordingly.
 `.env.example`, `.gitignore`, `API_CONTRACT.md`, `package.json`,
 `package-lock.json`, `src/config/env.ts`, `src/index.ts`,
 `src/middleware/auth.ts`, `src/routes/login.ts`, `src/routes/segments.ts`.
-Not yet committed as of this writing — same as step 9 in `learnings.md`,
-ask the user before committing/pushing.
+
+*(Stale note from when this section was written: it said these weren't
+committed yet. They were — this is commit `248ff65 "rough audit done"`,
+confirmed via `git log` in the next session below.)*
 
 ---
-*This file was NOT committed/pushed automatically — ask the user whether
-they want it committed and pushed to `origin/master` so it's pullable from
-the other laptop, since that's a shared/remote-visible action.*
+
+## Session handoff — 2026-08-31: video normalization, DB-driven questions,
+## per-question sentiment extraction, real render test
+
+Repo state at start: `git status` showed a working tree with several
+uncommitted pieces already in flight from **outside this chat session**
+(more on that below) plus this session's own new work. Everything described
+here is now committed as `2dc91e0 "Move questions to DB, normalize video
+orientation, gate dev endpoints"` — `master`, not pushed (never asked to).
+
+### 1. Video normalization — §3 from the 2026-08-13/14 handoff, now DONE
+
+That earlier handoff left this as a design recommendation only, no code.
+It's implemented now: `burnCaptions` in `src/services/ffmpeg.ts` no longer
+just burns captions — same ffmpeg pass now also normalizes every segment to
+the canonical shape (1080×1920, scale-to-fit + pad, `setsar=1`, 30fps,
+H.264 High/CRF20/yuv420p, AAC 128k/48kHz/stereo, `+faststart`), fixing the
+real bug: source videos are stored landscape with a rotation flag that After
+Effects ignores, causing the crop/zoom pending item (#2 in the old §2 list,
+see the correction below). Deliberately relies on ffmpeg's automatic
+rotation-at-decode (no `transpose`, no `-noautorotate`) so it's
+orientation-agnostic across phones, not tuned to one device.
+
+Also accepts `trim_start_ms`/`trim_end_ms` (new nullable columns on
+`Segment`) via `-ss`/`-to`, ahead of the app actually sending them — matches
+the "auto-suggest snipping the last 2s" idea already in `CLAUDE.md`. Open
+design question flagged back to the user, not yet answered: should the
+frontend send absolute start/end timestamps (what's implemented) or a
+"snip N seconds" value? Recommended absolute start/end since the frontend
+already knows its own recorded duration and can compute either shape
+client-side, and absolute start/end generalizes to a future manual-trim UI
+without a contract change.
+
+Added `scripts/normalize-video.ts` (`npm run normalize-video`) — runs the
+same `burnCaptions` command against a local file with no S3/DB/worker
+needed, for exactly this kind of verification. Internally serves the local
+file over a throwaway loopback HTTP server (with Range support) since
+`burnCaptions`'s `-reconnect*` flags are HTTP-only and reject a bare local
+path outright.
+
+**Verified live**, not just compiled: ran it against a real phone clip in
+`assets/` (1920×1080 container, 90° rotation stored as **Display Matrix
+side data**, not the older `rotate` tag — this caught a real gap in the
+ffprobe logging, which originally only checked the legacy tag; fixed to
+check both). Confirmed output: correct upright portrait orientation,
+1080×1920, rotation metadata gone, and a trim window landing exactly where
+requested (matched a frame from the trimmed clip against the source at the
+same timestamp).
+
+### 2. Correction to old pending item #2 ("crop/zoom on rendered output")
+
+The 2026-08-13/14 handoff's theory was that missing normalization
+(different phone aspect ratios) caused nexrender/After Effects to crop
+footage. Normalization above fixes that specific mechanism. But a live
+render this session (see §5) surfaced a **different, still-open** distortion:
+the *rendered output* comes out with correct pixel dimensions (1080×1920)
+but tagged `sample_aspect_ratio: 4:3` instead of `1:1`, giving an effective
+display aspect ratio of 3:4 instead of 9:16 — any standards-compliant
+player will show it visibly squished. Confirmed via `ffprobe` that our own
+captioned video (nexrender's *input*) is correctly `SAR 1:1`/`DAR 9:16`, so
+this is introduced **inside nexrender's own template/render step**, not by
+this repo's code. User's call this session: leave it for now, revisit
+later. Whoever picks this up next: don't re-diagnose from scratch, start
+from "it's in the After Effects template or nexrender's own encode, not our
+ffmpeg pass" and check the template's composition settings first.
+
+### 3. Question configuration moved to the database
+
+New `Question` model (`prisma/schema.prisma`,
+migration `20260831140000_add_questions`): per-`client_id`, `index`,
+`is_branded`, `text_en`/`text_hi`/`text_mr`, `vo_key_en`/`vo_key_hi`/
+`vo_key_mr`, nullable `extraction_spec` Json. Replaces the old hardcoded
+`src/config/questions.ts` (deleted) which only had 3 of 5 questions
+populated and hard-threw on indices 4/5 — a real problem given IFB's
+upcoming engagement needs 7 different questions from the internal test
+client's 5.
+
+- `GET /distributors/me/questions` (new, `src/routes/distributors.ts`) —
+  returns the caller's client's question set, already localized to the
+  distributor's `language_pref` (optionally overridden per-call via
+  `?language=en|hi|mr`, added later same session — see `API_CONTRACT.md`).
+  Response includes a stable `id` per question (not just `index`) since
+  `index` isn't guaranteed to stay a safe identity key if a question set is
+  ever reordered.
+- `src/routes/segments.ts`'s `question_index` validation changed from a
+  hardcoded 1–5 bound to an existence check against the `questions` table
+  (`questionExists()`) — otherwise IFB's future indices 6/7 would 400 even
+  with valid `Question` rows. Verified live: index 5 now uploads fine,
+  index 99 gets a clean 400, never a throw.
+- `src/jobs/renderSegment.ts` now looks up `Question` by
+  `(client_id, question_index)` instead of the old static maps; only
+  throws on a genuinely missing DB row now, not on any index beyond 3.
+- Seeded (`prisma/seed.ts`): both dummy clients (IFB, Voltas) get the same
+  5 education questions, `is_branded: false`. **VO audio keys are seeded
+  but nothing has been uploaded to them** — `static/question-vo/{client_id}/
+  {lang}/{index}.mp3` is a real gap, confirmed live this session (§5) when
+  a render failed because nexrender couldn't download the VO file. Needs
+  real recorded audio per question per language before rendering works for
+  real (test placeholders were uploaded and then are still sitting at
+  those same S3 keys for the Voltas client, indices 1–2, English only —
+  replace them, don't assume they're real).
+
+### 4. Per-question sentiment extraction
+
+New nullable `extracted` Json column on `SentimentResult`
+(migration `20260831150000_add_sentiment_extracted`), alongside the
+existing nine fixed columns (kept as real columns deliberately — reports
+query them constantly). `src/services/gemini.ts`'s `analyzeSentiment` now
+takes `(transcriptText, languageDetected, questionText, extractionSpec)`
+and builds both the prompt and Gemini's `responseSchema` dynamically from
+`extraction_spec` each call — the whole point being that adding a new
+extracted field for a question is a `Question.extraction_spec` row edit,
+never a migration or code change. Shape:
+`{ name, type: "string"|"number"|"boolean", description, nullable? }[]`,
+documented in the schema comment and `src/services/gemini.ts`. Malformed
+entries are dropped rather than thrown on, so a typo in one question's spec
+can't take down the nine core fields every report depends on.
+
+**Verified against the real Gemini API** (key added mid-session): real
+ElevenLabs transcript → real Gemini call with a non-null `extraction_spec`
+(two test fields) → correct dynamic schema response. Hit a transient
+Google-side 503 during testing (model overload, not a bug) — retried
+successfully.
+
+### 5. Real end-to-end pipeline test — what broke and why (all environment, not code)
+
+User ran the real worker against a real uploaded video and asked to render
+the first 2 segments. Nothing here was a code bug; all four issues were
+**a long-running process holding a stale environment from before it was
+started** — worth remembering as a pattern, it'll happen again:
+
+1. `spawn ffmpeg ENOENT` in the worker — ffmpeg was installed via `winget`
+   *after* the worker's terminal was already open. Fix: fully quit and
+   reopen the terminal app (not just a new tab/window in an already-running
+   app — notably, a VS Code-hosted terminal doesn't pick up a fresh PATH
+   until VS Code itself is fully restarted, not just the terminal pane).
+2. `401 Unauthorized - Invalid token` from nexrender-cloud — turned out to
+   be two stacked issues: first the key really was wrong (hand-typed, not
+   pasted), then after fixing it in `.env`, the *already-running* worker
+   process still had the old key in memory (`--env-file` loads once at
+   startup). Restarting the worker after any `.env` edit is required, not
+   optional — confirmed by directly `curl`-ing nexrender-cloud with the
+   current `.env` value to isolate that the key itself was fine before
+   concluding the worker was stale.
+3. Missing VO audio (see §3 above) — real gap, not an environment issue,
+   worked around with test placeholders for this session only.
+4. The `SAR 4:3` render distortion (see §2 above).
+
+Once all four were resolved, both renders completed successfully end to
+end and landed real files in S3 — confirms the full pipeline (login →
+upload → confirm → transcribe → per-question sentiment → render → S3)
+works with real credentials, real footage, real APIs.
+
+**Current data state** (Voltas client, distributor "Kumar Sales Corp",
+5 segments from this test): q2 and q4 fully transcribed with sentiment;
+q1, q3, q5 have transcripts but never completed sentiment (stuck `failed`
+from the ffmpeg-PATH/Gemini-503 issues above, before either was resolved).
+q1 and q2 have been rendered (test placeholder VO, Voltas' shared rough
+template). q3/q5's sentiment step and all of q3/q4/q5's rendering are still
+outstanding — not done automatically, `render_segment` was queued manually
+for q1/q2 this session rather than through the normal auto-queue trigger.
+
+### 6. Dev-only routes, ownership tests, vitest — NOT this session's work, found already in progress
+
+Partway through this session, `git status` showed additional
+modifications/new files this chat never touched: `src/routes/dev.ts` (new),
+`src/index.ts` and `src/config/env.ts` changes to mount it, `tests/`
+(`dev-endpoints.test.ts`, `ownership.test.ts`, `setup.ts`), `vitest.config.mts`,
+and `vitest`/`supertest` added to `package.json`. Investigated rather than
+blindly committing or reverting: this is a real, well-reasoned security fix
+— the old `GET /segments/sentiment` test endpoint (flagged as a known gap
+in the 2026-08-17 audit above) returned client-wide sentiment/moderation/
+complaint data to *any* distributor of that client, not scoped to the
+caller. It's been moved off the app's normal routers into
+`src/routes/dev.ts`, gated behind a new `ENABLE_DEV_ENDPOINTS` flag
+(default off, `src/config/env.ts`) — off means the route is never
+registered at all (plain 404), not merely rejected (which would leak that
+it exists via a 403). Real regression tests cover both the ownership leak
+class of bug generally (`tests/ownership.test.ts`) and this flag
+specifically (`tests/dev-endpoints.test.ts`).
+
+Found one unrelated stray line in the same working tree — a bare
+`console.log('hello');` in `src/routes/login.ts`, inside the login handler,
+not connected to any of the above. Removed before committing; not part of
+the dev-endpoints work, looked like leftover manual debugging (matches an
+IDE-file-open notification for that exact file earlier in this session).
+
+Verified `tsc --noEmit` clean and `npx vitest run` (6/6 passing) with this
+work integrated alongside this session's own changes before committing
+everything together in one commit.
+
+**If you're picking this up not knowing where this came from**: it's not
+explained anywhere in this chat's history — either a parallel Claude Code
+session, or the user's own direct edit. Worth asking the user directly
+which it was if it matters for continuity (e.g. whether more is coming from
+the same source).
+
+### Environment gotchas worth remembering
+
+- **`.env` now has real values** for `DATABASE_URL`, `SESSION_SECRET`,
+  `AWS_REGION`/`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`/`S3_BUCKET_NAME`
+  (real bucket, scoped IAM user), `ELEVENLABS_API_KEY`, `GEMINI_API_KEY`,
+  `NEXRENDER_SERVER_URL`/`NEXRENDER_API_KEY`, `ENABLE_REEL_RENDERING=true`.
+  Local Postgres and ffmpeg (via `winget`) were also newly installed this
+  session.
+- **Restart the worker after any `.env` edit** — `tsx --env-file=.env`
+  loads once at process start, not live. This bit us twice this session
+  (see §5).
+- **`npx prisma migrate dev` / `generate` may fail with
+  `Cannot resolve environment variable: DATABASE_URL`** even with a
+  correct `.env` present — Prisma 7's `prisma.config.ts`-based config
+  loader doesn't auto-load `.env` the way older Prisma did. Workaround used
+  all session: invoke via `node --env-file=.env node_modules/prisma/build/
+  index.js migrate dev ...` instead of `npx prisma migrate dev`.
+- `npm run test` now runs `vitest run` (was a placeholder before).
+
+---
+*Not pushed to `origin` — not asked to.*
