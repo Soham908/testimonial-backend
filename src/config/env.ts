@@ -17,7 +17,11 @@ type RequiredVar = (typeof REQUIRED_VARS)[number];
 type OptionalVar = (typeof OPTIONAL_VARS)[number];
 
 function loadEnv(): Record<RequiredVar, string> &
-  Partial<Record<OptionalVar, string>> & { PORT: number } {
+  Partial<Record<OptionalVar, string>> & {
+    PORT: number;
+    ENABLE_REEL_RENDERING: boolean;
+    ENABLE_DEV_ENDPOINTS: boolean;
+  } {
   const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
@@ -37,7 +41,30 @@ function loadEnv(): Record<RequiredVar, string> &
     OPTIONAL_VARS.map((key) => [key, process.env[key]]),
   ) as Partial<Record<OptionalVar, string>>;
 
-  return { ...required, ...optional, PORT: Number(process.env.PORT) || 3000 };
+  // The branded-reel template isn't ready yet - default off (this build)
+  // so render_segment jobs are never queued and nexrender is never called.
+  // See src/jobs/transcribeSegment.ts, the only place this is read. The
+  // frontend has its own independent EXPO_PUBLIC_ENABLE_REEL_RENDERING
+  // flag (testimonial-app/config.ts) - keep both in sync.
+  const enableReelRendering = process.env.ENABLE_REEL_RENDERING === "true";
+
+  // Gates every internal/debug route (currently just GET /segments/sentiment,
+  // see src/routes/dev.ts) - default off. These routes return data scoped by
+  // client_id rather than the caller's own distributor_id, which is correct
+  // for an internal inspection tool but would otherwise let any authenticated
+  // distributor read every other distributor's transcripts/sentiment/
+  // moderation flags for the same client. Off by default means the route is
+  // never registered at all, not merely rejected - it shouldn't advertise its
+  // own existence to a production caller.
+  const enableDevEndpoints = process.env.ENABLE_DEV_ENDPOINTS === "true";
+
+  return {
+    ...required,
+    ...optional,
+    PORT: Number(process.env.PORT) || 3000,
+    ENABLE_REEL_RENDERING: enableReelRendering,
+    ENABLE_DEV_ENDPOINTS: enableDevEndpoints,
+  };
 }
 
 export const config = loadEnv();

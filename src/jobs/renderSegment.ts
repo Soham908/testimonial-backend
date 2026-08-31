@@ -1,7 +1,7 @@
 import { prisma } from "../db/prisma";
 import { getDownloadUrl, buildCaptionedVideoKey } from "../services/s3";
 import { createJob, pollJobUntilDone, type NexrenderJobPayload } from "../services/nexrender";
-import { QUESTION_TEXT, QUESTION_VO_KEY } from "../config/questions";
+import { localizeQuestion } from "../services/questions";
 import { config } from "../config/env";
 import type { JobRow } from "./types";
 
@@ -33,11 +33,15 @@ export async function renderSegmentHandler(job: JobRow): Promise<void> {
     return;
   }
 
-  const questionText = QUESTION_TEXT[segment.question_index];
-  const voKey = QUESTION_VO_KEY[segment.question_index];
-  if (!questionText || !voKey) {
-    throw new Error(`No question config for question_index ${segment.question_index}`);
+  const question = await prisma.question.findUnique({
+    where: { client_id_index: { client_id: segment.distributor.client_id, index: segment.question_index } },
+  });
+  if (!question) {
+    throw new Error(
+      `No question configured for client ${segment.distributor.client_id} at index ${segment.question_index}`,
+    );
   }
+  const { text: questionText, vo_key: voKey } = localizeQuestion(question, segment.distributor.language_pref);
 
   const brandingConfig = segment.distributor.client.branding_config as BrandingConfig;
   const templateId = brandingConfig.nexrender_template;

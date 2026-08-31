@@ -13,8 +13,40 @@ model Client {
   created_at      DateTime @default(now()) @db.Timestamptz
 
   distributors Distributor[]
+  questions    Question[]
 
   @@map("clients")
+}
+
+model Question {
+  id         String   @id @default(uuid()) @db.Uuid
+  client_id  String   @db.Uuid
+  index      Int
+  is_branded Boolean  @default(false)
+
+  text_en String
+  text_hi String
+  text_mr String
+
+  vo_key_en String
+  vo_key_hi String
+  vo_key_mr String
+
+  // Question-specific fields for the analysis prompt to pull out, on top of
+  // the nine fixed SentimentResult columns. Null/empty means no extra
+  // fields for this question. Shape: an array of
+  // { name: string; type: "string"|"number"|"boolean"; description: string; nullable?: boolean }
+  // — see src/services/gemini.ts. Adding a new extracted value for a
+  // question is purely a row edit here, never a migration or a code change.
+  extraction_spec Json?
+
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @updatedAt @db.Timestamptz
+
+  client Client @relation(fields: [client_id], references: [id])
+
+  @@unique([client_id, index])
+  @@map("questions")
 }
 
 model Distributor {
@@ -47,6 +79,13 @@ model Segment {
   video_key        String
   status           SegmentStatus @default(recorded_local)
   duration_seconds Int
+  trim_start_ms    Int?
+  trim_end_ms      Int?
+  // What the device actually captured, as reported by the client at
+  // confirm time - file size, resolution, fps, codec, device model/OS
+  // version. Best-effort, stored as-is (see POST /segments/confirm) for
+  // later analysis of real distributor phones; nothing reads it back today.
+  capture_metadata Json?
   created_at       DateTime      @default(now()) @db.Timestamptz
   updated_at       DateTime      @updatedAt @db.Timestamptz
 
@@ -85,6 +124,11 @@ model SentimentResult {
   contains_complaint  Boolean
   actionable_feedback String?
   highlight_score     Decimal
+  // Question-specific fields, shaped per the triggering Segment's Question's
+  // extraction_spec (see Question below) - varies per question, unlike the
+  // nine fixed columns above. Adding a new extracted value is a Question row
+  // edit, never a migration or a code change.
+  extracted           Json?
   created_at          DateTime @default(now()) @db.Timestamptz
 
   segment Segment @relation(fields: [segment_id], references: [id])

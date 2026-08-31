@@ -1,8 +1,51 @@
 import { Router } from "express";
 import { prisma } from "../db/prisma";
 import { getPlaybackUrl } from "../services/s3";
+import { localizeQuestion } from "../services/questions";
 
 export const distributorsRouter = Router();
+
+// The set of questions the app should ask this distributor, localized to
+// their language_pref. Ordered by index; count and content vary per client
+// (e.g. 5 for the internal test client, 7 for IFB) — nothing here assumes a
+// fixed set.
+distributorsRouter.get("/distributors/me/questions", async (req, res) => {
+  const { distributor_id, client_id } = req.auth!;
+
+  const distributor = await prisma.distributor.findUniqueOrThrow({
+    where: { id: distributor_id },
+    select: { language_pref: true },
+  });
+
+  const questions = await prisma.question.findMany({
+    where: { client_id },
+    orderBy: { index: "asc" },
+  });
+
+  // Optional override of the distributor's stored language_pref for this
+  // call only - lets the app request a specific language (defaulting to
+  // "en" today) ahead of a real in-app language selector, without needing
+  // to write anything back to the distributor record. Falls through to
+  // language_pref, same as an unsupported/missing value would, if omitted
+  // or not a string.
+  const languageOverride = typeof req.query.language === "string" ? req.query.language : undefined;
+  const language = languageOverride ?? distributor.language_pref;
+
+  const results = await Promise.all(
+    questions.map(async (question) => {
+      const { text, vo_key } = localizeQuestion(question, language);
+      return {
+        id: question.id,
+        index: question.index,
+        is_branded: question.is_branded,
+        text,
+        vo_playback_url: await getPlaybackUrl(vo_key),
+      };
+    }),
+  );
+
+  res.json({ questions: results });
+});
 
 distributorsRouter.get("/distributors/me/segments", async (req, res) => {
   const { distributor_id } = req.auth!;
