@@ -31,6 +31,17 @@ function normalizeCaptureMetadata(value: unknown): Prisma.InputJsonValue | undef
   return value as Prisma.InputJsonValue;
 }
 
+// Absolute offsets (ms) into the source clip, chosen in Review & Trim.
+// `undefined` (field omitted entirely) means "the client didn't send a
+// trim opinion at all" - leaves whatever's already on the segment alone,
+// same as `capture` above. `null` is a real, meaningful value distinct
+// from that - "the person looked at the trim UI and kept the full clip" -
+// and must be written as null, not skipped.
+function isValidTrimMs(value: unknown): value is number | null | undefined {
+  if (value === undefined || value === null) return true;
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
 segmentsRouter.post("/segments/upload-url", async (req, res) => {
   const { question_index } = req.body ?? {};
 
@@ -57,7 +68,7 @@ segmentsRouter.post("/segments/upload-url", async (req, res) => {
 });
 
 segmentsRouter.post("/segments/confirm", async (req, res) => {
-  const { question_index, duration, capture } = req.body ?? {};
+  const { question_index, duration, trim_start_ms, trim_end_ms, capture } = req.body ?? {};
 
   if (!isPlausibleQuestionIndex(question_index)) {
     res.status(400).json({ error: "question_index must be a positive integer" });
@@ -65,6 +76,14 @@ segmentsRouter.post("/segments/confirm", async (req, res) => {
   }
   if (typeof duration !== "number" || !Number.isFinite(duration) || duration <= 0) {
     res.status(400).json({ error: "duration must be a positive number" });
+    return;
+  }
+  if (!isValidTrimMs(trim_start_ms) || !isValidTrimMs(trim_end_ms)) {
+    res.status(400).json({ error: "trim_start_ms/trim_end_ms must be a non-negative number or null" });
+    return;
+  }
+  if (typeof trim_start_ms === "number" && typeof trim_end_ms === "number" && trim_end_ms <= trim_start_ms) {
+    res.status(400).json({ error: "trim_end_ms must be greater than trim_start_ms" });
     return;
   }
 
@@ -84,6 +103,8 @@ segmentsRouter.post("/segments/confirm", async (req, res) => {
   const video_key = buildSegmentVideoKey(client_id, distributor_id, question_index);
   const duration_seconds = Math.round(duration);
   const capture_metadata = normalizeCaptureMetadata(capture);
+  const trim_start = trim_start_ms === undefined ? undefined : typeof trim_start_ms === "number" ? Math.round(trim_start_ms) : null;
+  const trim_end = trim_end_ms === undefined ? undefined : typeof trim_end_ms === "number" ? Math.round(trim_end_ms) : null;
 
   if (!(await objectExists(video_key))) {
     console.warn(
@@ -103,6 +124,8 @@ segmentsRouter.post("/segments/confirm", async (req, res) => {
         video_key,
         duration_seconds,
         status: "uploaded",
+        ...(trim_start !== undefined && { trim_start_ms: trim_start }),
+        ...(trim_end !== undefined && { trim_end_ms: trim_end }),
         ...(capture_metadata !== undefined && { capture_metadata }),
       },
       create: {
@@ -111,6 +134,8 @@ segmentsRouter.post("/segments/confirm", async (req, res) => {
         video_key,
         duration_seconds,
         status: "uploaded",
+        ...(trim_start !== undefined && { trim_start_ms: trim_start }),
+        ...(trim_end !== undefined && { trim_end_ms: trim_end }),
         ...(capture_metadata !== undefined && { capture_metadata }),
       },
     });
