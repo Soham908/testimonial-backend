@@ -63,7 +63,7 @@ before any handler logic runs.
   distributor record). Omit it to get `language_pref`'s language, same as
   before this param existed. An unsupported/missing value falls back to
   English, same fallback `language_pref` itself already gets.
-- Success `200`: `{ "questions": [ { "id", "index", "is_branded", "text", "vo_playback_url" }, ... ] }`
+- Success `200`: `{ "questions": [ { "id", "index", "is_branded", "text", "talking_points", "vo_playback_url" }, ... ] }`
 - Ordered by `index`. **Count and content vary per client** — no fixed
   number, no fixed text. Don't hardcode a question list or count in the app;
   always drive the recording flow off this response.
@@ -76,6 +76,12 @@ before any handler logic runs.
 - `text` and `vo_playback_url` are already localized server-side to the
   requested/stored language — the app doesn't need to handle language
   selection itself, just display/play what comes back.
+- `talking_points` is `string[] | null` — a handful of short (2-4 word)
+  on-screen nudges to show during recording, already localized the same way
+  as `text`. It's `null` when the resolved language has no nudges yet (Hindi
+  and Marathi today — English-only for now, translation is separate work)
+  or when the question has none set at all. There's no fallback to English
+  text when it's `null` — treat it as "nothing to show," not an error.
 - `vo_playback_url` is a fresh presigned S3 URL (1-hour expiry), same
   caching rules as `playback_url` elsewhere in this doc (don't cache the URL
   itself).

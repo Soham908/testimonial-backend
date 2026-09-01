@@ -21,6 +21,7 @@ function loadEnv(): Record<RequiredVar, string> &
     PORT: number;
     ENABLE_REEL_RENDERING: boolean;
     ENABLE_DEV_ENDPOINTS: boolean;
+    JOB_VISIBILITY_TIMEOUT_MS: number;
   } {
   const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
   if (missing.length > 0) {
@@ -58,12 +59,21 @@ function loadEnv(): Record<RequiredVar, string> &
   // own existence to a production caller.
   const enableDevEndpoints = process.env.ENABLE_DEV_ENDPOINTS === "true";
 
+  // How long a job can sit in `processing` before the worker treats it as
+  // abandoned (crashed/killed worker) and reclaims it - see src/worker.ts.
+  // Default (15 min) is deliberately longer than nexrender.ts's own 10-min
+  // POLL_TIMEOUT_MS, since render_segment legitimately blocks the whole
+  // time it's polling nexrender-cloud - the timeout here must never fire
+  // on a render job that's still genuinely in flight.
+  const jobVisibilityTimeoutMs = Number(process.env.JOB_VISIBILITY_TIMEOUT_MS) || 15 * 60 * 1000;
+
   return {
     ...required,
     ...optional,
     PORT: Number(process.env.PORT) || 3000,
     ENABLE_REEL_RENDERING: enableReelRendering,
     ENABLE_DEV_ENDPOINTS: enableDevEndpoints,
+    JOB_VISIBILITY_TIMEOUT_MS: jobVisibilityTimeoutMs,
   };
 }
 

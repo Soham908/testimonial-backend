@@ -8,7 +8,7 @@ generator client {
 
 model Client {
   id              String   @id @default(uuid()) @db.Uuid
-  name            String
+  name            String   @unique
   branding_config Json
   created_at      DateTime @default(now()) @db.Timestamptz
 
@@ -39,6 +39,14 @@ model Question {
   // — see src/services/gemini.ts. Adding a new extracted value for a
   // question is purely a row edit here, never a migration or a code change.
   extraction_spec Json?
+
+  // Gentle on-screen nudges shown to the distributor during recording (NOT
+  // analysis input — unrelated to extraction_spec above). Shape:
+  // { en: string[]; hi: string[] | null; mr: string[] | null } — each array
+  // is a handful of short (2-4 word) prompts in that language. hi/mr are
+  // null until UI translation for those languages is done separately from
+  // seeding this data. See src/services/questions.ts.
+  talking_points Json?
 
   created_at DateTime @default(now()) @db.Timestamptz
   updated_at DateTime @updatedAt @db.Timestamptz
@@ -149,15 +157,36 @@ enum JobStatus {
 }
 
 model Job {
-  id         String    @id @default(uuid()) @db.Uuid
-  type       JobType
-  payload    Json
-  status     JobStatus @default(pending)
-  attempts   Int       @default(0)
-  last_error String?
-  created_at DateTime  @default(now()) @db.Timestamptz
-  updated_at DateTime  @updatedAt @db.Timestamptz
+  id           String    @id @default(uuid()) @db.Uuid
+  type         JobType
+  payload      Json
+  status       JobStatus @default(pending)
+  attempts     Int       @default(0)
+  // Ceiling on attempts before a failing job stops requeuing and moves to
+  // the terminal `failed` status instead. Lives on the row (not a global
+  // config constant) so a future job type can override it at creation time
+  // without a schema change. See src/worker.ts.
+  max_attempts Int       @default(5)
+  // Backoff scheduling: claimJob only picks up `pending` jobs where
+  // run_after <= now(). Bumped forward (not to `now()`) on every retry -
+  // see backoffDelayMs in src/worker.ts. Defaults to `now()` so a freshly
+  // created job is immediately claimable, same as before this column
+  // existed.
+  run_after    DateTime  @default(now()) @db.Timestamptz
+  // Set to a fresh random token on every claim (including a visibility-
+  // timeout reclaim) and checked on every write back to this row (done /
+  // retry / terminal-fail). A worker whose job was reclaimed out from under
+  // it - because it looked abandoned - fails this check on its own
+  // completion and no-ops instead of clobbering whatever claimed it next.
+  // See src/worker.ts.
+  lock_token   String?   @db.Uuid
+  last_error   String?
+  created_at   DateTime  @default(now()) @db.Timestamptz
+  updated_at   DateTime  @updatedAt @db.Timestamptz
 
+  // Every poll cycle filters on (status, run_after) via claimJob's WHERE
+  // clause - see src/worker.ts.
+  @@index([status, run_after])
   @@map("jobs")
 }
 

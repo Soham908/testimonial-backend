@@ -33,12 +33,13 @@ distributorsRouter.get("/distributors/me/questions", async (req, res) => {
 
   const results = await Promise.all(
     questions.map(async (question) => {
-      const { text, vo_key } = localizeQuestion(question, language);
+      const { text, vo_key, talking_points } = localizeQuestion(question, language);
       return {
         id: question.id,
         index: question.index,
         is_branded: question.is_branded,
         text,
+        talking_points,
         vo_playback_url: await getPlaybackUrl(vo_key),
       };
     }),

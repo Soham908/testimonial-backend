@@ -8,8 +8,9 @@
   },
   "scripts": {
     "dev": "tsx watch --env-file=.env src/index.ts",
-    "worker": "tsx --env-file=.env src/worker.ts",
+    "worker": "tsx --env-file=.env src/worker-main.ts",
     "normalize-video": "tsx scripts/normalize-video.ts",
+    "jobs:list": "tsx --env-file=.env scripts/list-jobs.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "vitest run"

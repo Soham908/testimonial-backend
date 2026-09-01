@@ -5,8 +5,15 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const ifb = await prisma.client.create({
-    data: {
+  // Local dev databases don't survive a laptop switch, but the seed script
+  // might still be re-run against a database that already has this data
+  // (e.g. re-running after an error) — upsert everything below, keyed on
+  // each model's real unique constraint, so the whole script is safe to run
+  // against an empty table or an already-seeded one.
+  const ifb = await prisma.client.upsert({
+    where: { name: "IFB Appliances" },
+    update: {},
+    create: {
       name: "IFB Appliances",
       branding_config: {
         logo_url: "https://assets.example.com/ifb/logo.png",
@@ -18,8 +25,10 @@ async function main() {
     },
   });
 
-  const voltas = await prisma.client.create({
-    data: {
+  const voltas = await prisma.client.upsert({
+    where: { name: "Voltas" },
+    update: {},
+    create: {
       name: "Voltas",
       branding_config: {
         logo_url: "https://assets.example.com/voltas/logo.png",
@@ -30,74 +39,114 @@ async function main() {
     },
   });
 
-  await prisma.distributor.createMany({
-    data: [
-      {
-        client_id: ifb.id,
-        name: "Ramesh Traders",
-        phone: "+91-9800000001",
-        invite_token: "invite-ramesh-traders",
-        language_pref: "en",
-      },
-      {
-        client_id: ifb.id,
-        name: "Suresh Electronics",
-        phone: "+91-9800000002",
-        invite_token: "invite-suresh-electronics",
-        language_pref: "hi",
-      },
-      {
-        client_id: ifb.id,
-        name: "Patel Home Appliances",
-        phone: "+91-9800000003",
-        invite_token: "invite-patel-home-appliances",
-        language_pref: "en",
-      },
-      {
-        client_id: voltas.id,
-        name: "Sharma Cooling Solutions",
-        phone: "+91-9800000004",
-        invite_token: "invite-sharma-cooling",
-        language_pref: "hi",
-      },
-      {
-        client_id: voltas.id,
-        name: "Kumar Sales Corp",
-        phone: "+91-9800000005",
-        invite_token: "invite-kumar-sales",
-        language_pref: "en",
-      },
-    ],
-  });
+  const distributors = [
+    {
+      client_id: ifb.id,
+      name: "Ramesh Traders",
+      phone: "+91-9800000001",
+      invite_token: "invite-ramesh-traders",
+      language_pref: "en",
+    },
+    {
+      client_id: ifb.id,
+      name: "Suresh Electronics",
+      phone: "+91-9800000002",
+      invite_token: "invite-suresh-electronics",
+      language_pref: "hi",
+    },
+    {
+      client_id: ifb.id,
+      name: "Patel Home Appliances",
+      phone: "+91-9800000003",
+      invite_token: "invite-patel-home-appliances",
+      language_pref: "en",
+    },
+    {
+      client_id: voltas.id,
+      name: "Sharma Cooling Solutions",
+      phone: "+91-9800000004",
+      invite_token: "invite-sharma-cooling",
+      language_pref: "hi",
+    },
+    {
+      client_id: voltas.id,
+      name: "Kumar Sales Corp",
+      phone: "+91-9800000005",
+      invite_token: "invite-kumar-sales",
+      language_pref: "en",
+    },
+  ];
+
+  for (const distributor of distributors) {
+    await prisma.distributor.upsert({
+      where: { invite_token: distributor.invite_token },
+      update: {},
+      create: distributor,
+    });
+  }
 
   // Internal-test question set (education theme) — both dummy clients get
   // the same 5 for now, all unbranded. IFB's real 7-question set for the
   // actual engagement is separate, later work; not seeded here.
-  const EDUCATION_QUESTIONS: Array<{ text_en: string; text_hi: string; text_mr: string }> = [
+  //
+  // talking_points.hi/.mr are left null — Hindi/Marathi UI translation for
+  // these nudges is separate work, not generated here (unlike text_hi/
+  // text_mr above, which are already fully translated).
+  const EDUCATION_QUESTIONS: Array<{
+    text_en: string;
+    text_hi: string;
+    text_mr: string;
+    talking_points: { en: string[]; hi: string[] | null; mr: string[] | null };
+  }> = [
     {
       text_en: "What did your education teach you that you still value today?",
       text_hi: "आपकी पढ़ाई ने आपको क्या सिखाया, जिसे आप आज भी महत्व देते हैं?",
       text_mr: "तुमच्या शिक्षणाने तुम्हाला काय शिकवलं, ज्याला तुम्ही आजही महत्त्व देता?",
+      talking_points: {
+        en: ["Specific subject or teacher", "A skill you still use", "Why it stayed with you"],
+        hi: null,
+        mr: null,
+      },
     },
     {
       text_en: "What's your best education memory, and why?",
       text_hi: "आपकी पढ़ाई की सबसे अच्छी याद क्या है, और क्यों?",
       text_mr: "तुमच्या शिक्षणातील सर्वात चांगली आठवण कोणती, आणि का?",
+      talking_points: {
+        en: ["A specific moment", "Who was there", "Why it stands out"],
+        hi: null,
+        mr: null,
+      },
     },
     {
       text_en: "What do you wish your education had taught you?",
       text_hi: "आप चाहते थे कि पढ़ाई में आपको और क्या सिखाया जाता?",
       text_mr: "तुमच्या शिक्षणात तुम्हाला आणखी काय शिकवायला हवं होतं?",
+      talking_points: {
+        en: ["A missing skill or subject", "Learned the hard way later", "What would have helped"],
+        hi: null,
+        mr: null,
+      },
     },
     {
       text_en: "What's better about education today, and what's worse?",
       text_hi: "आज की पढ़ाई में क्या बेहतर है और क्या खराब?",
       text_mr: "आजच्या शिक्षणात काय चांगलं आहे आणि काय वाईट?",
+      talking_points: {
+        en: ["What's genuinely improved", "What's worse or lost", "A real example"],
+        hi: null,
+        mr: null,
+      },
     },
     {
       text_en: "If you could change three things about education, what would they be?",
       text_hi: "अगर आप पढ़ाई में तीन चीज़ें बदल सकते, तो क्या बदलते?",
       text_mr: "तुम्हाला शिक्षणात तीन गोष्टी बदलता आल्या, तर काय बदलाल?",
+      talking_points: {
+        en: ["Be specific, not general", "What helps students most", "Small changes count too"],
+        hi: null,
+        mr: null,
+      },
     },
   ];
 
@@ -109,20 +158,27 @@ async function main() {
   }
 
   for (const client of [ifb, voltas]) {
-    await prisma.question.createMany({
-      data: EDUCATION_QUESTIONS.map((q, i) => {
-        const index = i + 1;
-        return {
-          client_id: client.id,
-          index,
-          is_branded: false,
-          ...q,
-          vo_key_en: voKey(client.id, "en", index),
-          vo_key_hi: voKey(client.id, "hi", index),
-          vo_key_mr: voKey(client.id, "mr", index),
-        };
-      }),
-    });
+    for (const [i, q] of EDUCATION_QUESTIONS.entries()) {
+      const index = i + 1;
+      const data = {
+        client_id: client.id,
+        index,
+        is_branded: false,
+        text_en: q.text_en,
+        text_hi: q.text_hi,
+        text_mr: q.text_mr,
+        talking_points: q.talking_points,
+        extraction_spec: null,
+        vo_key_en: voKey(client.id, "en", index),
+        vo_key_hi: voKey(client.id, "hi", index),
+        vo_key_mr: voKey(client.id, "mr", index),
+      };
+      await prisma.question.upsert({
+        where: { client_id_index: { client_id: client.id, index } },
+        update: data,
+        create: data,
+      });
+    }
   }
 
   console.log("Seeded 2 clients, 5 distributors, and 5 questions per client.");
