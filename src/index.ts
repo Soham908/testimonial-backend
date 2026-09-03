@@ -3,6 +3,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { config } from "./config/env";
 import { loginRouter } from "./routes/login";
+import { registerRouter } from "./routes/register";
 import { meRouter } from "./routes/me";
 import { segmentsRouter } from "./routes/segments";
 import { distributorsRouter } from "./routes/distributors";
@@ -42,6 +43,11 @@ app.get("/health", (_req, res) => {
 });
 
 app.use(loginRouter);
+// Unconditional mount is safe: registerRouter only actually has a route on
+// it when ENABLE_SELF_REGISTRATION is on (see src/routes/register.ts) - off
+// by default, the router is empty and this is a no-op, same "route never
+// registered at all" treatment as devRouter below.
+app.use(registerRouter);
 
 app.use(authMiddleware);
 app.use(meRouter);

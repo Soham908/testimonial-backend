@@ -39,6 +39,29 @@ async function main() {
     },
   });
 
+  // Third dummy client, holding only self-registered internal test
+  // participants (src/routes/register.ts, gated behind
+  // ENABLE_SELF_REGISTRATION) - kept separate from IFB (which will become a
+  // real client) and Voltas so self-registered test rows can never end up
+  // mixed into either one, now or once real IFB provisioning exists.
+  const zeist = await prisma.client.upsert({
+    where: { name: "Zeist" },
+    update: {},
+    create: {
+      name: "Zeist",
+      branding_config: {
+        logo_url: "https://assets.example.com/zeist/logo.png",
+        primary_color: "#333333",
+        // Same shared rough test template — see note on IFB above.
+        nexrender_template: "01KY9MN1XA629BAZYSV18G69HQ",
+      },
+    },
+  });
+
+  // business/city/years_as_distributor are internal-test-phase-only fields
+  // (frontend header/profile screens show them, nothing real to source them
+  // from yet - see prisma/schema.prisma). Values here are deliberately
+  // test-looking, not invented company data.
   const distributors = [
     {
       client_id: ifb.id,
@@ -46,6 +69,9 @@ async function main() {
       phone: "+91-9800000001",
       invite_token: "invite-ramesh-traders",
       language_pref: "en",
+      business: "Test Business — Ramesh",
+      city: "Test City 1",
+      years_as_distributor: 3,
     },
     {
       client_id: ifb.id,
@@ -53,6 +79,9 @@ async function main() {
       phone: "+91-9800000002",
       invite_token: "invite-suresh-electronics",
       language_pref: "hi",
+      business: "Test Business — Suresh",
+      city: "Test City 2",
+      years_as_distributor: 5,
     },
     {
       client_id: ifb.id,
@@ -60,6 +89,9 @@ async function main() {
       phone: "+91-9800000003",
       invite_token: "invite-patel-home-appliances",
       language_pref: "en",
+      business: "Test Business — Patel",
+      city: "Test City 3",
+      years_as_distributor: 2,
     },
     {
       client_id: voltas.id,
@@ -67,6 +99,9 @@ async function main() {
       phone: "+91-9800000004",
       invite_token: "invite-sharma-cooling",
       language_pref: "hi",
+      business: "Test Business — Sharma",
+      city: "Test City 4",
+      years_as_distributor: 4,
     },
     {
       client_id: voltas.id,
@@ -74,13 +109,21 @@ async function main() {
       phone: "+91-9800000005",
       invite_token: "invite-kumar-sales",
       language_pref: "en",
+      business: "Test Business — Kumar",
+      city: "Test City 5",
+      years_as_distributor: 6,
     },
   ];
 
+  // Full sync on every field, not just "create if missing" - this seed is
+  // the single source of truth for these dummy accounts (unlike real
+  // distributor data later), so a rerun should bring an already-seeded row
+  // back in line with it, e.g. after adding business/city/years_as_distributor
+  // to a DB seeded before those columns existed.
   for (const distributor of distributors) {
     await prisma.distributor.upsert({
       where: { invite_token: distributor.invite_token },
-      update: {},
+      update: distributor,
       create: distributor,
     });
   }
@@ -157,7 +200,7 @@ async function main() {
     return `static/question-vo/${clientId}/${lang}/${index}.mp3`;
   }
 
-  for (const client of [ifb, voltas]) {
+  for (const client of [ifb, voltas, zeist]) {
     for (const [i, q] of EDUCATION_QUESTIONS.entries()) {
       const index = i + 1;
       const data = {
@@ -181,7 +224,7 @@ async function main() {
     }
   }
 
-  console.log("Seeded 2 clients, 5 distributors, and 5 questions per client.");
+  console.log("Seeded 3 clients (IFB, Voltas, Zeist), 5 distributors, and 5 questions per client.");
 }
 
 main()

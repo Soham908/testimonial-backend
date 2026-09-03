@@ -5,6 +5,28 @@ import { localizeQuestion } from "../services/questions";
 
 export const distributorsRouter = Router();
 
+// The distributor's own profile - header/account screens on the frontend
+// (name, phone) plus the internal-test-phase-only fields (business, city,
+// years_as_distributor - see prisma/schema.prisma, no import/CRM-sync
+// mechanism exists yet, these are hand-seeded test values only).
+distributorsRouter.get("/distributors/me", async (req, res) => {
+  const { distributor_id } = req.auth!;
+
+  const distributor = await prisma.distributor.findUniqueOrThrow({
+    where: { id: distributor_id },
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+      business: true,
+      city: true,
+      years_as_distributor: true,
+    },
+  });
+
+  res.json({ distributor });
+});
+
 // The set of questions the app should ask this distributor, localized to
 // their language_pref. Ordered by index; count and content vary per client
 // (e.g. 5 for the internal test client, 7 for IFB) — nothing here assumes a

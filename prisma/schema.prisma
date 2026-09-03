@@ -19,10 +19,10 @@ model Client {
 }
 
 model Question {
-  id         String   @id @default(uuid()) @db.Uuid
-  client_id  String   @db.Uuid
+  id         String  @id @default(uuid()) @db.Uuid
+  client_id  String  @db.Uuid
   index      Int
-  is_branded Boolean  @default(false)
+  is_branded Boolean @default(false)
 
   text_en String
   text_hi String
@@ -58,13 +58,23 @@ model Question {
 }
 
 model Distributor {
-  id            String   @id @default(uuid()) @db.Uuid
-  client_id     String   @db.Uuid
-  name          String
-  phone         String
-  invite_token  String   @unique
-  language_pref String
-  created_at    DateTime @default(now()) @db.Timestamptz
+  id                   String   @id @default(uuid()) @db.Uuid
+  client_id            String   @db.Uuid
+  name                 String
+  // Nullable because self-registration (src/routes/register.ts) collects
+  // phone as optional/unverified - every seeded account still has a real
+  // value.
+  phone                String?
+  invite_token         String   @unique
+  language_pref        String
+  // Internal-test-phase-only profile fields (frontend header/profile
+  // screens show these) - nullable since there's no import/CRM-sync
+  // mechanism yet to populate them for real IFB distributor data, only
+  // hand-seeded test values. See prisma/seed.ts.
+  business             String?
+  city                 String?
+  years_as_distributor Int?
+  created_at           DateTime @default(now()) @db.Timestamptz
 
   client   Client    @relation(fields: [client_id], references: [id])
   segments Segment[]

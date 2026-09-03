@@ -21,6 +21,7 @@ function loadEnv(): Record<RequiredVar, string> &
     PORT: number;
     ENABLE_REEL_RENDERING: boolean;
     ENABLE_DEV_ENDPOINTS: boolean;
+    ENABLE_SELF_REGISTRATION: boolean;
     JOB_VISIBILITY_TIMEOUT_MS: number;
   } {
   const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
@@ -59,6 +60,14 @@ function loadEnv(): Record<RequiredVar, string> &
   // own existence to a production caller.
   const enableDevEndpoints = process.env.ENABLE_DEV_ENDPOINTS === "true";
 
+  // Gates POST /register (src/routes/register.ts) - default off. Lets
+  // internal test participants create their own Distributor row and get a
+  // session without a seeded account, always under the fixed internal-test
+  // Client (never client-supplied - see that file). Off by default, same
+  // "route never registered at all" treatment as ENABLE_DEV_ENDPOINTS, so
+  // it can never be accidentally live once real IFB provisioning exists.
+  const enableSelfRegistration = process.env.ENABLE_SELF_REGISTRATION === "true";
+
   // How long a job can sit in `processing` before the worker treats it as
   // abandoned (crashed/killed worker) and reclaims it - see src/worker.ts.
   // Default (15 min) is deliberately longer than nexrender.ts's own 10-min
@@ -73,6 +82,7 @@ function loadEnv(): Record<RequiredVar, string> &
     PORT: Number(process.env.PORT) || 3000,
     ENABLE_REEL_RENDERING: enableReelRendering,
     ENABLE_DEV_ENDPOINTS: enableDevEndpoints,
+    ENABLE_SELF_REGISTRATION: enableSelfRegistration,
     JOB_VISIBILITY_TIMEOUT_MS: jobVisibilityTimeoutMs,
   };
 }

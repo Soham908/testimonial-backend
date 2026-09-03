@@ -43,6 +43,30 @@ response shapes below will change when that happens, only the base URL.
 - Failure `429` (rate-limited — more than 10 attempts from the same IP in 15
   minutes): `{ "error": "Too many login attempts, please try again later" }`
 
+`POST /register` — self-registration for internal test participants, an
+alternative to the 5 seeded accounts. Gated behind `ENABLE_SELF_REGISTRATION`
+(default **off**, `src/config/env.ts`) — when off, this route isn't
+registered at all, same treatment as the dev-only routes below (an
+unauthenticated request to it then gets whatever the rest of the app does
+with an unmatched path, in practice a `401` from the auth check that runs
+right after this router — not a `404`, and never a `403` confirming the
+route exists). Only ever enable this for an internal test round; it must
+stay off once real IFB provisioning exists.
+- No auth required (this is how you get one, same as `/login`).
+- Body: `{ "name": string, "phone"?: string }` — `name` is required
+  (non-empty, up to 200 chars). `phone` is optional and **unverified** — no
+  OTP, no confirmation code, stored as-is or `null` if omitted.
+- There is no `client_id` field, and none is accepted if you send one — every
+  self-registered row is created under a fixed internal-test client
+  server-side, never client-supplied. Don't build any assumption elsewhere
+  in the app around choosing/passing a client.
+- Success `201`: `{ "token": string }` — same shape as `/login`'s success
+  response, usable immediately with every route below.
+- Failure `400`: `{ "error": "name is required and must be a non-empty string up to 200 characters" }`
+  or `{ "error": "phone must be a string up to 50 characters, if provided" }`
+- Failure `429` (rate-limited — more than 20 attempts from the same IP in 15
+  minutes): `{ "error": "Too many registration attempts, please try again later" }`
+
 Every request after login must include:
 ```
 Authorization: Bearer <token>
@@ -53,6 +77,20 @@ before any handler logic runs.
 `GET /me` — optional, useful only as a "is my token working" diagnostic.
 - Success `200`: `{ "auth": { "distributor_id": string, "client_id": string } }`
   — note it's nested under `auth`, not flat.
+
+## Profile
+
+`GET /distributors/me`
+- Requires auth. Scoped to the logged-in distributor automatically.
+- Success `200`: `{ "distributor": { "id", "name", "phone", "business", "city", "years_as_distributor" } }`
+- `name` and `phone` are real, always-populated data (existing columns).
+- `business`, `city`, `years_as_distributor` are **internal-test-phase-only**
+  fields — `string | null`, `string | null`, `number | null` respectively.
+  There's no import/CRM-sync mechanism to populate these from real IFB
+  distributor data yet, so today they only carry hand-seeded test values
+  (`prisma/seed.ts`). Treat `null` as "not set," not an error — this will
+  keep being `null` for any distributor added outside the seed script until
+  a real provisioning flow exists.
 
 ## Questions
 
