@@ -4,6 +4,7 @@ import rateLimit from "express-rate-limit";
 import { config } from "./config/env";
 import { loginRouter } from "./routes/login";
 import { registerRouter } from "./routes/register";
+import { loginPhoneRouter } from "./routes/loginPhone";
 import { meRouter } from "./routes/me";
 import { segmentsRouter } from "./routes/segments";
 import { distributorsRouter } from "./routes/distributors";
@@ -48,6 +49,10 @@ app.use(loginRouter);
 // by default, the router is empty and this is a no-op, same "route never
 // registered at all" treatment as devRouter below.
 app.use(registerRouter);
+// Same unconditional-mount-is-safe reasoning as registerRouter above -
+// loginPhoneRouter only has a route on it when ENABLE_SELF_REGISTRATION is
+// on (see src/routes/loginPhone.ts).
+app.use(loginPhoneRouter);
 
 app.use(authMiddleware);
 app.use(meRouter);

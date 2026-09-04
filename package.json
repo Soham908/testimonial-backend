@@ -11,6 +11,8 @@
     "worker": "tsx --env-file=.env src/worker-main.ts",
     "normalize-video": "tsx scripts/normalize-video.ts",
     "jobs:list": "tsx --env-file=.env scripts/list-jobs.ts",
+    "generate-vo": "tsx --env-file=.env scripts/generate-vo.ts",
+    "import-vo": "tsx --env-file=.env scripts/import-vo.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "vitest run"

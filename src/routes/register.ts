@@ -1,9 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { Router } from "express";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
+import { Prisma } from "@prisma/client";
 import { config } from "../config/env";
 import { prisma } from "../db/prisma";
+import { normalizePhone } from "../services/phone";
 
 export const registerRouter = Router();
 
@@ -15,6 +18,8 @@ export const registerRouter = Router();
 // starts) and Voltas, so self-registered test rows can never end up mixed
 // into either one, now or in the future.
 const INTERNAL_TEST_CLIENT_NAME = "Zeist";
+
+const MIN_PASSWORD_LENGTH = 6;
 
 const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -35,14 +40,18 @@ const registerLimiter = rateLimit({
 // it's an unauthenticated endpoint that creates real Distributor rows.
 if (config.ENABLE_SELF_REGISTRATION) {
   registerRouter.post("/register", registerLimiter, async (req, res) => {
-    const { name, phone } = req.body ?? {};
+    const { name, phone, password } = req.body ?? {};
 
     if (typeof name !== "string" || name.trim().length === 0 || name.length > 200) {
       res.status(400).json({ error: "name is required and must be a non-empty string up to 200 characters" });
       return;
     }
-    if (phone !== undefined && phone !== null && (typeof phone !== "string" || phone.length > 50)) {
-      res.status(400).json({ error: "phone must be a string up to 50 characters, if provided" });
+    if (typeof phone !== "string" || normalizePhone(phone).length !== 10) {
+      res.status(400).json({ error: "phone is required and must contain a valid 10-digit mobile number" });
+      return;
+    }
+    if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
+      res.status(400).json({ error: `password is required and must be at least ${MIN_PASSWORD_LENGTH} characters` });
       return;
     }
 
@@ -55,26 +64,45 @@ if (config.ENABLE_SELF_REGISTRATION) {
       return;
     }
 
-    // invite_token is required + unique on Distributor even though this
-    // path has no real invite - a random one just satisfies the column,
-    // never handed back or used to look this row up again (session comes
-    // from the JWT below, same as every other distributor).
-    const distributor = await prisma.distributor.create({
-      data: {
-        client_id: client.id,
-        name: name.trim(),
-        phone: typeof phone === "string" ? phone.trim() : null,
-        invite_token: `self-registered-${randomUUID()}`,
-        language_pref: "en",
-      },
-    });
+    const normalizedPhone = normalizePhone(phone);
+    const passwordHash = bcrypt.hashSync(password, 10);
 
-    const token = jwt.sign(
-      { distributor_id: distributor.id, client_id: distributor.client_id },
-      config.SESSION_SECRET,
-      { algorithm: "HS256", expiresIn: "30d" },
-    );
+    try {
+      // invite_token is required + unique on Distributor even though this
+      // path has no real invite - a random one just satisfies the column,
+      // never handed back or used to look this row up again (session comes
+      // from the JWT below, same as every other distributor).
+      const distributor = await prisma.distributor.create({
+        data: {
+          client_id: client.id,
+          name: name.trim(),
+          phone: normalizedPhone,
+          password_hash: passwordHash,
+          invite_token: `self-registered-${randomUUID()}`,
+          language_pref: "en",
+        },
+      });
 
-    res.status(201).json({ token });
+      const token = jwt.sign(
+        { distributor_id: distributor.id, client_id: distributor.client_id },
+        config.SESSION_SECRET,
+        { algorithm: "HS256", expiresIn: "30d" },
+      );
+
+      res.status(201).json({ token });
+    } catch (err) {
+      // phone is @unique - a collision here means someone's re-registering
+      // a number that already has an account, not a real error. Point them
+      // at /login/phone instead of silently creating a duplicate or
+      // clobbering the existing row.
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+        res.status(409).json({
+          error: "phone_already_registered",
+          message: "This phone number is already registered. Please log in instead.",
+        });
+        return;
+      }
+      throw err;
+    }
   });
 }

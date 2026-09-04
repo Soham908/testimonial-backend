@@ -496,4 +496,251 @@ the same source).
 - `npm run test` now runs `vitest run` (was a placeholder before).
 
 ---
-*Not pushed to `origin` — not asked to.*
+
+## Session handoff — 2026-09-04: talking_points, job retry, distributor
+## profile fields, self-registration → phone+password login, VO audio, DB
+## export for laptop switch
+
+Repo state at start: local DB out of sync with migrations from a prior
+session run on a different laptop (same situation this section's last item
+addresses again — this keeps happening, see the DB-portability note at the
+very end). Everything below is **uncommitted** as of this handoff — nothing
+in this session was committed, unlike prior sessions. `git status` will show
+a large diff; review it before committing rather than assuming it's all one
+logical change.
+
+### 1. `Question.talking_points` + idempotent seed
+
+New nullable `Json` column on `Question` (migration
+`20260901090000_add_client_name_unique_and_question_talking_points`, same
+migration also made `Client.name` unique) — shape
+`{ en: string[]; hi: string[] | null; mr: string[] | null }`, short (2-4
+word) on-screen nudges shown during recording, separate from
+`extraction_spec`. `src/services/questions.ts`'s `localizeQuestion` resolves
+it per-language with no English fallback (null if the resolved language
+isn't populated — hi/mr today, translation is separate work). Exposed on
+`GET /distributors/me/questions` as `talking_points: string[] | null`.
+
+`prisma/seed.ts` rewritten to use `upsert()` everywhere (was `update: {}`
+placeholders that didn't backfill new columns on rerun) — safe to rerun
+after any schema change now. Added a third dummy client, **Zeist**
+(`Client.name` unique enables this), alongside IFB and Voltas.
+
+### 2. Job-queue retry/backoff (`src/worker.ts`)
+
+Added without touching the underlying `SELECT ... FOR UPDATE SKIP LOCKED`
+claim mechanism: `max_attempts` (default 5) and `run_after` (backoff
+scheduling) columns on `Job`, plus a `lock_token` (fresh UUID per claim,
+including visibility-timeout reclaims) checked on every write-back so a
+worker whose job was reclaimed out from under it can't clobber whatever
+claimed it next. `backoffDelayMs`: `30s * 2^(attempts-1)`, capped at 10min.
+`reapStuckJobs()` reclaims anything stuck in `processing` past
+`JOB_VISIBILITY_TIMEOUT_MS` (15min default, deliberately longer than
+nexrender polling's own 10min timeout). New `src/worker-main.ts` entrypoint
+(replaces the old `require.main === module` guard in `worker.ts`, which
+proved unreliable under this project's `tsx` setup — root-caused via a real
+false alarm, see conversation history if it matters later, not worth
+re-deriving). `scripts/list-jobs.ts` (`npm run jobs:list`) lists
+terminal-failed/stuck/backing-off jobs. `tests/worker.test.ts`, 12 tests,
+covers backoff math, claim, process (success/lock-lost/fail/terminal), and
+reap (reclaim/terminal/race-lost) — all mocked, no real DB needed.
+
+### 3. Distributor profile fields + self-registration (superseded by §4 below — read that one for the current shape)
+
+Added `business`/`city`/`years_as_distributor` (nullable, hand-seeded test
+values only, no import/CRM-sync mechanism) to `Distributor`, plus
+`GET /distributors/me` exposing them alongside `name`/`phone`.
+
+Added `POST /register` gated behind `ENABLE_SELF_REGISTRATION` (default off,
+same "never registered at all when off" treatment as `ENABLE_DEV_ENDPOINTS`)
+— internal test participants create their own `Distributor` row, hardcoded
+server-side to the new **Zeist** client, never client-supplied. **This
+section's original shape (name + optional/unverified phone) no longer
+exists — §4 replaced it the same session.** Mentioned here only because it's
+what made Zeist real in the first place.
+
+### 4. Self-registration became real phone+password login (`POST /register` + new `POST /login/phone`)
+
+Discussed with the user what a "log back in later" story for self-registered
+accounts would need beyond just adding a password field — landed on:
+
+- `phone` on `/register` is now **required** (was optional) — it's the
+  identifier `/login/phone` logs back in with.
+- `password` is now required too, min 6 chars, no complexity rules.
+- Phone is **normalized** server-side (`src/services/phone.ts`: strip
+  non-digits, keep last 10) before storage and before every login lookup —
+  `+91 98765-43210` and `9876543210` resolve to the same account. Seeded
+  accounts keep their original unnormalized `+91-98...` values and log in
+  via username/password on `/login` only — they never collide with a
+  normalized value since their stored format isn't 10 raw digits.
+- Duplicate registration on an already-used phone → `409
+  { "error": "phone_already_registered", ... }`, not a silent duplicate row
+  or a 500.
+- New `POST /login/phone` (`src/routes/loginPhone.ts`) — separate endpoint
+  from `/login`, not a unified one, since the frontend already has separate
+  screens for the two flows and there's no real disambiguation problem to
+  solve backend-side. Same generic-401 treatment as `/login` for both
+  unknown-phone and wrong-password (no enumeration via distinguishable
+  error messages), same timing-normalization pattern (dummy bcrypt hash on
+  the not-found path). Gated behind the same `ENABLE_SELF_REGISTRATION`
+  flag as `/register`.
+- No password-reset path anywhere in this flow — explicit, discussed
+  scope-out for this internal test round (no SMS/OTP infra exists to build
+  one on top of).
+- Schema: `Distributor.phone` is now `String @unique` (was nullable),
+  `password_hash String?` added (null for every seeded/future-invite-token
+  account, only ever set by `/register`). Migration
+  `20260904120000_add_distributor_phone_password_login` — **also deleted
+  the 2 disposable self-registered rows that existed from testing §3's
+  original shape** (name-only, no phone/password, couldn't have logged in
+  under the new flow regardless).
+- Verified live against the real dev server and real DB, not just mocked
+  tests: register → login-by-phone-with-reformatted-number → duplicate
+  registration (409) → wrong password (401), all confirmed working, then
+  the smoke-test row was deleted afterward. `tests/register.test.ts`
+  rewritten, `tests/loginPhone.test.ts` added — 29/29 passing, `tsc --noEmit`
+  clean.
+- `API_CONTRACT.md` updated in **both** repos (this one and
+  `video-testimonial`) with the new required fields, the new endpoint, and
+  the 409/401 semantics.
+
+**Frontend work still needed (not done, per instruction not to touch that
+repo)**: `SelfRegisterScreen.tsx` needs phone + password fields (currently
+name-only by design, per its own comment — that comment is now stale), a
+new `loginByPhone()` call in `auth.ts`, and UI handling for the 409 (route to
+login) and 401 (generic message) cases. Full context already handed to the
+user in-chat to paste into the frontend session; not repeated here.
+
+### 5. Per-question `updated_at` for client-side VO/text cache invalidation
+
+Discussed and dropped ETags first — most of this API's GET responses embed
+fresh presigned S3 URLs (regenerated every call), so a standard
+hash-of-response-body ETag would never match even when the underlying data
+hadn't changed. Decided instead to extend the same local-first pattern
+already live for `segments`/`rendered-videos` to
+`GET /distributors/me/questions`:
+
+- Added `updated_at` (Prisma `@updatedAt`, already existed on `Question`,
+  just wasn't exposed) to each question in the response.
+- **Real gap found and fixed**: `scripts/generate-vo.ts` and
+  `scripts/import-vo.ts` both wrote straight to S3 and never touched the
+  `Question` row via Prisma — so `@updatedAt` would never have actually
+  fired on a VO refresh, silently defeating the whole point of exposing it.
+  Both scripts now also re-save the relevant `vo_key_{lang}` field (same
+  value) as part of the same run, which is enough to bump `@updatedAt`.
+- `API_CONTRACT.md` (both repos) documents the field and the intended
+  client-side pattern: compare against a locally cached value, only
+  re-sync (text + fresh `vo_playback_url` + re-download audio) the specific
+  questions that changed.
+
+### 6. VO audio — regenerated, then replaced with the user's own recordings
+
+ElevenLabs TTS (`eleven_v3`, voice id `mCQMfsqGDT6IDkEKR20a` "Jeevan") was
+used first (`scripts/generate-vo.ts`, `npm run generate-vo`) to generate all
+5 questions × 3 languages, uploaded to S3 for all 3 clients and saved locally
+under `assets/audio/vo/` for manual QC. User found the individually-generated
+clips got cut off at the end and switched to recording one continuous take
+per language via the ElevenLabs UI directly, then splitting it themselves —
+`scripts/import-vo.ts` (`npm run import-vo`) imports those split `.m4a`
+files from `assets/audio/new_vo/`, converts to `.mp3` via ffmpeg (matching
+the `.mp3`-suffixed S3 key convention baked into the DB), and overwrites
+both the local copies and all 45 S3 keys. **This is the current, real VO
+content** — not a placeholder.
+
+Checked all 15 final local files this session (`ffprobe`, side task): all
+between 2.7s–5.1s, longest is `q1_mr.mp3` at ~5.1s. Nothing looks like an
+outlier/cutoff.
+
+### 7. Scale discussion (opinion only, nothing built)
+
+User asked about production-scale concerns (never run an app at real
+user-scale before). Landed on: total user count doesn't matter, concurrent
+in-flight work does; the one real chokepoint on this stack is
+`render_segment` blocking a worker for the whole render duration (already a
+known pending item, see `CLAUDE.md`) — mitigated cheaply by running more
+worker processes (the `SELECT ... FOR UPDATE SKIP LOCKED` design already
+supports this with zero code changes) until nexrender-cloud's own
+concurrency plan becomes the ceiling, which the user has already sorted
+commercially (10-concurrent plan, negotiable/dedicated-server option known).
+RDS connection-pool exhaustion under App Runner auto-scaling flagged as a
+"know about it, don't fix it yet" item. Confirmed the API/worker split
+already means slow external calls (ElevenLabs/Claude/nexrender-cloud) can
+never block normal request handling — separate OS processes, separate event
+loops, only sharing the jobs table as a mailbox.
+
+### 8. Admin dashboard — discussed, still fully unstarted
+
+Flagged again as a real, separately-scoped, sizeable build (not part of the
+render pending-items list). User has two source documents not yet shared in
+this session: a questions/parameters doc, and an existing dashboard
+structure from their boss (reports, data points, linking) meant as the
+baseline structure to build against. **Don't start designing/scoping this
+from description alone** — wait for the actual documents next session
+before doing anything beyond reading `sentiment_results`'s existing shape.
+
+### 9. Local DB exported for this laptop switch
+
+Postgres dump (custom format, `pg_dump -Fc`) written to
+`Desktop\testimonial-db-backup\testimonial_backend_<timestamp>.dump` on
+**this** machine. Contains real seeded data (clients, distributors —
+including real-looking phone numbers and password hashes for the
+phone+password test accounts from §4's smoke test, already deleted from the
+live DB but anyone restoring an older dump before that point would still
+have it) — treat the dump file as sensitive, transfer it privately (USB /
+private cloud folder), not email/public link, and delete it from both
+Desktop locations once restored.
+
+**To pick up the DB on the other laptop:**
+1. Copy the `.dump` file over from this laptop (USB, private cloud folder —
+   your call, this session can't transfer it directly).
+2. On the other laptop, make sure Postgres is running and an empty
+   `testimonial_backend` database exists (`createdb testimonial_backend` or
+   `CREATE DATABASE testimonial_backend;` via `psql`) — skip this step if a
+   same-named DB with old data already exists there and you're fine
+   overwriting it (step 3's `--clean` handles that case too).
+3. Restore: `pg_restore --clean --if-exists -d <that laptop's DATABASE_URL or PG* env vars> <path to the .dump file>`
+   — `--clean --if-exists` drops existing objects first, so this is safe to
+   run against a DB that already has old/stale schema state, not just an
+   empty one. The dump includes the full schema (all tables, including
+   Prisma's own `_prisma_migrations` tracking table) and all data, so **no
+   separate `prisma migrate deploy` is needed after this** — the restored
+   `_prisma_migrations` table already reflects every migration applied here,
+   including this session's `20260904120000_...` one.
+4. `git pull` on that laptop (this file, `prisma/schema.prisma`, the new
+   migration file, and everything else from this session all come via git —
+   the dump only carries data + already-applied schema, not source).
+5. `npx prisma generate` (or the `node --env-file=.env node_modules/prisma/build/index.js generate`
+   workaround this repo has needed all along — see the environment-gotchas
+   note in the 2026-08-31 section above, still true) to regenerate the
+   Prisma client against the pulled schema.
+6. Confirm `.env` on that laptop already has its own `DATABASE_URL` pointing
+   at its own local Postgres instance — **don't** copy this laptop's `.env`
+   over, the two laptops' local DB credentials are expected to differ and
+   the restore command in step 3 uses whichever one is local to that
+   machine.
+7. `ENABLE_SELF_REGISTRATION=true` if you want to keep testing `/register`
+   and `/login/phone` there — same flag, same default-off, check it's set
+   the same way it was on this laptop if continuity matters.
+
+**One incident worth knowing about**: while building the dump command this
+session, an early attempt leaked this laptop's local Postgres password into
+the chat transcript (a URL-parsing failure caused an error message to echo
+part of `DATABASE_URL`) — low real-world stakes since it's a local dev-only
+credential, but the password should get rotated at some point as hygiene,
+and it's why the final dump command above parses the connection string
+manually into discrete `PGHOST`/`PGPORT`/`PGUSER`/`PGPASSWORD`/`PGDATABASE`
+env vars instead of ever passing the raw URL to `pg_dump`/`pg_restore`
+directly — worth keeping that pattern if this comes up again, rather than
+reverting to a plain `-d $DATABASE_URL` invocation.
+
+**Bigger-picture note, not just for this switch**: this is at least the
+second time DB state has needed manual export/import between two laptops.
+`CLAUDE.md` already notes a cloud-based DB is the eventual intent, "for now,
+this would be a quick fix thing" — this keeps recurring as a quick fix
+because that migration hasn't happened yet, not because the quick fix
+itself is wrong. Worth raising with the user directly if this happens a
+third time, rather than silently repeating the same manual dump/restore
+dance indefinitely.
+
+---
+*Not committed, not pushed — not asked to.*

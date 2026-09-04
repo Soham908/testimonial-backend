@@ -63,6 +63,7 @@ distributorsRouter.get("/distributors/me/questions", async (req, res) => {
         text,
         talking_points,
         vo_playback_url: await getPlaybackUrl(vo_key),
+        updated_at: question.updated_at,
       };
     }),
   );

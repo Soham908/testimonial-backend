@@ -8,12 +8,12 @@ sentiment endpoint (`src/routes/dev.ts`) is gated behind `ENABLE_DEV_ENDPOINTS`
 the mobile app never calls it and never should.
 
 Every shape below is copied directly from the real route handlers in the
-backend repo (`src/routes/login.ts`, `src/routes/me.ts`,
-`src/routes/segments.ts`, `src/routes/distributors.ts`) as of **2026-07-27**
-— not guessed from the design doc or build notes. You don't need that repo
-open to use this file. If the backend changes after this date, this copy can
-go stale; re-pull it from the backend side rather than editing it here from
-assumptions.
+backend repo (`src/routes/login.ts`, `src/routes/register.ts`,
+`src/routes/loginPhone.ts`, `src/routes/me.ts`, `src/routes/segments.ts`,
+`src/routes/distributors.ts`) as of **2026-09-04** — not guessed from the
+design doc or build notes. You don't need that repo open to use this file.
+If the backend changes after this date, this copy can go stale; re-pull it
+from the backend side rather than editing it here from assumptions.
 
 ## Reaching the backend (current phase: same-network, not deployed)
 
@@ -53,19 +53,58 @@ right after this router — not a `404`, and never a `403` confirming the
 route exists). Only ever enable this for an internal test round; it must
 stay off once real IFB provisioning exists.
 - No auth required (this is how you get one, same as `/login`).
-- Body: `{ "name": string, "phone"?: string }` — `name` is required
-  (non-empty, up to 200 chars). `phone` is optional and **unverified** — no
-  OTP, no confirmation code, stored as-is or `null` if omitted.
+- Body: `{ "name": string, "phone": string, "password": string }` — `name`
+  is required (non-empty, up to 200 chars). `phone` is now **required**, not
+  optional — it's the identifier `POST /login/phone` logs back in with, so
+  an account with no phone would have no way back in. `password` is also
+  required, minimum 6 characters, no complexity rules.
+- `phone` is **unverified** — no OTP, no confirmation code, just format
+  validation (must contain a valid 10-digit mobile number once formatting is
+  stripped). It's normalized server-side before storage and before every
+  login comparison: non-digit characters removed, then only the last 10
+  digits kept. `+91 98765-43210`, `9876543210`, and `098765 43210` all
+  normalize to the same stored value — send the number in whatever format
+  the user typed it, don't pre-normalize on the frontend.
 - There is no `client_id` field, and none is accepted if you send one — every
   self-registered row is created under a fixed internal-test client
   server-side, never client-supplied. Don't build any assumption elsewhere
   in the app around choosing/passing a client.
 - Success `201`: `{ "token": string }` — same shape as `/login`'s success
   response, usable immediately with every route below.
-- Failure `400`: `{ "error": "name is required and must be a non-empty string up to 200 characters" }`
-  or `{ "error": "phone must be a string up to 50 characters, if provided" }`
+- Failure `400`: `{ "error": "name is required and must be a non-empty string up to 200 characters" }`,
+  `{ "error": "phone is required and must contain a valid 10-digit mobile number" }`,
+  or `{ "error": "password is required and must be at least 6 characters" }`
+- Failure `409` (phone already registered — a real, expected case, not a
+  bug): `{ "error": "phone_already_registered", "message": "This phone number is already registered. Please log in instead." }`
+  — the app should route the user to the login-by-phone screen on this
+  response, not retry or treat it as a generic error.
 - Failure `429` (rate-limited — more than 20 attempts from the same IP in 15
   minutes): `{ "error": "Too many registration attempts, please try again later" }`
+
+`POST /login/phone` — login counterpart to `/register`, for distributors who
+signed up that way (as opposed to the 5 seeded username/password accounts,
+which still only work on `/login`). Gated behind the same
+`ENABLE_SELF_REGISTRATION` flag, same "not registered at all when off"
+treatment as `/register`.
+- No auth required (this is how you get one, same as `/login`).
+- Body: `{ "phone": string, "password": string }` — `phone` goes through the
+  same normalization as `/register` (strip non-digits, keep last 10), so any
+  format the user types is fine as long as it's the same number.
+- Success `200`: `{ "token": string }` — same shape as `/login`'s success
+  response.
+- Failure `401`: `{ "error": "Invalid phone or password" }` — returned for
+  both an unrecognized phone number and a correct-phone-wrong-password case.
+  Deliberately the same message either way (same reasoning as `/login`'s
+  own `401`) — don't build any UI copy that assumes which one happened, the
+  backend won't tell you.
+- Failure `400`: `{ "error": "phone and password are required" }`
+- Failure `429` (rate-limited — more than 10 attempts from the same IP in 15
+  minutes): `{ "error": "Too many login attempts, please try again later" }`
+- No password-reset path exists anywhere in this flow (no SMS/OTP
+  verification at any step) — explicitly out of scope for this internal
+  test round. A forgotten password currently has no self-serve recovery;
+  don't build a "forgot password" affordance pointing at a backend endpoint
+  that doesn't exist.
 
 Every request after login must include:
 ```
@@ -101,7 +140,7 @@ before any handler logic runs.
   distributor record). Omit it to get `language_pref`'s language, same as
   before this param existed. An unsupported/missing value falls back to
   English, same fallback `language_pref` itself already gets.
-- Success `200`: `{ "questions": [ { "id", "index", "is_branded", "text", "talking_points", "vo_playback_url" }, ... ] }`
+- Success `200`: `{ "questions": [ { "id", "index", "is_branded", "text", "talking_points", "vo_playback_url", "updated_at" }, ... ] }`
 - Ordered by `index`. **Count and content vary per client** — no fixed
   number, no fixed text. Don't hardcode a question list or count in the app;
   always drive the recording flow off this response.
@@ -123,6 +162,14 @@ before any handler logic runs.
 - `vo_playback_url` is a fresh presigned S3 URL (1-hour expiry), same
   caching rules as `playback_url` elsewhere in this doc (don't cache the URL
   itself).
+- `updated_at` is per-question, bumped whenever that question's text,
+  talking_points, or VO audio changes — same local-first pattern as
+  `segments`/`rendered-videos` below: compare against your locally cached
+  value, only re-sync (refetch text, get a fresh `vo_playback_url`,
+  re-download the audio) the specific questions whose `updated_at` changed,
+  skip the rest. There's no separate per-field timestamp — a text-only edit
+  and a VO-only edit both bump the same field, so a mismatch just means
+  "something on this question changed," not which part.
 - Call this before starting the recording flow — `question_index` values
   used in the upload endpoints below must be one of the `index` values this
   returns for the current client, not an assumed 1–N range.

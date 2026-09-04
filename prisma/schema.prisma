@@ -61,10 +61,19 @@ model Distributor {
   id                   String   @id @default(uuid()) @db.Uuid
   client_id            String   @db.Uuid
   name                 String
-  // Nullable because self-registration (src/routes/register.ts) collects
-  // phone as optional/unverified - every seeded account still has a real
-  // value.
-  phone                String?
+  // Required + unique + normalized (src/services/phone.ts - digits only,
+  // last 10) as of the phone+password self-registration login flow
+  // (src/routes/register.ts, src/routes/loginPhone.ts). Seeded accounts
+  // (prisma/seed.ts) keep their original unnormalized "+91-98..." values -
+  // they log in via username/password on POST /login, never via
+  // /login/phone, so the differing format never collides with a normalized
+  // self-registered value.
+  phone                String   @unique
+  // Set only for self-registered distributors (POST /register) - null for
+  // every seeded account and for any future Phase B invite-token
+  // distributor, both of which authenticate a different way. Never read
+  // outside src/routes/register.ts and src/routes/loginPhone.ts.
+  password_hash        String?
   invite_token         String   @unique
   language_pref        String
   // Internal-test-phase-only profile fields (frontend header/profile
