@@ -197,7 +197,7 @@ the signed URL itself.
 
 `POST /segments/confirm`
 - Requires auth.
-- Body: `{ "question_index": number, "duration": number, "capture"?: object }`
+- Body: `{ "question_index": number, "duration": number, "trim_start_ms"?: number|null, "trim_end_ms"?: number|null, "capture"?: object }`
   — `duration` is the clip length in seconds (a plain number, not a
   string), must be > 0. `capture` is optional and stored as-is, not
   validated field-by-field: `{ "file_size_bytes": number, "width":
@@ -205,6 +205,15 @@ the signed URL itself.
   "device_model": string, "os_version": string }` — what the device
   actually captured, kept for later analysis of real distributor phones. A
   missing or malformed `capture` never fails the confirm call.
+- `trim_start_ms`/`trim_end_ms` are absolute offsets (ms) into the source
+  clip, chosen in Review & Trim. The app sends both as `null` (not `0`/full
+  duration) when the person never adjusted the trim, so `null` means
+  "use the full clip," not "trim to nothing." Either may be omitted
+  entirely instead of sent as `null` — omitted leaves whatever's already
+  stored on the segment untouched (same convention as `capture`), `null`
+  explicitly clears it to "full clip." Must be a non-negative number (or
+  `null`/omitted); `trim_end_ms` must be greater than `trim_start_ms` when
+  both are numbers.
 - **`video_key` is no longer read from the request body** — the backend
   derives it itself from the token's `distributor_id`/`client_id` plus
   `question_index` (same value `upload-url` already returned you, just no
@@ -217,9 +226,11 @@ the signed URL itself.
   succeeded; the same data comes back (fresher) from the read endpoints
   below.
 - Failure `400`: `{ "error": "question_index must be a positive integer" }`,
-  `{ "error": "No question configured at index N for this client" }`, or
-  `{ "error": "duration must be a positive number" }` depending on which
-  field is missing/invalid.
+  `{ "error": "No question configured at index N for this client" }`,
+  `{ "error": "duration must be a positive number" }`,
+  `{ "error": "trim_start_ms/trim_end_ms must be a non-negative number or null" }`,
+  or `{ "error": "trim_end_ms must be greater than trim_start_ms" }` depending
+  on which field is missing/invalid.
 - Failure `404` (upload didn't actually reach S3 — safe to retry, nothing
   was written): `{ "error": "video_not_found", "message": "The uploaded video could not be found in storage. Please retry the upload." }`
 - Calling `confirm` again for the same `question_index` (a retake) updates

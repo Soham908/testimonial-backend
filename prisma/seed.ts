@@ -132,9 +132,6 @@ async function main() {
   // the same 5 for now, all unbranded. IFB's real 7-question set for the
   // actual engagement is separate, later work; not seeded here.
   //
-  // talking_points.hi/.mr are left null — Hindi/Marathi UI translation for
-  // these nudges is separate work, not generated here (unlike text_hi/
-  // text_mr above, which are already fully translated).
   const EDUCATION_QUESTIONS: Array<{
     text_en: string;
     text_hi: string;
@@ -147,8 +144,8 @@ async function main() {
       text_mr: "तुमच्या शिक्षणाने तुम्हाला काय शिकवलं, ज्याला तुम्ही आजही महत्त्व देता?",
       talking_points: {
         en: ["Specific subject or teacher", "A skill you still use", "Why it stayed with you"],
-        hi: null,
-        mr: null,
+        hi: ["कोई खास विषय या शिक्षक", "अब भी काम आने वाला हुनर", "यह याद क्यों रह गया"],
+        mr: ["एखादा खास विषय किंवा शिक्षक", "अजूनही उपयोगी पडणारं कौशल्य", "हे लक्षात का राहिलं"],
       },
     },
     {
@@ -157,8 +154,8 @@ async function main() {
       text_mr: "तुमच्या शिक्षणातील सर्वात चांगली आठवण कोणती, आणि का?",
       talking_points: {
         en: ["A specific moment", "Who was there", "Why it stands out"],
-        hi: null,
-        mr: null,
+        hi: ["कोई खास पल", "उस वक्त कौन था", "यह खास क्यों है"],
+        mr: ["एखादा खास क्षण", "त्यावेळी कोण होतं", "हे खास का वाटतं"],
       },
     },
     {
@@ -167,8 +164,8 @@ async function main() {
       text_mr: "तुमच्या शिक्षणात तुम्हाला आणखी काय शिकवायला हवं होतं?",
       talking_points: {
         en: ["A missing skill or subject", "Learned the hard way later", "What would have helped"],
-        hi: null,
-        mr: null,
+        hi: ["कोई छूटा हुआ विषय या हुनर", "बाद में मुश्किल से सीखा", "क्या चीज़ मदद करती"],
+        mr: ["न शिकवलेला विषय किंवा कौशल्य", "नंतर कठीण मार्गाने शिकलात", "काय उपयोगी ठरलं असतं"],
       },
     },
     {
@@ -177,8 +174,8 @@ async function main() {
       text_mr: "आजच्या शिक्षणात काय चांगलं आहे आणि काय वाईट?",
       talking_points: {
         en: ["What's genuinely improved", "What's worse or lost", "A real example"],
-        hi: null,
-        mr: null,
+        hi: ["सच में क्या बेहतर हुआ", "क्या बिगड़ा या खो गया", "एक असली उदाहरण"],
+        mr: ["खरंच काय सुधारलं आहे", "काय बिघडलं किंवा हरवलं", "एक खरं उदाहरण"],
       },
     },
     {
@@ -187,8 +184,8 @@ async function main() {
       text_mr: "तुम्हाला शिक्षणात तीन गोष्टी बदलता आल्या, तर काय बदलाल?",
       talking_points: {
         en: ["Be specific, not general", "What helps students most", "Small changes count too"],
-        hi: null,
-        mr: null,
+        hi: ["सामान्य नहीं, खास बताएं", "छात्रों की सबसे ज़्यादा मदद", "छोटे बदलाव भी मायने रखते हैं"],
+        mr: ["सर्वसाधारण नाही, नेमकं सांगा", "विद्यार्थ्यांना सर्वात जास्त उपयोगी", "छोटे बदलही महत्त्वाचे असतात"],
       },
     },
   ];

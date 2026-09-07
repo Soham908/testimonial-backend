@@ -43,9 +43,11 @@ model Question {
   // Gentle on-screen nudges shown to the distributor during recording (NOT
   // analysis input — unrelated to extraction_spec above). Shape:
   // { en: string[]; hi: string[] | null; mr: string[] | null } — each array
-  // is a handful of short (2-4 word) prompts in that language. hi/mr are
-  // null until UI translation for those languages is done separately from
-  // seeding this data. See src/services/questions.ts.
+  // is a handful of short (2-4 word) prompts in that language, translated
+  // alongside text_hi/text_mr for every internal-test question. hi/mr can
+  // still be null for a question added later before its translation is
+  // filled in — treat null as "nothing to show," not an error. See
+  // src/services/questions.ts.
   talking_points Json?
 
   created_at DateTime @default(now()) @db.Timestamptz
