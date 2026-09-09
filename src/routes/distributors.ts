@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { config } from "../config/env";
 import { prisma } from "../db/prisma";
 import { getPlaybackUrl } from "../services/s3";
 import { localizeQuestion } from "../services/questions";
@@ -24,7 +25,7 @@ distributorsRouter.get("/distributors/me", async (req, res) => {
     },
   });
 
-  res.json({ distributor });
+  res.json({ distributor, min_app_version: config.MIN_APP_VERSION });
 });
 
 // The set of questions the app should ask this distributor, localized to

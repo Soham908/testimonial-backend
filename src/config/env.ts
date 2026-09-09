@@ -11,7 +11,7 @@ const REQUIRED_VARS = [
   "NEXRENDER_API_KEY",
 ] as const;
 
-const OPTIONAL_VARS = [] as const;
+const OPTIONAL_VARS = ["MIN_APP_VERSION"] as const;
 
 type RequiredVar = (typeof REQUIRED_VARS)[number];
 type OptionalVar = (typeof OPTIONAL_VARS)[number];
@@ -23,6 +23,7 @@ function loadEnv(): Record<RequiredVar, string> &
     ENABLE_DEV_ENDPOINTS: boolean;
     ENABLE_SELF_REGISTRATION: boolean;
     JOB_VISIBILITY_TIMEOUT_MS: number;
+    MIN_APP_VERSION: string;
   } {
   const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
   if (missing.length > 0) {
@@ -76,6 +77,14 @@ function loadEnv(): Record<RequiredVar, string> &
   // on a render job that's still genuinely in flight.
   const jobVisibilityTimeoutMs = Number(process.env.JOB_VISIBILITY_TIMEOUT_MS) || 15 * 60 * 1000;
 
+  // Global minimum app version, surfaced via GET /distributors/me so the
+  // frontend can gate on it right where it already fetches the profile post-
+  // auth. Not a DB field - it's config, not tenant data - and not gating
+  // login itself yet (that would need an unauthenticated endpoint, deferred
+  // until it's actually needed). Defaults to "0.0.0" so an unset var never
+  // blocks anyone.
+  const minAppVersion = process.env.MIN_APP_VERSION || "0.0.0";
+
   return {
     ...required,
     ...optional,
@@ -84,6 +93,7 @@ function loadEnv(): Record<RequiredVar, string> &
     ENABLE_DEV_ENDPOINTS: enableDevEndpoints,
     ENABLE_SELF_REGISTRATION: enableSelfRegistration,
     JOB_VISIBILITY_TIMEOUT_MS: jobVisibilityTimeoutMs,
+    MIN_APP_VERSION: minAppVersion,
   };
 }
 
