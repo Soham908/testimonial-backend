@@ -22,6 +22,37 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// The SDK stringifies Google's full error body into err.message (see
+// ApiError in @google/genai) - {"error":{"code","message","status",
+// "details":[...]}}. A bare 429 status doesn't say *why*: it could be a
+// per-minute rate limit (clears in seconds) or a per-day quota already
+// spent (clears on Google's daily reset, hours away) - same status code,
+// wildly different recovery time. The `details` array disambiguates: a
+// QuotaFailure names the specific quotaId/quotaMetric that tripped, and a
+// RetryInfo (when present) carries Google's own recommended wait. Parsed
+// defensively - a message that isn't this JSON shape (or an error with no
+// structured details) just falls back to "keep the existing behavior".
+function parseGoogleError(message: string): { isDailyQuotaExhausted: boolean; retryDelayMs: number | null } {
+  try {
+    const body = JSON.parse(message) as { error?: { details?: Array<Record<string, unknown>> } };
+    const details = body.error?.details ?? [];
+
+    const quotaFailure = details.find((d) => String(d["@type"]).includes("QuotaFailure"));
+    const violations = (quotaFailure?.violations as Array<{ quotaId?: string; quotaMetric?: string }>) ?? [];
+    const isDailyQuotaExhausted = violations.some(
+      (v) => v.quotaId?.includes("PerDay") || v.quotaMetric?.includes("PerDay"),
+    );
+
+    const retryInfo = details.find((d) => String(d["@type"]).includes("RetryInfo"));
+    const rawDelay = retryInfo?.retryDelay as string | undefined;
+    const retryDelayMs = rawDelay ? Math.round(parseFloat(rawDelay) * 1000) : null;
+
+    return { isDailyQuotaExhausted, retryDelayMs };
+  } catch {
+    return { isDailyQuotaExhausted: false, retryDelayMs: null };
+  }
+}
+
 async function generateContentWithRetry(
   params: Parameters<typeof ai.models.generateContent>[0],
 ): ReturnType<typeof ai.models.generateContent> {
@@ -29,11 +60,25 @@ async function generateContentWithRetry(
     try {
       return await ai.models.generateContent(params);
     } catch (err) {
-      const retryable = err instanceof ApiError && RETRYABLE_STATUS_CODES.has(err.status);
-      if (!retryable || attempt >= MAX_ATTEMPTS) throw err;
-      const delay = RETRY_DELAYS_MS[attempt - 1] ?? 20000;
+      if (!(err instanceof ApiError) || !RETRYABLE_STATUS_CODES.has(err.status)) throw err;
+
+      const { isDailyQuotaExhausted, retryDelayMs } = parseGoogleError(err.message);
+      if (isDailyQuotaExhausted) {
+        // No in-process wait fixes this - the daily cap resets on
+        // Google's clock, not within this call. Fail immediately (instead
+        // of burning ~33s hammering a call that cannot succeed) so the
+        // job-level retry queue in src/worker.ts backs off on its own
+        // schedule instead of every attempt wasting the same dead time.
+        console.warn(`[gemini] daily quota exhausted (status ${err.status}) - not retrying in-process`);
+        throw err;
+      }
+      if (attempt >= MAX_ATTEMPTS) throw err;
+
+      // Prefer Google's own recommended wait over our fixed schedule when
+      // it gives us one - it knows its own quota window better than we do.
+      const delay = retryDelayMs ?? RETRY_DELAYS_MS[attempt - 1] ?? 20000;
       console.warn(
-        `[gemini] transient error (status ${(err as ApiError).status}) on attempt ${attempt}/${MAX_ATTEMPTS}, retrying in ${delay}ms`,
+        `[gemini] transient error (status ${err.status}) on attempt ${attempt}/${MAX_ATTEMPTS}, retrying in ${delay}ms`,
       );
       await sleep(delay);
     }
@@ -186,7 +231,14 @@ export async function analyzeSentiment(
   const fields = parseExtractionSpec(extractionSpec);
 
   const response = await generateContentWithRetry({
-    model: "gemini-flash-latest",
+    // Pinned, not "-latest" - that alias is what silently put this on
+    // gemini-3.8-flash (confirmed via the quota-exceeded error's model
+    // field), the newest and most quota-constrained model in the family
+    // (5 RPM / 20 RPD on the free tier). gemini-3.5-flash-lite gets 15 RPM
+    // / 500 RPD instead - plenty of headroom for sentiment/theme
+    // extraction, which doesn't need the newest model's extra reasoning
+    // depth. Revisit if extraction quality ever seems to suffer for it.
+    model: "gemini-3.5-flash-lite",
     contents: `Analyze this customer testimonial transcript. It is in ${languageDetected}.
 
 The question the person was asked: "${questionText}"
