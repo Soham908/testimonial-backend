@@ -117,6 +117,22 @@ segmentsRouter.post("/segments/confirm", async (req, res) => {
     return;
   }
 
+  // Idempotent per (distributor_id, question_index) by design: a second
+  // confirm for the same pair always means "this is now the canonical take,"
+  // whether that's a genuine retake or a retry after an ambiguous failure
+  // (PUT succeeded, confirm response lost) - those two cases are
+  // indistinguishable and don't need to be, hence upsert rather than insert.
+  // video_key is derived deterministically (buildSegmentVideoKey, above) so
+  // a retake's PUT overwrites the same S3 object in place - there's no
+  // separate "previous" raw video object left behind to orphan/clean up.
+  // TODO: transcribeSegmentHandler (src/jobs/transcribeSegment.ts) doesn't
+  // know about this, though - it skips re-transcribing/re-captioning
+  // whenever a Transcript row or the captioned-video object already exists
+  // for this segment, so a retake's new footage currently keeps the first
+  // take's stale transcript/captions/sentiment_result rather than
+  // reprocessing. Separate bug from the orphaned-S3-object backlog item in
+  // CLAUDE.md (which is about confirm never arriving at all, not retakes) -
+  // needs its own fix, not covered by this change.
   const segment = await prisma.$transaction(async (tx) => {
     const seg = await tx.segment.upsert({
       where: { distributor_id_question_index: { distributor_id, question_index } },

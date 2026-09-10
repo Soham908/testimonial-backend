@@ -111,7 +111,19 @@ Every request after login must include:
 Authorization: Bearer <token>
 ```
 Missing or invalid token on any route below → `401`, no data returned,
-before any handler logic runs.
+before any handler logic runs. The `error` code distinguishes *why*:
+- `missing_token` — no `Authorization` header, or not in `Bearer <token>` form.
+- `token_expired` — the token was valid but its 30-day expiry has passed
+  (or, once a revocation mechanism exists, was revoked — same code, that
+  doesn't exist yet). This is the one case worth handling specially: it
+  means "the user needs to log in again," not "something is wrong with the
+  request" — a good trigger for a silent re-login redirect rather than a
+  generic error screen.
+- `invalid_token` — anything else (malformed, wrong signature, tampered).
+  Treat the same as `missing_token` for UI purposes; don't try to recover
+  from this one.
+
+Every 401 body is `{ "error": "missing_token" | "token_expired" | "invalid_token", "message": string }`.
 
 `GET /me` — optional, useful only as a "is my token working" diagnostic.
 - Success `200`: `{ "auth": { "distributor_id": string, "client_id": string } }`
@@ -254,6 +266,18 @@ no ID needs to be passed in.
   `question_index` against what you last synced. Match → play the local
   file, no network fetch needed. Mismatch, or no local file → use
   `playback_url`.
+- **This is also the source of truth for "confirmed on the server" after a
+  reinstall or cleared local storage**, where local state can't be trusted
+  at all. A `question_index` present in this array means `POST
+  /segments/confirm` has succeeded for it server-side (segments only ever
+  appear here starting at `status: "uploaded"`, which only `confirm`
+  produces — nothing shows up from an upload that only completed the `PUT`
+  to S3). A `question_index` absent from this array means "not yet
+  confirmed" — safe to treat as if recording hasn't happened, whether that's
+  actually true or the confirm call just never landed. No separate endpoint
+  or field is needed for this; diff this response's `question_index` set
+  against `GET /distributors/me/questions`' full set to rebuild local
+  recording-flow state from scratch.
 
 `GET /distributors/me/rendered-videos`
 - Success `200`: `{ "rendered_videos": [ { "question_index", "status", "playback_url", "updated_at" }, ... ] }`
