@@ -1,3 +1,14 @@
+// Defensive fallback, not the primary mechanism: dev/worker/script npm
+// commands already pass --env-file=.env explicitly (see package.json), but
+// `npm start` (-> `node dist/index.js`) does not, and there's no guarantee
+// this is always launched through one of those wrapper scripts (e.g. a
+// process manager invoking the built output directly). dotenv/config never
+// overrides a variable already present in the real environment, so this is
+// a no-op wherever the platform already injects real env vars, and only
+// fills the gap where it doesn't. Must be the first import - everything
+// below (starting with ./config/env) reads process.env at module-load time.
+import "dotenv/config";
+
 import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
