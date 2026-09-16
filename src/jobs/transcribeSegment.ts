@@ -74,6 +74,7 @@ export async function transcribeSegmentHandler(job: JobRow): Promise<void> {
             segment_id,
             text: result.text,
             language_detected: result.language_detected,
+            language_probability: result.language_probability,
             srt_key: srtKey,
             vtt_key: vttKey,
           },
@@ -115,7 +116,7 @@ export async function transcribeSegmentHandler(job: JobRow): Promise<void> {
       const { text: questionText } = localizeQuestion(question, segment.distributor.language_pref);
 
       const analysis = await timeStage(segment_id, "gemini_analyze_sentiment", () =>
-        analyzeSentiment(transcript.text, transcript.language_detected, questionText, question.extraction_spec),
+        analyzeSentiment(transcript.text, questionText),
       );
       await timeStage(segment_id, "db_write_sentiment", () =>
         prisma.sentimentResult.create({
@@ -123,10 +124,12 @@ export async function transcribeSegmentHandler(job: JobRow): Promise<void> {
             segment_id,
             sentiment_score: analysis.sentiment_score,
             themes: analysis.themes,
+            emotional_tone: analysis.emotional_tone,
             summary: analysis.summary,
             best_quote: analysis.best_quote,
             is_relevant: analysis.is_relevant,
             moderation_flag: analysis.moderation_flag,
+            contains_profanity: analysis.contains_profanity,
             contains_complaint: analysis.contains_complaint,
             actionable_feedback: analysis.actionable_feedback,
             highlight_score: analysis.highlight_score,

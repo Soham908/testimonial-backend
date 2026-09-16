@@ -1,4 +1,5 @@
 import { ApiError, GoogleGenAI, Type } from "@google/genai";
+import type { Schema } from "@google/genai";
 import { config } from "../config/env";
 
 const ai = new GoogleGenAI({ apiKey: config.GEMINI_API_KEY });
@@ -85,151 +86,240 @@ async function generateContentWithRetry(
   }
 }
 
+// Fixed vocabularies the model must choose from - enforced by the response
+// schema below (Gemini structured output rejects values outside `enum`),
+// not just requested in prose. Exported so callers/tests can validate
+// against the same source of truth instead of duplicating the list.
+export const THEME_VALUES = [
+  "teacher_impact",
+  "discipline_and_habits",
+  "academic_knowledge",
+  "peer_relationships",
+  "financial_literacy_gap",
+  "communication_skills_gap",
+  "career_readiness",
+  "access_and_technology",
+  "pressure_and_values",
+  "confidence_and_growth",
+  "practical_learning_gap",
+] as const;
+
+export const EMOTIONAL_TONE_VALUES = ["heartfelt", "humorous", "matter_of_fact", "passionate", "other"] as const;
+
+export const TEACHER_CONTRIBUTION_VALUES = [
+  "inspiration",
+  "discipline",
+  "confidence",
+  "mentorship",
+  "career_direction",
+] as const;
+
+export const LIFE_SKILL_VALUES = [
+  "communication",
+  "financial_literacy",
+  "leadership",
+  "teamwork",
+  "problem_solving",
+] as const;
+
+export type Theme = (typeof THEME_VALUES)[number];
+export type EmotionalTone = (typeof EMOTIONAL_TONE_VALUES)[number];
+export type TeacherContribution = (typeof TEACHER_CONTRIBUTION_VALUES)[number];
+export type LifeSkill = (typeof LIFE_SKILL_VALUES)[number];
+
 export type SentimentAnalysis = {
   sentiment_score: number;
-  themes: string[];
+  themes: Theme[];
+  emotional_tone: EmotionalTone;
   summary: string;
   best_quote: string;
   is_relevant: boolean;
+  // true means unsuitable for external/client-facing use - see the
+  // description on RESPONSE_SCHEMA.moderation_flag below for the exact
+  // bar. Not the inverse of "safe to publish" naming this field used
+  // before the 2026-09-16 prompt rewrite.
   moderation_flag: boolean;
+  contains_profanity: boolean;
   contains_complaint: boolean;
   actionable_feedback: string | null;
   highlight_score: number;
-  extracted: Record<string, unknown>;
-};
-
-const CORE_PROPERTIES = {
-  sentiment_score: {
-    type: Type.NUMBER,
-    description: "Overall sentiment from -1 (very negative) to 1 (very positive)",
-  },
-  themes: {
-    type: Type.ARRAY,
-    items: { type: Type.STRING },
-    description: "Short theme/topic tags mentioned in the testimonial",
-  },
-  summary: {
-    type: Type.STRING,
-    description: "One or two sentence summary of the testimonial",
-  },
-  best_quote: {
-    type: Type.STRING,
-    description:
-      "A verbatim sentence or two copied directly from the transcript — the single most usable, quotable moment. Not a paraphrase.",
-  },
-  is_relevant: {
-    type: Type.BOOLEAN,
-    description:
-      "Whether the response actually answers the question that was asked, as opposed to being off-topic or a non-answer.",
-  },
-  moderation_flag: {
-    type: Type.BOOLEAN,
-    description:
-      "Whether this content is safe to publish externally (appropriateness — offensive language, inappropriate content), independent of sentiment. true means it is safe to publish.",
-  },
-  contains_complaint: {
-    type: Type.BOOLEAN,
-    description:
-      "True if there is a genuine negative beat or complaint anywhere in the response, even if the overall testimonial resolves positively.",
-  },
-  actionable_feedback: {
-    type: Type.STRING,
-    nullable: true,
-    description:
-      "If contains_complaint is true, the specific complaint or suggestion in plain text. Null if contains_complaint is false.",
-  },
-  highlight_score: {
-    type: Type.NUMBER,
-    description:
-      "0-1 composite score for how strong a candidate this segment is for a highlight reel, weighing relevance, sentiment strength, and quote quality together.",
-  },
-};
-
-const CORE_FIELD_NAMES = Object.keys(CORE_PROPERTIES);
-
-// A question's extraction_spec: an array of scalar field descriptors, e.g.
-// [{ "name": "biggest_challenge", "type": "string", "description": "..." }].
-// This is the entire mechanism for adding a new extracted value — no code
-// change, just a row edit on Question.extraction_spec.
-type ExtractionFieldSpec = {
-  name: string;
-  type: "string" | "number" | "boolean";
-  description: string;
-  nullable?: boolean;
-};
-
-const EXTRACTION_TYPE_MAP: Record<ExtractionFieldSpec["type"], Type> = {
-  string: Type.STRING,
-  number: Type.NUMBER,
-  boolean: Type.BOOLEAN,
-};
-
-function isExtractionFieldSpec(value: unknown): value is ExtractionFieldSpec {
-  if (typeof value !== "object" || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return (
-    typeof v.name === "string" &&
-    typeof v.description === "string" &&
-    (v.type === "string" || v.type === "number" || v.type === "boolean")
-  );
-}
-
-// Malformed entries are dropped rather than thrown on — a typo in one
-// question's extraction_spec shouldn't take down analysis of the nine core
-// fields, which every report depends on.
-function parseExtractionSpec(extractionSpec: unknown): ExtractionFieldSpec[] {
-  if (!Array.isArray(extractionSpec)) return [];
-  return extractionSpec.filter(isExtractionFieldSpec);
-}
-
-function buildResponseSchema(fields: ExtractionFieldSpec[]) {
-  const extractedProperties: Record<string, unknown> = {};
-  const extractedRequired: string[] = [];
-  for (const field of fields) {
-    extractedProperties[field.name] = {
-      type: EXTRACTION_TYPE_MAP[field.type],
-      description: field.description,
-      ...(field.nullable && { nullable: true }),
-    };
-    if (!field.nullable) extractedRequired.push(field.name);
-  }
-
-  return {
-    type: Type.OBJECT,
-    properties: {
-      ...CORE_PROPERTIES,
-      extracted: {
-        type: Type.OBJECT,
-        description:
-          fields.length > 0
-            ? "Question-specific extracted values — see the field list in the prompt."
-            : "No question-specific fields apply here; return an empty object.",
-        properties: extractedProperties,
-        ...(extractedRequired.length > 0 && { required: extractedRequired }),
-      },
-    },
-    required: [...CORE_FIELD_NAMES, "extracted"],
+  extracted: {
+    mentions_teacher: boolean;
+    teacher_contribution: TeacherContribution | null;
+    life_skills_mentioned: LifeSkill[];
   };
-}
+};
 
-function buildExtractionInstructions(fields: ExtractionFieldSpec[]): string {
-  if (fields.length === 0) {
-    return 'This question has no question-specific fields defined. Return an empty object for "extracted".';
+const RESPONSE_SCHEMA: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    sentiment_score: {
+      type: Type.NUMBER,
+      description: "Overall sentiment from -1 (very negative) to 1 (very positive)",
+    },
+    themes: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING, format: "enum", enum: [...THEME_VALUES] },
+      maxItems: "2",
+      description: "0 to 2 themes, chosen only from the fixed enum list",
+    },
+    emotional_tone: { type: Type.STRING, format: "enum", enum: [...EMOTIONAL_TONE_VALUES] },
+    summary: { type: Type.STRING, description: "1-2 sentences, third person, neutral tone" },
+    best_quote: {
+      type: Type.STRING,
+      description: "Verbatim excerpt from the transcript, in its original language/script - not a paraphrase.",
+    },
+    is_relevant: {
+      type: Type.BOOLEAN,
+      description: "Whether the answer actually addresses the question asked.",
+    },
+    moderation_flag: {
+      type: Type.BOOLEAN,
+      description:
+        "True if unsuitable for external/client-facing use: hate speech/slurs, sexual content, content that " +
+        "could embarrass or endanger the speaker if shown publicly, or a direct complaint about Zeist " +
+        "Interactive/this app/the recording process itself. A genuine, thoughtful answer - even a critical or " +
+        "negative one about the speaker's own education - should almost always be false. Do not default to true.",
+    },
+    contains_profanity: {
+      type: Type.BOOLEAN,
+      description: "True if the transcript contains swear words or crude language, independent of moderation_flag.",
+    },
+    contains_complaint: {
+      type: Type.BOOLEAN,
+      description: "True if the speaker expresses dissatisfaction with some aspect of their own education.",
+    },
+    actionable_feedback: {
+      type: Type.STRING,
+      nullable: true,
+      description: "If contains_complaint is true, the specific complaint/suggestion in plain text; null otherwise.",
+    },
+    highlight_score: {
+      type: Type.NUMBER,
+      description: "0-1 composite score for how strong a highlight-reel candidate this segment is.",
+    },
+    extracted: {
+      type: Type.OBJECT,
+      properties: {
+        mentions_teacher: { type: Type.BOOLEAN },
+        teacher_contribution: {
+          type: Type.STRING,
+          format: "enum",
+          enum: [...TEACHER_CONTRIBUTION_VALUES],
+          nullable: true,
+          description: "Null when mentions_teacher is false.",
+        },
+        life_skills_mentioned: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING, format: "enum", enum: [...LIFE_SKILL_VALUES] },
+          maxItems: "3",
+          description: "Only skills explicitly referenced by the speaker - never infer one that isn't present.",
+        },
+      },
+      required: ["mentions_teacher", "teacher_contribution", "life_skills_mentioned"],
+    },
+  },
+  required: [
+    "sentiment_score",
+    "themes",
+    "emotional_tone",
+    "summary",
+    "best_quote",
+    "is_relevant",
+    "moderation_flag",
+    "contains_profanity",
+    "contains_complaint",
+    "actionable_feedback",
+    "highlight_score",
+    "extracted",
+  ],
+};
+
+function buildPrompt(transcriptText: string, questionText: string): string {
+  return `You are analyzing a single video-testimonial transcript from an internal test of a
+recording platform. The topic is generic ("education") and used only to validate
+the app's mechanics — this is not client-facing content. The speaker is a real
+person answering one specific question about their own education experience, in
+English, Hindi, Marathi, or a natural mix.
+
+Return ONLY valid JSON, no other text, matching this exact shape:
+
+{
+  "sentiment_score": <number, -1.0 to 1.0>,
+  "themes": [<0 to 2 strings, ONLY from the fixed list below>],
+  "emotional_tone": <one of "heartfelt", "humorous", "matter_of_fact",
+    "passionate", "other">,
+  "summary": "<1-2 sentences, third person, neutral tone>",
+  "best_quote": "<verbatim excerpt from the transcript, the single most
+    illustrative sentence or two, in its original language/script>",
+  "is_relevant": <boolean, true if the answer actually addresses the question
+    asked, false if off-topic or non-responsive>,
+  "moderation_flag": <boolean>,
+  "contains_profanity": <boolean, true if the transcript contains swear words
+    or crude language, independent of moderation_flag>,
+  "contains_complaint": <boolean>,
+  "actionable_feedback": <string or null>,
+  "highlight_score": <number, 0.0 to 1.0>,
+  "extracted": {
+    "mentions_teacher": <boolean>,
+    "teacher_contribution": <one of "inspiration", "discipline", "confidence",
+      "mentorship", "career_direction", or null if mentions_teacher is false>,
+    "life_skills_mentioned": [<0 to 3 strings, ONLY from: "communication",
+      "financial_literacy", "leadership", "teamwork", "problem_solving" —
+      include a skill ONLY if the speaker explicitly references it, never infer
+      one that isn't actually present in the text>]
   }
-  const fieldList = fields
-    .map((f) => `- ${f.name} (${f.type}${f.nullable ? ", nullable" : ""}): ${f.description}`)
-    .join("\n");
-  return `Also extract these question-specific fields into "extracted":\n${fieldList}`;
 }
 
-export async function analyzeSentiment(
-  transcriptText: string,
-  languageDetected: string,
-  questionText: string,
-  extractionSpec: unknown,
-): Promise<SentimentAnalysis> {
-  const fields = parseExtractionSpec(extractionSpec);
+FIXED THEME LIST — themes must be chosen only from this list, exactly as
+written. Do not invent new theme names, do not use synonyms, do not return
+more than 2:
+- teacher_impact
+- discipline_and_habits
+- academic_knowledge
+- peer_relationships
+- financial_literacy_gap
+- communication_skills_gap
+- career_readiness
+- access_and_technology
+- pressure_and_values
+- confidence_and_growth
+- practical_learning_gap
 
+MODERATION_FLAG — this field means "unsuitable for external/client-facing use."
+Set it to true ONLY if the content contains: hate speech or slurs, sexual
+content, content that could embarrass or endanger the speaker if shown
+publicly, or a direct, specific complaint about Zeist Interactive, this app,
+or the recording process itself (as opposed to a complaint about the
+speaker's own education, which is normal and expected content, NOT a
+moderation issue). A genuine, thoughtful answer — even a critical or negative
+one about education — should almost always be moderation_flag: false. Do not
+default to true. Do not flag content merely for being negative in tone.
+Profanity alone does not automatically require moderation_flag: true — use
+your judgment on severity, and record it separately via contains_profanity
+regardless of your moderation_flag decision.
+
+CONTAINS_COMPLAINT — true if the speaker expresses dissatisfaction with some
+aspect of their own education (this is a normal, expected answer to several
+of these questions, and is unrelated to moderation_flag).
+
+EMOTIONAL_TONE — judge only from the words and phrasing actually used in the
+transcript. Do not infer anything about vocal tone, pacing, or delivery —
+you do not have access to audio, only text.
+
+BEST_QUOTE — must be copied verbatim from the transcript, not paraphrased or
+translated. If the strongest moment is in Hindi or Marathi script, keep it in
+that script.
+
+Transcript:
+"""
+${transcriptText}
+"""
+
+Question asked: "${questionText}"`;
+}
+
+export async function analyzeSentiment(transcriptText: string, questionText: string): Promise<SentimentAnalysis> {
   const response = await generateContentWithRetry({
     // Pinned, not "-latest" - that alias is what silently put this on
     // gemini-3.8-flash (confirmed via the quota-exceeded error's model
@@ -239,19 +329,10 @@ export async function analyzeSentiment(
     // extraction, which doesn't need the newest model's extra reasoning
     // depth. Revisit if extraction quality ever seems to suffer for it.
     model: "gemini-3.5-flash-lite",
-    contents: `Analyze this customer testimonial transcript. It is in ${languageDetected}.
-
-The question the person was asked: "${questionText}"
-
-Extract sentiment, themes, and a one-to-two sentence summary. Also pull out the single most quotable verbatim moment (best_quote — copy it exactly, don't paraphrase), judge whether the response actually answers the question asked (is_relevant), flag whether it's safe to publish externally regardless of sentiment (moderation_flag), and check whether there's any genuine complaint or negative beat even inside an overall-positive response (contains_complaint) — if so, extract the specific complaint as actionable_feedback, otherwise leave it null. Score highlight_score (0-1) for how strong a highlight-reel candidate this segment is, weighing relevance, sentiment strength, and quote quality together.
-
-${buildExtractionInstructions(fields)}
-
-Transcript:
-${transcriptText}`,
+    contents: buildPrompt(transcriptText, questionText),
     config: {
       responseMimeType: "application/json",
-      responseSchema: buildResponseSchema(fields),
+      responseSchema: RESPONSE_SCHEMA,
     },
   });
 

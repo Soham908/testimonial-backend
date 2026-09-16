@@ -32,12 +32,14 @@ model Question {
   vo_key_hi String
   vo_key_mr String
 
-  // Question-specific fields for the analysis prompt to pull out, on top of
-  // the nine fixed SentimentResult columns. Null/empty means no extra
-  // fields for this question. Shape: an array of
+  // Currently DORMANT — not read by src/services/gemini.ts as of the
+  // 2026-09-16 prompt rewrite, which hardcodes a fixed extracted shape
+  // (mentions_teacher/teacher_contribution/life_skills_mentioned) instead of
+  // building one per question. Every seeded question already had
+  // extraction_spec: null, so nothing behavioral changed. Left in the schema
+  // for a possible future per-question reactivation, not a migration
+  // ordered to be dropped. Shape when it was wired in: an array of
   // { name: string; type: "string"|"number"|"boolean"; description: string; nullable?: boolean }
-  // — see src/services/gemini.ts. Adding a new extracted value for a
-  // question is purely a row edit here, never a migration or a code change.
   extraction_spec Json?
 
   // Gentle on-screen nudges shown to the distributor during recording (NOT
@@ -128,13 +130,19 @@ model Segment {
 }
 
 model Transcript {
-  id                String   @id @default(uuid()) @db.Uuid
-  segment_id        String   @unique @db.Uuid
-  text              String
-  language_detected String
-  srt_key           String
-  vtt_key           String
-  created_at        DateTime @default(now()) @db.Timestamptz
+  id                   String   @id @default(uuid()) @db.Uuid
+  segment_id           String   @unique @db.Uuid
+  text                 String
+  language_detected    String
+  // ElevenLabs Scribe's own confidence in language_detected (0-1) - free
+  // technical-QA signal the API already returns on every single-channel
+  // response. Nullable: rows written before this column existed have no
+  // value and are never backfilled automatically (see gemini extraction
+  // reprocessing note in CLAUDE.md's future-work section).
+  language_probability Decimal?
+  srt_key              String
+  vtt_key              String
+  created_at           DateTime @default(now()) @db.Timestamptz
 
   segment Segment @relation(fields: [segment_id], references: [id])
 
@@ -145,18 +153,36 @@ model SentimentResult {
   id                  String   @id @default(uuid()) @db.Uuid
   segment_id          String   @unique @db.Uuid
   sentiment_score     Decimal
+  // Constrained to a fixed 11-value vocabulary by the Gemini prompt/response
+  // schema (src/services/gemini.ts THEME_VALUES), not enforced at the DB
+  // level - stays Json (array of strings) rather than a Postgres enum so a
+  // future vocabulary change is a code-only edit, no migration.
   themes              Json
+  // One of EMOTIONAL_TONE_VALUES (src/services/gemini.ts). Nullable: rows
+  // written before this column existed have no value.
+  emotional_tone      String?
   summary             String
   best_quote          String
   is_relevant         Boolean
+  // true means unsuitable for external/client-facing use - see the
+  // moderation_flag description in src/services/gemini.ts. Semantics
+  // flipped 2026-09-16 (previously true meant "safe to publish", inverted
+  // from the usual "flag = bad" convention) - rows written before that date
+  // still hold values under the OLD (inverted) meaning; only reprocessed
+  // rows are guaranteed correct under the new one.
   moderation_flag     Boolean
+  // Nullable: rows written before this column existed have no value.
+  contains_profanity  Boolean?
   contains_complaint  Boolean
   actionable_feedback String?
   highlight_score     Decimal
-  // Question-specific fields, shaped per the triggering Segment's Question's
-  // extraction_spec (see Question below) - varies per question, unlike the
-  // nine fixed columns above. Adding a new extracted value is a Question row
-  // edit, never a migration or a code change.
+  // Fixed shape as of the 2026-09-16 prompt rewrite: { mentions_teacher:
+  // boolean, teacher_contribution: string|null, life_skills_mentioned:
+  // string[] } (src/services/gemini.ts). Previously driven per-question by
+  // Question.extraction_spec - that generic mechanism is currently unused
+  // (every seeded question has extraction_spec: null) and not wired into
+  // analyzeSentiment anymore; the column still exists on Question for a
+  // future per-question reactivation, not read by the sentiment call today.
   extracted           Json?
   created_at          DateTime @default(now()) @db.Timestamptz
 

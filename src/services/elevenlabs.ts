@@ -12,6 +12,11 @@ export type TranscriptWord = {
 export type TranscriptionResult = {
   text: string;
   language_detected: string;
+  // Scribe's own confidence in language_detected (0-1) - a real,
+  // free technical-QA signal the API already returns on every single-
+  // channel response, previously received and discarded. See
+  // Transcript.language_probability.
+  language_probability: number;
   words: TranscriptWord[];
 };
 
@@ -36,8 +41,14 @@ export async function transcribeAudio(filePath: string): Promise<TranscriptionRe
   const data = (await response.json()) as {
     text: string;
     language_code: string;
+    language_probability: number;
     words: TranscriptWord[];
   };
 
-  return { text: data.text, language_detected: data.language_code, words: data.words ?? [] };
+  return {
+    text: data.text,
+    language_detected: data.language_code,
+    language_probability: data.language_probability,
+    words: data.words ?? [],
+  };
 }
