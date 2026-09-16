@@ -1,19 +1,21 @@
 # Backend API Contract — for frontend integration
 
-Scope: only the endpoints the mobile app actually needs to call. The backend
-has other routes (a temporary admin/test-only sentiment endpoint, a health
-check) that are deliberately left out — not part of this contract. The
-sentiment endpoint (`src/routes/dev.ts`) is gated behind `ENABLE_DEV_ENDPOINTS`
-(default off) and isn't registered at all unless that's explicitly set —
-the mobile app never calls it and never should.
+Scope: primarily the endpoints the mobile app actually needs to call (Auth
+through Read endpoints below) — the health check is left out as trivial. The
+internal admin/reporting surface (`GET /dashboard/*`) is documented
+separately at the bottom, clearly marked — **the mobile app never calls any
+of it and never should.** It's gated behind its own `ENABLE_DASHBOARD_ENDPOINTS`
+(default off) and isn't registered at all unless that's explicitly set — see
+that section for why it's a separate flag from `ENABLE_DEV_ENDPOINTS`.
 
 Every shape below is copied directly from the real route handlers in the
 backend repo (`src/routes/login.ts`, `src/routes/register.ts`,
 `src/routes/loginPhone.ts`, `src/routes/me.ts`, `src/routes/segments.ts`,
-`src/routes/distributors.ts`) as of **2026-09-04** — not guessed from the
-design doc or build notes. You don't need that repo open to use this file.
-If the backend changes after this date, this copy can go stale; re-pull it
-from the backend side rather than editing it here from assumptions.
+`src/routes/distributors.ts`, `src/routes/dashboard.ts`) as of
+**2026-09-16** — not guessed from the design doc or build notes. You don't
+need that repo open to use this file. If the backend changes after this
+date, this copy can go stale; re-pull it from the backend side rather than
+editing it here from assumptions.
 
 ## Reaching the backend (current phase: same-network, not deployed)
 
@@ -316,3 +318,154 @@ no ID needs to be passed in.
 - **Error responses are always `{ "error": string }`**, sometimes with an
   additional `message` field for user-facing detail (only currently true
   for the `video_not_found` case above).
+
+---
+
+## Internal admin/reporting surface — NOT for the mobile app
+
+Everything below is gated behind `ENABLE_DASHBOARD_ENDPOINTS` (default
+**off** — routes aren't registered at all when off, a request 404s the same
+as any unknown path, never a 403 that would confirm they exist). This is its
+own flag, separate from `ENABLE_DEV_ENDPOINTS` — the older, more generic
+"internal/debug route" flag, which nothing is gated behind as of this
+rewrite (its one route, `GET /segments/sentiment`, was removed now that the
+routes below supersede it). `ENABLE_DEV_ENDPOINTS` is left in the codebase,
+unused, for a future genuinely internal/debug-only route that isn't part of
+this admin/reporting surface — don't repurpose it for a new dashboard route
+instead of `ENABLE_DASHBOARD_ENDPOINTS`.
+
+Scoped by `client_id`, not the caller's own `distributor_id` — same auth
+(`Authorization: Bearer <token>`, any of that client's seeded distributor
+accounts) as everything above, but every route here reads across **all**
+distributors under that client, not just the caller. This is intentional
+(see `src/routes/dashboard.ts`'s comment): it's internal/company data, no
+distributor should see moderation/complaint judgements about themselves or
+anyone else. Stand-in for `backend-plan.html`'s Phase 7 `GET /clients/:id/
+insights` until real admin auth exists — not a permanent shape, don't build
+a production admin frontend against this without checking it's still
+current.
+
+All routes here are **read-only, SQL-aggregated, no LLM call**. Every
+count-based stat returns the raw count alongside any percentage — low-sample
+buckets (roughly under 10 segments) are never hidden, just returned as-is so
+the frontend can decide whether to flag them thin.
+
+**Not built** (deliberately deprioritized this phase, ask before adding):
+a completion-funnel-across-questions endpoint, city/tenure breakdowns, or
+retake-frequency reporting.
+
+`GET /dashboard/summary`
+- Success `200`:
+  ```json
+  {
+    "total_responses": number,
+    "completion": {
+      "completed": number,
+      "rate": number,
+      "by_status": { "uploaded"?: number, "transcribing"?: number, "transcribed"?: number, "failed"?: number }
+    },
+    "sentiment_split": {
+      "total_analyzed": number,
+      "thresholds": { "positive": ">= 0.3", "negative": "<= -0.3" },
+      "positive": { "count": number, "percentage": number },
+      "neutral": { "count": number, "percentage": number },
+      "negative": { "count": number, "percentage": number }
+    },
+    "average_sentiment_by_question": [ { "question_index": number, "count": number, "average_sentiment_score": number|null }, ... ]
+  }
+  ```
+- `total_responses` counts every `Segment` row for this client regardless of
+  status. `completion.completed`/`rate` is the fraction that reached
+  `status: "transcribed"` — the terminal successful state — **not** a
+  per-distributor expected-question-count funnel (not computable, see
+  `DASHBOARD_DATA_CONTRACT.md` §6).
+- `sentiment_split` and `average_sentiment_by_question` are computed only
+  over segments with a `sentiment_result` (`total_analyzed`, which is
+  usually ≤ `completion.completed`).
+- `positive`/`negative`/`neutral` thresholds are fixed cutoffs on
+  `sentiment_score` (`src/routes/dashboard.ts`), not derived from the data.
+
+`GET /dashboard/wordcloud?question_index=N&limit=100`
+- Both query params optional. `question_index` must be a positive integer if
+  given (`400` otherwise); omit it to pool every question. `limit` caps
+  returned words (default 100, max 500).
+- Success `200`: `{ "question_index": number|null, "transcript_count": number, "words": [ { "word": string, "count": number }, ... ] }`
+  sorted by `count` descending.
+- Code-only tokenization (no LLM) — Unicode letter-run matching (handles
+  Devanagari as well as Latin script), lowercased, English/Hindi/Marathi
+  stopwords stripped. All three languages' stopword lists are applied to
+  every transcript regardless of its detected language, since real
+  transcripts here are frequently code-mixed (see `src/services/
+  wordFrequency.ts`) — a single-language list would silently under-filter
+  the other two languages' function words.
+
+`GET /dashboard/themes`
+- Success `200`: `{ "themes": [ { "theme": string, "count": number }, ... ], "themes_with_complaint": [ same shape, filtered to contains_complaint: true segments ] }`
+- `theme` values come from the fixed 11-item vocabulary in
+  `src/services/gemini.ts` (`THEME_VALUES`) for any segment analyzed after
+  the 2026-09-16 prompt rewrite — segments analyzed before that date may
+  still carry old free-text theme strings (that prompt had no fixed list).
+
+`GET /dashboard/theme-sentiment`
+- Success `200`: `{ "themes": [ { "theme": string, "count": number, "average_sentiment_score": number }, ... ] }`
+- Per-theme average `sentiment_score`, across segments where that theme
+  appears — the positive/negative lean per theme, computed from existing
+  data (no separate valence field).
+
+`GET /dashboard/highlights?question_index=N&limit=10`
+- `question_index` is **required** — `400` if missing or not a positive
+  integer. `limit` optional (default 10, max 50).
+- Success `200`: `{ "question_index": number, "highlights": [ { "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null }, ... ] }`
+  ordered by `highlight_score` descending. No name or identity field —
+  attributable by category only.
+- **Excludes `moderation_flag: true` segments** — this endpoint surfaces
+  quotable highlights, which is exactly what `moderation_flag` gates
+  (unsuitable for external/client-facing use). Segments analyzed before the
+  2026-09-16 prompt rewrite have that field under the *old, inverted*
+  meaning (`true` used to mean "safe to publish") — until those rows are
+  reprocessed, this filter will incorrectly exclude old safe content and
+  never incorrectly include old unsafe content (the failure mode is
+  under-inclusion, not a moderation leak).
+
+`GET /dashboard/teacher-impact`
+- Success `200`: `{ "total_analyzed": number, "mentions_teacher": { "count": number, "percentage": number }, "teacher_contribution": [ { "teacher_contribution": string, "count": number, "percentage": number }, ... ] }`
+- `teacher_contribution` percentages are of `mentions_teacher.count`, not
+  `total_analyzed`. Only populated for segments analyzed after the
+  2026-09-16 prompt rewrite (`extracted.mentions_teacher` didn't exist
+  before then).
+
+`GET /dashboard/technical`
+- Internal/QA use — not participant-facing content.
+- Success `200`:
+  ```json
+  {
+    "devices": [ { "device_model": string|null, "os_version": string|null, "count": number }, ... ],
+    "resolutions": [ { "width": number|null, "height": number|null, "count": number }, ... ],
+    "average_duration_by_question": [ { "question_index": number, "average_duration_seconds": number, "count": number }, ... ]
+  }
+  ```
+- `devices`/`resolutions` only cover segments with a non-null
+  `capture_metadata` (best-effort, client-reported — see `POST /segments/
+  confirm` above); a segment recorded before that field existed, or whose
+  client omitted it, isn't counted in either breakdown.
+
+`GET /dashboard/extraction-quality`
+- A meta-view of the pipeline itself (is the model producing usable output),
+  not the testimonial content.
+- Success `200`:
+  ```json
+  {
+    "total_analyzed": number,
+    "is_relevant": { "count": number, "percentage": number },
+    "contains_profanity": { "known_count": number, "count": number, "percentage": number },
+    "highlight_score_distribution": {
+      "thresholds": { "high": ">= 0.85", "mid": ">= 0.4", "low": "< 0.4" },
+      "high": { "count": number, "percentage": number },
+      "mid": { "count": number, "percentage": number },
+      "low": { "count": number, "percentage": number }
+    }
+  }
+  ```
+- `contains_profanity.percentage` is `count / known_count`, not
+  `total_analyzed` — `known_count` excludes segments analyzed before this
+  column existed (nullable) so their absence doesn't dilute the rate.

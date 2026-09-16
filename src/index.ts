@@ -8,7 +8,7 @@ import { loginPhoneRouter } from "./routes/loginPhone";
 import { meRouter } from "./routes/me";
 import { segmentsRouter } from "./routes/segments";
 import { distributorsRouter } from "./routes/distributors";
-import { devRouter } from "./routes/dev";
+import { dashboardRouter } from "./routes/dashboard";
 import { authMiddleware } from "./middleware/auth";
 
 const app = express();
@@ -47,7 +47,7 @@ app.use(loginRouter);
 // Unconditional mount is safe: registerRouter only actually has a route on
 // it when ENABLE_SELF_REGISTRATION is on (see src/routes/register.ts) - off
 // by default, the router is empty and this is a no-op, same "route never
-// registered at all" treatment as devRouter below.
+// registered at all" treatment as dashboardRouter below.
 app.use(registerRouter);
 // Same unconditional-mount-is-safe reasoning as registerRouter above -
 // loginPhoneRouter only has a route on it when ENABLE_SELF_REGISTRATION is
@@ -58,12 +58,12 @@ app.use(authMiddleware);
 app.use(meRouter);
 app.use(segmentsRouter);
 app.use(distributorsRouter);
-// Unconditional mount is safe: devRouter only actually has routes on it when
-// ENABLE_DEV_ENDPOINTS is on (see src/routes/dev.ts) - off by default, the
-// router is empty and this is a no-op, so a request to a dev-only path
-// falls through to the plain 404 below rather than confirming the path
-// exists via a 403.
-app.use(devRouter);
+// Unconditional mount is safe: dashboardRouter only has routes on it when
+// ENABLE_DASHBOARD_ENDPOINTS is on (see src/routes/dashboard.ts) - off by
+// default, the router is empty and this is a no-op, so a request to a
+// dashboard path falls through to the plain 404 below rather than
+// confirming the path exists via a 403.
+app.use(dashboardRouter);
 
 app.use((req, res) => {
   res.status(404).json({ error: "not_found" });

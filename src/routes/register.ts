@@ -29,7 +29,7 @@ const registerLimiter = rateLimit({
   message: { error: "Too many registration attempts, please try again later" },
 });
 
-// Mirrors src/routes/dev.ts's gating pattern: when ENABLE_SELF_REGISTRATION
+// Mirrors src/routes/dashboard.ts's gating pattern: when ENABLE_SELF_REGISTRATION
 // is off (default), nothing below ever calls `.post` on this router, so it
 // never matches - a request falls through to whatever the rest of the app
 // does with an unmatched path at that position (src/index.ts mounts this

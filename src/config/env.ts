@@ -21,6 +21,7 @@ function loadEnv(): Record<RequiredVar, string> &
     PORT: number;
     ENABLE_REEL_RENDERING: boolean;
     ENABLE_DEV_ENDPOINTS: boolean;
+    ENABLE_DASHBOARD_ENDPOINTS: boolean;
     ENABLE_SELF_REGISTRATION: boolean;
     JOB_VISIBILITY_TIMEOUT_MS: number;
     MIN_APP_VERSION: string;
@@ -51,15 +52,28 @@ function loadEnv(): Record<RequiredVar, string> &
   // flag (testimonial-app/config.ts) - keep both in sync.
   const enableReelRendering = process.env.ENABLE_REEL_RENDERING === "true";
 
-  // Gates every internal/debug route (currently just GET /segments/sentiment,
-  // see src/routes/dev.ts) - default off. These routes return data scoped by
-  // client_id rather than the caller's own distributor_id, which is correct
-  // for an internal inspection tool but would otherwise let any authenticated
-  // distributor read every other distributor's transcripts/sentiment/
-  // moderation flags for the same client. Off by default means the route is
-  // never registered at all, not merely rejected - it shouldn't advertise its
-  // own existence to a production caller.
+  // Reserved for future internal/debug routes - nothing is gated behind
+  // this today. GET /segments/sentiment (the route this used to gate) was
+  // removed once the GET /dashboard/* endpoints superseded it - see
+  // ENABLE_DASHBOARD_ENDPOINTS below for that surface's own flag. Left in
+  // place (env var + boolean + "route never registered when off" pattern)
+  // rather than deleted, since a genuinely internal/debug-only route (as
+  // opposed to the dashboard's admin/reporting one) is still a plausible
+  // future need and the pattern is cheap to keep around unused.
   const enableDevEndpoints = process.env.ENABLE_DEV_ENDPOINTS === "true";
+
+  // Gates the GET /dashboard/* admin/reporting routes (src/routes/
+  // dashboard.ts) - default off, separate from ENABLE_DEV_ENDPOINTS above
+  // (split out so a genuine future dev/debug route doesn't have to ride
+  // along with turning on the dashboard, or vice versa). These routes
+  // return data scoped by client_id rather than the caller's own
+  // distributor_id, which is correct for an internal admin tool but would
+  // otherwise let any authenticated distributor read every other
+  // distributor's transcripts/sentiment/moderation flags for the same
+  // client. Off by default means the routes are never registered at all,
+  // not merely rejected - they shouldn't advertise their own existence to
+  // a production caller.
+  const enableDashboardEndpoints = process.env.ENABLE_DASHBOARD_ENDPOINTS === "true";
 
   // Gates POST /register (src/routes/register.ts) - default off. Lets
   // internal test participants create their own Distributor row and get a
@@ -91,6 +105,7 @@ function loadEnv(): Record<RequiredVar, string> &
     PORT: Number(process.env.PORT) || 3000,
     ENABLE_REEL_RENDERING: enableReelRendering,
     ENABLE_DEV_ENDPOINTS: enableDevEndpoints,
+    ENABLE_DASHBOARD_ENDPOINTS: enableDashboardEndpoints,
     ENABLE_SELF_REGISTRATION: enableSelfRegistration,
     JOB_VISIBILITY_TIMEOUT_MS: jobVisibilityTimeoutMs,
     MIN_APP_VERSION: minAppVersion,
