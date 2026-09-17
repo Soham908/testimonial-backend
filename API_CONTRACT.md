@@ -436,8 +436,10 @@ origin.
 `GET /dashboard/highlights?question_index=N&limit=10`
 - `question_index` is **required** — `400` if missing or not a positive
   integer. `limit` optional (default 10, max 50).
-- Success `200`: `{ "question_index": number, "highlights": [ { "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null }, ... ] }`
+- Success `200`: `{ "question_index": number, "highlights": [ { "segment_id": string, "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null }, ... ] }`
   ordered by `highlight_score` descending.
+- **`segment_id`** (added 2026-09-17) — pass it to `GET /dashboard/
+  response/:segment_id` below to open that segment's full detail.
 - **`distributor_name` is a deliberate, endpoint-specific exception to this
   surface's otherwise "no identity" design** (added 2026-09-17) — this
   dashboard is viewed only internally by two known people, never published

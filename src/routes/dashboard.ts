@@ -212,6 +212,9 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
   // quotable highlights, which is exactly the "unsuitable for external use"
   // bar moderation_flag encodes (see src/services/gemini.ts).
   //
+  // Includes segment_id — lets the UI link a highlight through to
+  // GET /dashboard/response/:segment_id's detail drawer.
+  //
   // Includes distributor_name and actionable_feedback — a deliberate,
   // endpoint-specific reversal of the rest of this router's "no identity"
   // design. This dashboard is viewed only internally (two known people),
@@ -233,6 +236,7 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
 
     const rows = await prisma.$queryRaw<
       Array<{
+        segment_id: string;
         best_quote: string;
         highlight_score: number;
         sentiment_score: number;
@@ -241,7 +245,8 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
         actionable_feedback: string | null;
       }>
     >`
-      SELECT sr."best_quote" AS best_quote, sr."highlight_score"::float AS highlight_score,
+      SELECT sr."segment_id" AS segment_id, sr."best_quote" AS best_quote,
+             sr."highlight_score"::float AS highlight_score,
              sr."sentiment_score"::float AS sentiment_score, t."language_detected" AS language,
              d."name" AS distributor_name, sr."actionable_feedback" AS actionable_feedback
       FROM "sentiment_results" sr

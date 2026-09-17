@@ -94,10 +94,11 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(queryRawMock).not.toHaveBeenCalled();
   });
 
-  it("GET /dashboard/highlights excludes moderation_flag rows via the query and returns distributor_name/actionable_feedback", async () => {
+  it("GET /dashboard/highlights excludes moderation_flag rows via the query and returns segment_id/distributor_name/actionable_feedback", async () => {
     const dashboardRouter = await loadDashboardRouter(true);
     queryRawMock.mockResolvedValueOnce([
       {
+        segment_id: "22222222-2222-2222-2222-222222222222",
         best_quote: "It really changed how I think.",
         highlight_score: 0.9,
         sentiment_score: 0.8,
@@ -112,6 +113,7 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(res.status).toBe(200);
     expect(res.body.question_index).toBe(2);
     expect(res.body.highlights).toHaveLength(1);
+    expect(res.body.highlights[0].segment_id).toBe("22222222-2222-2222-2222-222222222222");
     expect(res.body.highlights[0].distributor_name).toBe("Ramesh Traders");
     expect(res.body.highlights[0].actionable_feedback).toBe("Wants a faster support response.");
   });
