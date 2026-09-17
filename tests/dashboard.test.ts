@@ -89,10 +89,17 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(queryRawMock).not.toHaveBeenCalled();
   });
 
-  it("GET /dashboard/highlights excludes moderation_flag rows via the query and returns the mocked rows as-is", async () => {
+  it("GET /dashboard/highlights excludes moderation_flag rows via the query and returns distributor_name/actionable_feedback", async () => {
     const dashboardRouter = await loadDashboardRouter(true);
     queryRawMock.mockResolvedValueOnce([
-      { best_quote: "It really changed how I think.", highlight_score: 0.9, sentiment_score: 0.8, language: "en" },
+      {
+        best_quote: "It really changed how I think.",
+        highlight_score: 0.9,
+        sentiment_score: 0.8,
+        language: "en",
+        distributor_name: "Ramesh Traders",
+        actionable_feedback: "Wants a faster support response.",
+      },
     ]);
 
     const res = await request(appWith(dashboardRouter)).get("/dashboard/highlights?question_index=2");
@@ -100,5 +107,7 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(res.status).toBe(200);
     expect(res.body.question_index).toBe(2);
     expect(res.body.highlights).toHaveLength(1);
+    expect(res.body.highlights[0].distributor_name).toBe("Ramesh Traders");
+    expect(res.body.highlights[0].actionable_feedback).toBe("Wants a faster support response.");
   });
 });

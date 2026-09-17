@@ -415,9 +415,22 @@ retake-frequency reporting.
 `GET /dashboard/highlights?question_index=N&limit=10`
 - `question_index` is **required** — `400` if missing or not a positive
   integer. `limit` optional (default 10, max 50).
-- Success `200`: `{ "question_index": number, "highlights": [ { "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null }, ... ] }`
-  ordered by `highlight_score` descending. No name or identity field —
-  attributable by category only.
+- Success `200`: `{ "question_index": number, "highlights": [ { "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null }, ... ] }`
+  ordered by `highlight_score` descending.
+- **`distributor_name` is a deliberate, endpoint-specific exception to this
+  surface's otherwise "no identity" design** (added 2026-09-17) — this
+  dashboard is viewed only internally by two known people, never published
+  to IFB or any external audience, and most dry-run participants are staff/
+  friends/family the viewers already know personally, so withholding the
+  name here served no purpose. **This does not extend to any other endpoint
+  or any future client-facing surface** — a fresh decision is needed before
+  carrying name exposure anywhere else.
+- **`actionable_feedback`** is `null` unless `contains_complaint` was true
+  for that segment (same population rule as the `SentimentResult` column
+  itself, §2/DASHBOARD_DATA_CONTRACT.md) — added for a complaints-register
+  UI, not filtered to complaint segments only (a highlight can have a
+  populated `actionable_feedback` alongside an overall-positive
+  `sentiment_score`, same as the underlying column allows).
 - **Excludes `moderation_flag: true` segments** — this endpoint surfaces
   quotable highlights, which is exactly what `moderation_flag` gates
   (unsuitable for external/client-facing use). Segments analyzed before the

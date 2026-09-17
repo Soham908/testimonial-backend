@@ -209,6 +209,17 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
   // Excludes moderation_flag: true segments — this endpoint surfaces
   // quotable highlights, which is exactly the "unsuitable for external use"
   // bar moderation_flag encodes (see src/services/gemini.ts).
+  //
+  // Includes distributor_name and actionable_feedback — a deliberate,
+  // endpoint-specific reversal of the rest of this router's "no identity"
+  // design. This dashboard is viewed only internally (two known people),
+  // never published to IFB or any external audience, and most dry-run
+  // participants are staff/friends/family the viewers already know
+  // personally, so withholding the name here serves no real purpose.
+  // KEEP THIS INTERNAL-ONLY: do not carry name exposure into any future
+  // client-facing version of this endpoint (or a new one) without a fresh
+  // decision at that point — this reasoning does not automatically extend
+  // to a client-facing dashboard.
   dashboardRouter.get("/dashboard/highlights", async (req, res) => {
     const { client_id } = req.auth!;
     const question_index = parseOptionalQuestionIndex(req.query.question_index);
@@ -219,10 +230,18 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
     const limit = parseLimit(req.query.limit, DEFAULT_HIGHLIGHTS_LIMIT, MAX_HIGHLIGHTS_LIMIT);
 
     const rows = await prisma.$queryRaw<
-      Array<{ best_quote: string; highlight_score: number; sentiment_score: number; language: string | null }>
+      Array<{
+        best_quote: string;
+        highlight_score: number;
+        sentiment_score: number;
+        language: string | null;
+        distributor_name: string;
+        actionable_feedback: string | null;
+      }>
     >`
       SELECT sr."best_quote" AS best_quote, sr."highlight_score"::float AS highlight_score,
-             sr."sentiment_score"::float AS sentiment_score, t."language_detected" AS language
+             sr."sentiment_score"::float AS sentiment_score, t."language_detected" AS language,
+             d."name" AS distributor_name, sr."actionable_feedback" AS actionable_feedback
       FROM "sentiment_results" sr
       JOIN "segments" s ON s."id" = sr."segment_id"
       JOIN "distributors" d ON d."id" = s."distributor_id"
