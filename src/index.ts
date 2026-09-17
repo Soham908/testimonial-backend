@@ -11,6 +11,7 @@ import "dotenv/config";
 
 import express from "express";
 import helmet from "helmet";
+import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { config } from "./config/env";
 import { loginRouter } from "./routes/login";
@@ -30,6 +31,21 @@ const app = express();
 app.set("trust proxy", 1);
 
 app.use(helmet());
+
+// Explicit allowlist (CORS_ALLOWED_ORIGINS, src/config/env.ts), not a
+// wildcard - this only exists for the internal dashboard's browser-based
+// fetches (src/routes/dashboard.ts); the mobile app is a native HTTP
+// client and never goes through CORS at all, with or without this.
+// Internal-only, two known viewers, so a permissive-but-explicit list is
+// fine for now - tighten (or scope to just /dashboard/*) before this is
+// ever exposed more widely. No credentials (cookies/sessions) are used
+// here - the dashboard sends a static Bearer token - so
+// `credentials: true` is deliberately not set.
+app.use(
+  cors({
+    origin: config.CORS_ALLOWED_ORIGINS,
+  }),
+);
 
 app.use(
   rateLimit({

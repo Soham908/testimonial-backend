@@ -345,14 +345,35 @@ insights` until real admin auth exists — not a permanent shape, don't build
 a production admin frontend against this without checking it's still
 current.
 
-All routes here are **read-only, SQL-aggregated, no LLM call**. Every
-count-based stat returns the raw count alongside any percentage — low-sample
-buckets (roughly under 10 segments) are never hidden, just returned as-is so
-the frontend can decide whether to flag them thin.
+All routes here are **read-only, SQL-aggregated (except `GET /dashboard/
+response/:segment_id`, a plain Prisma lookup — not an aggregate), no LLM
+call**. Every count-based stat returns the raw count alongside any
+percentage — low-sample buckets (roughly under 10 segments) are never
+hidden, just returned as-is so the frontend can decide whether to flag them
+thin.
 
 **Not built** (deliberately deprioritized this phase, ask before adding):
 a completion-funnel-across-questions endpoint, city/tenure breakdowns, or
 retake-frequency reporting.
+
+**CORS**: this is the only part of the API a browser (as opposed to the
+mobile app's native HTTP client, or server-to-server calls) is expected to
+call cross-origin — the dashboard UI runs on its own origin/port. Gated by
+`CORS_ALLOWED_ORIGINS` (`src/config/env.ts`), a comma-separated allowlist of
+exact origins, applied globally in `src/index.ts` via the `cors` package —
+**not** a wildcard, and defaults to an empty list (no origin allowed at all)
+if unset, so an unset var fails closed rather than silently permitting
+everything. No credentials (cookies) are used — the dashboard sends a static
+`Authorization: Bearer` token — so `Access-Control-Allow-Credentials` is
+never set. Internal-only, two known viewers, so an explicit-but-permissive
+list (e.g. the dashboard's local Vite dev origin, `http://localhost:5173`,
+plus its deployed origin once that exists) is judged fine for now — tighten,
+or scope this to just `/dashboard/*` instead of every route, before this is
+ever exposed more widely. Requests with no `Origin` header at all (curl, the
+mobile app, server-to-server) are unaffected either way — CORS is a
+browser-enforced restriction, not a server-side auth check, and every route
+here still requires its own `Authorization: Bearer` token regardless of
+origin.
 
 `GET /dashboard/summary`
 - Success `200`:

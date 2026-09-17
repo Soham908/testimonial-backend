@@ -25,6 +25,7 @@ function loadEnv(): Record<RequiredVar, string> &
     ENABLE_SELF_REGISTRATION: boolean;
     JOB_VISIBILITY_TIMEOUT_MS: number;
     MIN_APP_VERSION: string;
+    CORS_ALLOWED_ORIGINS: string[];
   } {
   const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
   if (missing.length > 0) {
@@ -99,6 +100,19 @@ function loadEnv(): Record<RequiredVar, string> &
   // blocks anyone.
   const minAppVersion = process.env.MIN_APP_VERSION || "0.0.0";
 
+  // Allowlisted browser origins for the internal dashboard (src/routes/
+  // dashboard.ts) - env-configurable rather than hardcoded, since the
+  // dashboard's dev origin varies by machine/port and there's no reason to
+  // bake one specific URL into this codebase. Comma-separated, trimmed,
+  // empty entries dropped. Defaults to an empty list (no origin allowed) so
+  // an unset var fails closed rather than silently allowing everything -
+  // this is deliberately explicit-allowlist, not a wildcard, even though
+  // the dashboard is internal-only with two viewers (see src/index.ts).
+  const corsAllowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+
   return {
     ...required,
     ...optional,
@@ -109,6 +123,7 @@ function loadEnv(): Record<RequiredVar, string> &
     ENABLE_SELF_REGISTRATION: enableSelfRegistration,
     JOB_VISIBILITY_TIMEOUT_MS: jobVisibilityTimeoutMs,
     MIN_APP_VERSION: minAppVersion,
+    CORS_ALLOWED_ORIGINS: corsAllowedOrigins,
   };
 }
 
