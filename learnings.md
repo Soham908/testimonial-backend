@@ -392,6 +392,68 @@ dependent). This is a genuinely rough estimate for planning purposes, not a
 number to hold AWS/nexrender to — re-verify against actual billing consoles
 before treating any of it as final.
 
+## Post-step-9 benchmark (2026-09-17): transcription+analysis only, no render
+
+**This measures something different from the "Step 9" benchmark above —
+keep both.** The step 9 numbers are full end-to-end including nexrender
+render time and cost; that's still the right reference for once rendering
+is back on. This section measures the pipeline as it actually runs *right
+now*, during this internal-test phase: rendering is off
+(`ENABLE_REEL_RENDERING=false`), and caption burn-in — which existed solely
+to feed nexrender — is now gated on that same flag
+(`src/jobs/transcribeSegment.ts`) rather than always running, so it doesn't
+happen either. What's left is audio extraction → ElevenLabs transcription →
+Gemini sentiment analysis, which is the entire real cost/time surface today.
+
+**Real test, not synthetic**: a real previously-recorded ~58s clip the user
+provided (S3 key already tied to an existing segment in the local dev DB —
+Zeist client, "Test User" distributor, `question_index: 1`), run through
+`extractAudio`/`transcribeAudio`/`analyzeSentiment` directly, standalone
+(no DB/S3 writes — the existing segment's real data wasn't touched). n=1,
+one sample — treat as directional, same as everything else in this file.
+
+- **Source video**: 58.4s duration, 52.9MB, 1080×1920 (already the
+  normalized/captioned-shape output). Hindi speech, heavily code-mixed with
+  English business vocabulary — ElevenLabs detected `hin` at **98.25%
+  confidence** (`language_probability`, now stored on `Transcript` — see
+  the sentiment-prompt-rewrite commit), 150 words.
+
+| Stage | Time |
+|---|---|
+| ffmpeg extract audio | 5.3s |
+| ElevenLabs transcribe | 2.7s |
+| Gemini sentiment analysis | 7.4s |
+| **Total** | **~16.3s** |
+
+- **Real Gemini token usage** (from the actual API response's
+  `usageMetadata`, now logged on every call — see `src/services/gemini.ts`):
+  **1,090 input tokens, 238 output tokens, 1,328 total.** That input figure
+  is the entire prompt: instructions, the fixed theme/emotional-tone/
+  life-skills vocab lists, and the transcript together — there's no
+  separate system prompt, everything goes in as one combined message.
+- **Real cost, current pricing** (verified live on 2026-09-17, not from the
+  July estimate above — the model has since changed from the
+  `gemini-flash-latest` alias to a **pinned** `gemini-3.5-flash-lite`, so
+  this is a real number for a known-fixed model, not a moving target):
+  - Gemini `gemini-3.5-flash-lite` standard tier: $0.30/1M input tokens,
+    $2.50/1M output tokens → **~$0.0009** for this call.
+  - ElevenLabs Scribe: $0.22/hour → 58.4s of audio → **~$0.0036**.
+  - **Combined: ~$0.0045/segment** — under half a cent.
+
+**What this means right now**: during this internal-test phase (no
+rendering), the real cost floor per segment is a few tenths of a cent —
+100 segments ≈ $0.45, 1,000 ≈ $4.50. The step-9 estimate's dominant cost
+(nexrender's ~$0.13/video + $119/month base) **isn't being spent at all**
+while `ENABLE_REEL_RENDERING` stays off. Time-wise, a segment's real
+server-side processing today is ~16–20s (this measurement plus small S3/DB
+write overhead not included above), not the ~63s the step-9 figure implies
+— that figure included render time, which isn't happening.
+
+Caveat carried over from the numbers above: ElevenLabs/ffmpeg time scales
+with audio duration, and Gemini's token count (and cost) scales with
+transcript length — a longer or shorter answer moves these proportionally,
+this isn't a fixed per-segment constant.
+
 ## Test/seed data currently in the dev DB
 
 - 2 clients: IFB Appliances, Voltas — both `branding_config.nexrender_template`
