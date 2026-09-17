@@ -32,6 +32,8 @@ const MAX_WORDCLOUD_LIMIT = 500;
 const DEFAULT_HIGHLIGHTS_LIMIT = 10;
 const MAX_HIGHLIGHTS_LIMIT = 50;
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // undefined = param absent (caller didn't filter), null = present but not a
 // well-formed positive integer (caller should get a 400), number = valid.
 function parseOptionalQuestionIndex(raw: unknown): number | null | undefined {
@@ -254,6 +256,62 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
     `;
 
     res.json({ question_index, highlights: rows });
+  });
+
+  // GET /dashboard/response/:segment_id
+  // Single-segment lookup, not a list — full transcript text + the complete
+  // sentiment_result record, for drilling into one individual response's
+  // full detail from the UI (e.g. clicking through from /dashboard/
+  // highlights or /dashboard/wordcloud). Returns null for `transcript`/
+  // `sentiment` if that stage hasn't completed yet, rather than 404 —
+  // only a segment_id that doesn't belong to this client at all is a 404.
+  dashboardRouter.get("/dashboard/response/:segment_id", async (req, res) => {
+    const { client_id } = req.auth!;
+    const { segment_id } = req.params;
+
+    if (!UUID_PATTERN.test(segment_id)) {
+      res.status(400).json({ error: "segment_id must be a valid UUID" });
+      return;
+    }
+
+    const segment = await prisma.segment.findFirst({
+      where: { id: segment_id, distributor: { client_id } },
+      select: {
+        id: true,
+        question_index: true,
+        transcript: {
+          select: { text: true, language_detected: true, language_probability: true },
+        },
+        sentiment_result: {
+          select: {
+            sentiment_score: true,
+            themes: true,
+            emotional_tone: true,
+            summary: true,
+            best_quote: true,
+            is_relevant: true,
+            moderation_flag: true,
+            contains_profanity: true,
+            contains_complaint: true,
+            actionable_feedback: true,
+            highlight_score: true,
+            extracted: true,
+          },
+        },
+      },
+    });
+
+    if (!segment) {
+      res.status(404).json({ error: "segment_not_found" });
+      return;
+    }
+
+    res.json({
+      segment_id: segment.id,
+      question_index: segment.question_index,
+      transcript: segment.transcript,
+      sentiment: segment.sentiment_result,
+    });
   });
 
   // GET /dashboard/teacher-impact

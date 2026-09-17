@@ -440,6 +440,40 @@ retake-frequency reporting.
   never incorrectly include old unsafe content (the failure mode is
   under-inclusion, not a moderation leak).
 
+`GET /dashboard/response/:segment_id`
+- Single-segment lookup, not a list — full transcript text plus the
+  complete `sentiment_result` record for one specific segment, for drilling
+  into one individual response's full detail from the UI (e.g. clicking
+  through from `/dashboard/highlights` or `/dashboard/wordcloud`).
+- `segment_id` (path param) must be a well-formed UUID — `400`
+  `{ "error": "segment_id must be a valid UUID" }` otherwise.
+- Scoped by the caller's `client_id`, same as every other `/dashboard/*`
+  route — a `segment_id` that exists but belongs to a different client is
+  indistinguishable from one that doesn't exist at all (both `404`).
+- Failure `404`: `{ "error": "segment_not_found" }` — no `sentiment_result`/
+  `transcript` existing yet for an otherwise-valid, in-scope segment is
+  **not** a 404: `transcript`/`sentiment` are simply `null` in that case,
+  so the UI can show "not yet analyzed" rather than treating it as an error.
+- Success `200`:
+  ```json
+  {
+    "segment_id": string,
+    "question_index": number,
+    "transcript": { "text": string, "language_detected": string, "language_probability": number|null } | null,
+    "sentiment": {
+      "sentiment_score": number, "themes": string[], "emotional_tone": string|null,
+      "summary": string, "best_quote": string, "is_relevant": boolean,
+      "moderation_flag": boolean, "contains_profanity": boolean|null,
+      "contains_complaint": boolean, "actionable_feedback": string|null,
+      "highlight_score": number, "extracted": object|null
+    } | null
+  }
+  ```
+- No distributor identity field on this one — unlike `/dashboard/highlights`
+  above, exposing a name here wasn't asked for and isn't assumed; the UI is
+  expected to already know which distributor/segment it's drilling into
+  from wherever it linked in from.
+
 `GET /dashboard/teacher-impact`
 - Success `200`: `{ "total_analyzed": number, "mentions_teacher": { "count": number, "percentage": number }, "teacher_contribution": [ { "teacher_contribution": string, "count": number, "percentage": number }, ... ] }`
 - `teacher_contribution` percentages are of `mentions_teacher.count`, not
