@@ -4,11 +4,13 @@ import request from "supertest";
 
 const queryRawMock = vi.fn();
 const segmentFindFirstMock = vi.fn();
+const questionFindManyMock = vi.fn();
 
 vi.mock("../src/db/prisma", () => ({
   prisma: {
     $queryRaw: (...args: unknown[]) => queryRawMock(...args),
     segment: { findFirst: (...args: unknown[]) => segmentFindFirstMock(...args) },
+    question: { findMany: (...args: unknown[]) => questionFindManyMock(...args) },
   },
 }));
 
@@ -46,6 +48,7 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
   beforeEach(() => {
     queryRawMock.mockReset();
     segmentFindFirstMock.mockReset();
+    questionFindManyMock.mockReset();
   });
 
   it("is unreachable when the flag is off (default) - a plain 404, not 403", async () => {
@@ -172,6 +175,25 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
       expect.objectContaining({
         where: { id: "11111111-1111-1111-1111-111111111111", distributor: { client_id: "c1" } },
       }),
+    );
+  });
+
+  it("GET /dashboard/questions returns index + per-language text, scoped by client_id", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    questionFindManyMock.mockResolvedValueOnce([
+      { index: 1, text_en: "English one?", text_hi: "Hindi one?", text_mr: "Marathi one?" },
+      { index: 2, text_en: "English two?", text_hi: "Hindi two?", text_mr: "Marathi two?" },
+    ]);
+
+    const res = await request(appWith(dashboardRouter)).get("/dashboard/questions");
+
+    expect(res.status).toBe(200);
+    expect(res.body.questions).toEqual([
+      { index: 1, text: { en: "English one?", hi: "Hindi one?", mr: "Marathi one?" } },
+      { index: 2, text: { en: "English two?", hi: "Hindi two?", mr: "Marathi two?" } },
+    ]);
+    expect(questionFindManyMock).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { client_id: "c1" } }),
     );
   });
 });

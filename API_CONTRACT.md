@@ -346,11 +346,11 @@ a production admin frontend against this without checking it's still
 current.
 
 All routes here are **read-only, SQL-aggregated (except `GET /dashboard/
-response/:segment_id`, a plain Prisma lookup — not an aggregate), no LLM
-call**. Every count-based stat returns the raw count alongside any
-percentage — low-sample buckets (roughly under 10 segments) are never
-hidden, just returned as-is so the frontend can decide whether to flag them
-thin.
+response/:segment_id` and `GET /dashboard/questions`, plain Prisma lookups —
+not aggregates), no LLM call**. Every count-based stat returns the raw count
+alongside any percentage — low-sample buckets (roughly under 10 segments)
+are never hidden, just returned as-is so the frontend can decide whether to
+flag them thin.
 
 **Not built** (deliberately deprioritized this phase, ask before adding):
 a completion-funnel-across-questions endpoint, city/tenure breakdowns, or
@@ -496,6 +496,21 @@ origin.
   above, exposing a name here wasn't asked for and isn't assumed; the UI is
   expected to already know which distributor/segment it's drilling into
   from wherever it linked in from.
+
+`GET /dashboard/questions` (added 2026-09-17)
+- Per-client question list — replaces a raw "type a question number" input
+  with real labeled data for any UI that needs to pick a `question_index`
+  (e.g. for `/dashboard/wordcloud` or `/dashboard/highlights` above).
+- Success `200`: `{ "questions": [ { "index": number, "text": { "en": string, "hi": string, "mr": string } }, ... ] }`
+  ordered by `index`.
+- **Not localized** to one language like `GET /distributors/me/questions`
+  is (that endpoint is for the recording app — it picks one language for
+  the requesting distributor). This one always returns all three, so the
+  dashboard can label a question correctly regardless of which language a
+  given response happens to be in.
+- No `id`, `talking_points`, or VO fields — this endpoint is deliberately
+  minimal (just enough to label a question picker), not a mirror of
+  `GET /distributors/me/questions`.
 
 `GET /dashboard/teacher-impact`
 - Success `200`: `{ "total_analyzed": number, "mentions_teacher": { "count": number, "percentage": number }, "teacher_contribution": [ { "teacher_contribution": string, "count": number, "percentage": number }, ... ] }`

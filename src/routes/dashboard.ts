@@ -319,6 +319,31 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
     });
   });
 
+  // GET /dashboard/questions
+  // Per-client question list (index + text in every language) — labeled
+  // data for the UI to build a real question picker from, instead of a
+  // bare "type a question number" input. Not localized to one language
+  // like GET /distributors/me/questions is (that endpoint is for the
+  // recording app, picks one language for the distributor); this one
+  // returns all three so the dashboard can label regardless of which
+  // language a given response happens to be in.
+  dashboardRouter.get("/dashboard/questions", async (req, res) => {
+    const { client_id } = req.auth!;
+
+    const questions = await prisma.question.findMany({
+      where: { client_id },
+      orderBy: { index: "asc" },
+      select: { index: true, text_en: true, text_hi: true, text_mr: true },
+    });
+
+    res.json({
+      questions: questions.map((q) => ({
+        index: q.index,
+        text: { en: q.text_en, hi: q.text_hi, mr: q.text_mr },
+      })),
+    });
+  });
+
   // GET /dashboard/teacher-impact
   dashboardRouter.get("/dashboard/teacher-impact", async (req, res) => {
     const { client_id } = req.auth!;
