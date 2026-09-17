@@ -733,6 +733,9 @@ currently provide, given everything above:
 Source: `src/routes/dashboard.ts`. Added in the same session as the §2
 prompt rewrite — this is what actually reads `sentiment_results` today; the
 old `GET /segments/sentiment` test endpoint these superseded is gone.
+**Updated 2026-09-17**: two small additions to `GET /dashboard/highlights`
+plus one new endpoint, `GET /dashboard/response/:segment_id`, found necessary
+while wiring the dashboard UI to real data — see their rows below.
 
 **Gating**: `ENABLE_DASHBOARD_ENDPOINTS` (default off — routes not
 registered at all when off, same "404, not 403" treatment as every other
@@ -746,11 +749,13 @@ across **every** distributor under that client, on purpose (internal/company
 data, no single distributor should see moderation/complaint judgements about
 themselves or anyone else).
 
-**Character**: all 8 routes are read-only, SQL-aggregated (`prisma.$queryRaw`
-tagged templates, not the query builder — needed for `jsonb_array_elements_text`
-theme-unnesting and `FILTER (WHERE ...)` bucket counts), no LLM call. Every
-count-based stat returns the raw count alongside any percentage — small
-buckets aren't hidden.
+**Character**: all 9 routes are read-only, no LLM call. 8 of them are
+SQL-aggregated (`prisma.$queryRaw` tagged templates, not the query builder —
+needed for `jsonb_array_elements_text` theme-unnesting and
+`FILTER (WHERE ...)` bucket counts); `GET /dashboard/response/:segment_id`
+is the one exception — a single-row lookup via the regular Prisma query
+builder, not raw SQL, since it's not an aggregate. Every count-based stat
+returns the raw count alongside any percentage — small buckets aren't hidden.
 
 | Route | Returns |
 |---|---|
@@ -758,7 +763,8 @@ buckets aren't hidden.
 | `GET /dashboard/summary` | `{ total_responses, completion: {completed, rate, by_status}, sentiment_split: {total_analyzed, thresholds, positive, neutral, negative}, average_sentiment_by_question: [...] }` — `total_responses` counts every `Segment` regardless of status; `completion` is the fraction that reached `status: "transcribed"` (a pipeline-success rate, **not** the Question-count-based completion rate discussed in §6); `sentiment_split` buckets on fixed `sentiment_score` thresholds (`>= 0.3` positive, `<= -0.3` negative), only over segments with a `sentiment_result`. |
 | `GET /dashboard/themes` | `{ themes: [{theme, count}], themes_with_complaint: [same, filtered to contains_complaint: true] }` — `jsonb_array_elements_text` unnest + `GROUP BY`. `theme` values are the §2 11-item vocabulary for segments analyzed after 2026-09-16; older rows may still carry old freeform strings. |
 | `GET /dashboard/theme-sentiment` | `{ themes: [{theme, count, average_sentiment_score}] }` — per-theme average `sentiment_score`, the positive/negative lean per theme computed from existing data, no separate valence field. |
-| `GET /dashboard/highlights?question_index=N&limit=10` | `{ question_index, highlights: [{best_quote, highlight_score, sentiment_score, language}] }`, ordered by `highlight_score` desc. `question_index` **required** (`400` if missing/malformed). **Excludes `moderation_flag: true` rows** — the first real consumer of the corrected (§2) semantics. Pre-2026-09-16 rows are still under the old inverted meaning, so until reprocessed this filter under-includes old content (never over-includes/leaks anything), the safe failure direction. No name/identity field — attributable by category only. |
+| `GET /dashboard/highlights?question_index=N&limit=10` | `{ question_index, highlights: [{best_quote, highlight_score, sentiment_score, language, distributor_name, actionable_feedback}] }`, ordered by `highlight_score` desc. `question_index` **required** (`400` if missing/malformed). **Excludes `moderation_flag: true` rows** — the first real consumer of the corrected (§2) semantics. Pre-2026-09-16 rows are still under the old inverted meaning, so until reprocessed this filter under-includes old content (never over-includes/leaks anything), the safe failure direction. **`distributor_name` added 2026-09-17 — a deliberate, endpoint-specific exception to this router's "no identity" design** (internal-only viewing, two known people, most participants already personally known to them); does not extend to any other endpoint or a future client-facing version without a fresh decision. `actionable_feedback` (also added 2026-09-17) is `null` unless `contains_complaint` was true for that segment. |
+| `GET /dashboard/response/:segment_id` | **Added 2026-09-17.** Single-segment lookup, not a list — `{ segment_id, question_index, transcript: {text, language_detected, language_probability}|null, sentiment: {sentiment_score, themes, emotional_tone, summary, best_quote, is_relevant, moderation_flag, contains_profanity, contains_complaint, actionable_feedback, highlight_score, extracted}|null }`. `segment_id` must be a well-formed UUID (`400` otherwise); scoped by `client_id` like every other route here — a segment belonging to a different client is indistinguishable from a nonexistent one (`404` either way). `transcript`/`sentiment` are `null`, not a 404, when that stage just hasn't completed yet. No distributor identity field — unlike `/dashboard/highlights` above, not asked for here. |
 | `GET /dashboard/teacher-impact` | `{ total_analyzed, mentions_teacher: {count, percentage}, teacher_contribution: [{teacher_contribution, count, percentage}] }` — reads `extracted->>'mentions_teacher'`/`extracted->>'teacher_contribution'` (Postgres JSON operators). Only populated for segments analyzed after 2026-09-16 — `extracted.mentions_teacher` didn't exist in that shape before. |
 | `GET /dashboard/technical` | `{ devices: [{device_model, os_version, count}], resolutions: [{width, height, count}], average_duration_by_question: [{question_index, average_duration_seconds, count}] }` — from `Segment.capture_metadata` and `Segment.duration_seconds` (§1). Internal/QA use, not participant-facing. |
 | `GET /dashboard/extraction-quality` | `{ total_analyzed, is_relevant: {count, percentage}, contains_profanity: {known_count, count, percentage}, highlight_score_distribution: {thresholds, high, mid, low} }` — a meta-view of the pipeline itself. `contains_profanity`'s `percentage` divides by `known_count` (rows where that nullable column is actually populated), not `total_analyzed`, so pre-2026-09-16 rows (always `null` there) don't dilute the rate. |
