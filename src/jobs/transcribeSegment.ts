@@ -82,23 +82,35 @@ export async function transcribeSegmentHandler(job: JobRow): Promise<void> {
       );
     }
 
-    const captionedVideoKey = buildCaptionedVideoKey(segment.video_key);
-    if (!(await objectExists(captionedVideoKey))) {
-      await timeStage(segment_id, "ffmpeg_burn_captions", async () => {
-        const [videoUrl, srtUrl] = await Promise.all([
-          getDownloadUrl(segment.video_key),
-          getDownloadUrl(transcript.srt_key),
-        ]);
-        const srtRes = await fetch(srtUrl);
-        const srtText = await srtRes.text();
-        await writeFile(join(tmpDir, "captions.srt"), srtText);
+    // The captioned video this stage produces exists solely to feed
+    // nexrender (src/jobs/renderSegment.ts) - nothing else in this codebase
+    // ever reads it (mobile playback uses the raw segment.video_key, not
+    // this key). Gated on the same ENABLE_REEL_RENDERING flag as queuing
+    // render_segment below: burning captions (measured ~8s/segment, one of
+    // the larger stages in the pipeline) and storing an extra full-size
+    // video copy in S3 is pure waste while rendering is off, e.g. during
+    // this internal test phase.
+    if (config.ENABLE_REEL_RENDERING) {
+      const captionedVideoKey = buildCaptionedVideoKey(segment.video_key);
+      if (!(await objectExists(captionedVideoKey))) {
+        await timeStage(segment_id, "ffmpeg_burn_captions", async () => {
+          const [videoUrl, srtUrl] = await Promise.all([
+            getDownloadUrl(segment.video_key),
+            getDownloadUrl(transcript.srt_key),
+          ]);
+          const srtRes = await fetch(srtUrl);
+          const srtText = await srtRes.text();
+          await writeFile(join(tmpDir, "captions.srt"), srtText);
 
-        await burnCaptions(videoUrl, tmpDir, "captions.srt", "captioned.mp4", {
-          trimStartMs: segment.trim_start_ms,
-          trimEndMs: segment.trim_end_ms,
+          await burnCaptions(videoUrl, tmpDir, "captions.srt", "captioned.mp4", {
+            trimStartMs: segment.trim_start_ms,
+            trimEndMs: segment.trim_end_ms,
+          });
+          await uploadFileObject(captionedVideoKey, join(tmpDir, "captioned.mp4"), "video/mp4");
         });
-        await uploadFileObject(captionedVideoKey, join(tmpDir, "captioned.mp4"), "video/mp4");
-      });
+      }
+    } else {
+      console.log(`[transcribe_segment] segment=${segment_id} reel rendering disabled - skipping caption burn-in`);
     }
 
     const existingSentiment = await prisma.sentimentResult.findUnique({ where: { segment_id } });

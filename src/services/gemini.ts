@@ -340,5 +340,16 @@ export async function analyzeSentiment(transcriptText: string, questionText: str
     throw new Error("Gemini returned no text in response");
   }
 
+  // Real per-call token counts, not an estimate - cheap to log, and the
+  // only accurate way to track actual Gemini spend per segment (pricing is
+  // per-token, and prompt length here isn't fixed - it scales with
+  // transcript length).
+  const usage = response.usageMetadata;
+  if (usage) {
+    console.log(
+      `[gemini] usage promptTokens=${usage.promptTokenCount} candidateTokens=${usage.candidatesTokenCount} totalTokens=${usage.totalTokenCount}`,
+    );
+  }
+
   return JSON.parse(response.text) as SentimentAnalysis;
 }
