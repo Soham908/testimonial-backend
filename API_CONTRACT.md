@@ -433,11 +433,20 @@ origin.
   appears — the positive/negative lean per theme, computed from existing
   data (no separate valence field).
 
-`GET /dashboard/highlights?question_index=N&limit=10`
+`GET /dashboard/highlights?question_index=N&theme=<theme_name>&limit=10`
 - `question_index` is **required** — `400` if missing or not a positive
-  integer. `limit` optional (default 10, max 50).
-- Success `200`: `{ "question_index": number, "highlights": [ { "segment_id": string, "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null }, ... ] }`
+  integer. `theme` optional, must be one of `THEME_VALUES` (`src/services/
+  gemini.ts`) if given — `400` `{ "error": "theme must be one of: ..." }`
+  otherwise. `limit` optional (default 10, max 50).
+- Success `200`: `{ "question_index": number, "theme": string|null, "highlights": [ { "segment_id": string, "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null }, ... ] }`
   ordered by `highlight_score` descending.
+- **`theme`** (added 2026-09-18) — filters to segments whose `themes` array
+  contains this value. This is what makes every theme-based dashboard panel
+  (barlists, treemap blocks, ring stats, sentiment-by-theme rows) clickable
+  through to real evidence via the same detail drawer as everything else
+  here — no new endpoint, no new extraction, just a filter on
+  `sentiment_results.themes`, which already exists. `theme` in the response
+  echoes back `null` when the param was omitted, the given value otherwise.
 - **`segment_id`** (added 2026-09-17) — pass it to `GET /dashboard/
   response/:segment_id` below to open that segment's full detail.
 - **`distributor_name` is a deliberate, endpoint-specific exception to this
@@ -482,6 +491,7 @@ origin.
   {
     "segment_id": string,
     "question_index": number,
+    "video_url": string | null,
     "transcript": { "text": string, "language_detected": string, "language_probability": number|null } | null,
     "sentiment": {
       "sentiment_score": number, "themes": string[], "emotional_tone": string|null,
@@ -492,6 +502,18 @@ origin.
     } | null
   }
   ```
+- **`video_url`** (added 2026-09-18) — a short-lived signed S3 GET URL for
+  the segment's own `video_key` (the same file already referenced during
+  upload/`POST /segments/confirm` — nothing new stored). Generated fresh on
+  every request via the same `getPlaybackUrl` helper the mobile app's My
+  Videos playback uses (1-hour expiry), never cached. **`null` when
+  `moderation_flag` is `true`** — a flagged segment can still count toward
+  aggregate numbers elsewhere in this dashboard, but its individual video is
+  not individually surfaced, even internally, same treatment as its quote
+  already gets on `/dashboard/highlights` above. Internal-only, same
+  reasoning as `distributor_name` on `/dashboard/highlights` — do not carry
+  into any future client-facing version without a fresh decision at that
+  point.
 - No distributor identity field on this one — unlike `/dashboard/highlights`
   above, exposing a name here wasn't asked for and isn't assumed; the UI is
   expected to already know which distributor/segment it's drilling into
