@@ -454,6 +454,57 @@ with audio duration, and Gemini's token count (and cost) scales with
 transcript length — a longer or shorter answer moves these proportionally,
 this isn't a fixed per-segment constant.
 
+## EC2 stress test (2026-09-18): multi-distributor concurrent run, real production instance
+
+First real concurrent-load test, run against the actual deployed EC2 instance
+(`insight-backend.thezeist.com`'s backend, `pm2`-managed `worker`/API
+processes) rather than a single local video — multiple distributors uploaded
+real segments in the same window and the worker pool processed them
+concurrently. Numbers below are pulled from `pm2 logs worker`'s existing
+per-stage `console.log` lines (`timeStage()` in `src/jobs/transcribeSegment.ts`)
+— a short-lived attempt to also write these to a JSONL file
+(`STRESS_TEST_LOG_PATH`) was added, misconfigured (pointed at a non-existent
+directory, so every write silently failed - caught, logged, didn't crash any
+job), and then reverted once it was clear the existing console logs already
+answered the question. No trace of that code remains.
+
+**Per-segment stage timing**, two fully-captured examples (no render, same
+`ENABLE_REEL_RENDERING=false` pipeline as the post-step-9 benchmark above):
+
+| Stage | Segment A | Segment B |
+|---|---|---|
+| ffmpeg extract audio | 698ms | 839ms |
+| ElevenLabs transcribe | 1913ms | 1893ms |
+| S3 upload captions | 49ms | 49ms |
+| DB write transcript | 67ms | 67ms |
+| Gemini sentiment analysis | (not captured) | 1650ms |
+| DB write sentiment | (not captured) | 67ms |
+| **Total** | – | **5154ms** |
+
+A third segment's Gemini call alone: 1847ms, total 5543ms. So per-segment
+real processing time on this instance is landing around **~5.1–5.5s**,
+noticeably faster than the single earlier local-machine benchmark (5.3s
+ffmpeg, 7.4s Gemini there vs. <1s and ~1.7-1.8s here) — most likely because
+this run is EC2-to-S3 within the same AWS region rather than a home/office
+connection reaching across the public internet, though this hasn't been
+directly confirmed by checking region placement.
+
+**Gemini token usage**, both captured calls: 1097–1105 input / 225–259
+output / 1330–1356 total tokens — consistent with the 1090/238/1328 figure
+in the post-step-9 benchmark above, confirming the prompt's token footprint
+is stable across different real transcripts.
+
+**Batch wall-clock**: the full multi-distributor run completed in
+**~10m25s**. This is a concurrency-pool figure (however many jobs the worker
+processes in parallel), not a sum of individual segment times, and isn't
+directly comparable to the ~5.1–5.5s/segment figure above — treat them as
+answering different questions (batch throughput vs. single-segment latency).
+
+**Not measured this round**: per-segment cost (ElevenLabs bills by actual
+audio duration, which wasn't recorded per segment here) and failure/retry
+behavior under load (all tasks in this run completed successfully on the
+first attempt, per the user).
+
 ## Test/seed data currently in the dev DB
 
 - 2 clients: IFB Appliances, Voltas — both `branding_config.nexrender_template`
