@@ -2,6 +2,8 @@ import { Router } from "express";
 import { prisma } from "../db/prisma";
 import { config } from "../config/env";
 import { computeWordFrequency } from "../services/wordFrequency";
+import { THEME_VALUES, type Theme } from "../services/gemini";
+import { getPlaybackUrl } from "../services/s3";
 
 // Internal/admin dashboard endpoints — the real surface for sentiment_results
 // data (see CLAUDE.md's "admin dashboard was forgotten from scope" note;
@@ -41,6 +43,14 @@ function parseOptionalQuestionIndex(raw: unknown): number | null | undefined {
   if (typeof raw !== "string" || raw.trim() === "") return null;
   const value = Number(raw);
   return Number.isInteger(value) && value >= 1 ? value : null;
+}
+
+// undefined = param absent, null = present but not one of THEME_VALUES
+// (caller should get a 400), Theme = valid.
+function parseOptionalTheme(raw: unknown): Theme | null | undefined {
+  if (raw === undefined) return undefined;
+  if (typeof raw !== "string" || !(THEME_VALUES as readonly string[]).includes(raw)) return null;
+  return raw as Theme;
 }
 
 function parseLimit(raw: unknown, fallback: number, max: number): number {
@@ -207,13 +217,20 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
     });
   });
 
-  // GET /dashboard/highlights?question_index=N&limit=10
+  // GET /dashboard/highlights?question_index=N&theme=<theme_name>&limit=10
   // Excludes moderation_flag: true segments — this endpoint surfaces
   // quotable highlights, which is exactly the "unsuitable for external use"
   // bar moderation_flag encodes (see src/services/gemini.ts).
   //
   // Includes segment_id — lets the UI link a highlight through to
   // GET /dashboard/response/:segment_id's detail drawer.
+  //
+  // theme is optional, one of THEME_VALUES (400 otherwise) — filters to
+  // segments tagged with that theme. This is what makes every theme-based
+  // panel (barlists, treemap blocks, ring stats, sentiment-by-theme rows)
+  // clickable through to real evidence via the same drawer, without a new
+  // endpoint or new extraction — the theme data already exists on
+  // sentiment_results.themes, this just filters on it.
   //
   // Includes distributor_name and actionable_feedback — a deliberate,
   // endpoint-specific reversal of the rest of this router's "no identity"
@@ -230,6 +247,11 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
     const question_index = parseOptionalQuestionIndex(req.query.question_index);
     if (question_index === null || question_index === undefined) {
       res.status(400).json({ error: "question_index must be a positive integer" });
+      return;
+    }
+    const theme = parseOptionalTheme(req.query.theme);
+    if (theme === null) {
+      res.status(400).json({ error: `theme must be one of: ${THEME_VALUES.join(", ")}` });
       return;
     }
     const limit = parseLimit(req.query.limit, DEFAULT_HIGHLIGHTS_LIMIT, MAX_HIGHLIGHTS_LIMIT);
@@ -256,11 +278,18 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
       WHERE d."client_id" = ${client_id}::uuid
         AND s."question_index" = ${question_index}::int
         AND sr."moderation_flag" = false
+        AND (
+          ${theme ?? null}::text IS NULL
+          OR EXISTS (
+            SELECT 1 FROM jsonb_array_elements_text(sr."themes") AS theme_value
+            WHERE theme_value = ${theme ?? null}
+          )
+        )
       ORDER BY sr."highlight_score" DESC
       LIMIT ${limit}
     `;
 
-    res.json({ question_index, highlights: rows });
+    res.json({ question_index, theme: theme ?? null, highlights: rows });
   });
 
   // GET /dashboard/response/:segment_id
@@ -270,6 +299,18 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
   // highlights or /dashboard/wordcloud). Returns null for `transcript`/
   // `sentiment` if that stage hasn't completed yet, rather than 404 —
   // only a segment_id that doesn't belong to this client at all is a 404.
+  //
+  // video_url: a short-lived signed S3 GET URL for the segment's own
+  // video_key — the same file/key already used during upload/confirm,
+  // nothing new stored. Reuses getPlaybackUrl (same helper the mobile app's
+  // My Videos playback uses), generated fresh on every request, never
+  // cached. Internal-only, same reasoning as distributor_name on
+  // /dashboard/highlights above — do not carry into any future
+  // client-facing version without a fresh decision at that point.
+  // null when moderation_flag is true: a flagged segment can still count
+  // toward aggregate numbers elsewhere, but its individual video should not
+  // be individually surfaced, even internally, same as its quote is already
+  // excluded from /dashboard/highlights.
   dashboardRouter.get("/dashboard/response/:segment_id", async (req, res) => {
     const { client_id } = req.auth!;
     const { segment_id } = req.params;
@@ -284,6 +325,7 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
       select: {
         id: true,
         question_index: true,
+        video_key: true,
         transcript: {
           select: { text: true, language_detected: true, language_probability: true },
         },
@@ -311,9 +353,13 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
       return;
     }
 
+    const moderationFlagged = segment.sentiment_result?.moderation_flag === true;
+    const video_url = moderationFlagged ? null : await getPlaybackUrl(segment.video_key);
+
     res.json({
       segment_id: segment.id,
       question_index: segment.question_index,
+      video_url,
       transcript: segment.transcript,
       sentiment: segment.sentiment_result,
     });

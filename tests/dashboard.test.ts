@@ -5,6 +5,7 @@ import request from "supertest";
 const queryRawMock = vi.fn();
 const segmentFindFirstMock = vi.fn();
 const questionFindManyMock = vi.fn();
+const getPlaybackUrlMock = vi.fn();
 
 vi.mock("../src/db/prisma", () => ({
   prisma: {
@@ -12,6 +13,10 @@ vi.mock("../src/db/prisma", () => ({
     segment: { findFirst: (...args: unknown[]) => segmentFindFirstMock(...args) },
     question: { findMany: (...args: unknown[]) => questionFindManyMock(...args) },
   },
+}));
+
+vi.mock("../src/services/s3", () => ({
+  getPlaybackUrl: (...args: unknown[]) => getPlaybackUrlMock(...args),
 }));
 
 const ORIGINAL_FLAG = process.env.ENABLE_DASHBOARD_ENDPOINTS;
@@ -49,6 +54,8 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     queryRawMock.mockReset();
     segmentFindFirstMock.mockReset();
     questionFindManyMock.mockReset();
+    getPlaybackUrlMock.mockReset();
+    getPlaybackUrlMock.mockResolvedValue("https://s3.example.com/signed-video-url");
   });
 
   it("is unreachable when the flag is off (default) - a plain 404, not 403", async () => {
@@ -115,10 +122,35 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.question_index).toBe(2);
+    expect(res.body.theme).toBeNull();
     expect(res.body.highlights).toHaveLength(1);
     expect(res.body.highlights[0].segment_id).toBe("22222222-2222-2222-2222-222222222222");
     expect(res.body.highlights[0].distributor_name).toBe("Ramesh Traders");
     expect(res.body.highlights[0].actionable_feedback).toBe("Wants a faster support response.");
+  });
+
+  it("GET /dashboard/highlights rejects a theme outside THEME_VALUES (400, no query issued)", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    const res = await request(appWith(dashboardRouter)).get(
+      "/dashboard/highlights?question_index=2&theme=not_a_real_theme",
+    );
+
+    expect(res.status).toBe(400);
+    expect(queryRawMock).not.toHaveBeenCalled();
+  });
+
+  it("GET /dashboard/highlights accepts a valid theme and echoes it back in the response", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    queryRawMock.mockResolvedValueOnce([]);
+
+    const res = await request(appWith(dashboardRouter)).get(
+      "/dashboard/highlights?question_index=2&theme=teacher_impact",
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body.theme).toBe("teacher_impact");
+    expect(res.body.highlights).toEqual([]);
+    expect(queryRawMock).toHaveBeenCalledTimes(1);
   });
 
   it("GET /dashboard/response/:segment_id rejects a malformed segment_id (400, no query issued)", async () => {
@@ -141,11 +173,12 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(res.body).toEqual({ error: "segment_not_found" });
   });
 
-  it("GET /dashboard/response/:segment_id returns the full transcript + sentiment detail, scoped by client_id", async () => {
+  it("GET /dashboard/response/:segment_id returns the full transcript + sentiment detail + video_url, scoped by client_id", async () => {
     const dashboardRouter = await loadDashboardRouter(true);
     segmentFindFirstMock.mockResolvedValueOnce({
       id: "11111111-1111-1111-1111-111111111111",
       question_index: 3,
+      video_key: "clients/c1/distributors/d1/segments/3.mp4",
       transcript: { text: "Full transcript text.", language_detected: "en", language_probability: 0.99 },
       sentiment_result: {
         sentiment_score: 0.5,
@@ -169,13 +202,47 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.question_index).toBe(3);
+    expect(res.body.video_url).toBe("https://s3.example.com/signed-video-url");
     expect(res.body.transcript.text).toBe("Full transcript text.");
     expect(res.body.sentiment.summary).toBe("A summary.");
+    expect(getPlaybackUrlMock).toHaveBeenCalledWith("clients/c1/distributors/d1/segments/3.mp4");
     expect(segmentFindFirstMock).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: "11111111-1111-1111-1111-111111111111", distributor: { client_id: "c1" } },
       }),
     );
+  });
+
+  it("GET /dashboard/response/:segment_id returns video_url: null and skips signing when moderation_flag is true", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    segmentFindFirstMock.mockResolvedValueOnce({
+      id: "33333333-3333-3333-3333-333333333333",
+      question_index: 1,
+      video_key: "clients/c1/distributors/d1/segments/1.mp4",
+      transcript: { text: "Flagged transcript text.", language_detected: "en", language_probability: 0.9 },
+      sentiment_result: {
+        sentiment_score: -0.8,
+        themes: [],
+        emotional_tone: "other",
+        summary: "A summary.",
+        best_quote: "A quote.",
+        is_relevant: true,
+        moderation_flag: true,
+        contains_profanity: true,
+        contains_complaint: false,
+        actionable_feedback: null,
+        highlight_score: 0.1,
+        extracted: { mentions_teacher: false, teacher_contribution: null, life_skills_mentioned: [] },
+      },
+    });
+
+    const res = await request(appWith(dashboardRouter)).get(
+      "/dashboard/response/33333333-3333-3333-3333-333333333333",
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body.video_url).toBeNull();
+    expect(getPlaybackUrlMock).not.toHaveBeenCalled();
   });
 
   it("GET /dashboard/questions returns index + per-language text, scoped by client_id", async () => {
