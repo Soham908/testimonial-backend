@@ -1,3 +1,4 @@
+import { appendFileSync } from "node:fs";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -22,15 +23,54 @@ function captionKey(videoKey: string, ext: "srt" | "vtt"): string {
   return videoKey.replace(/\.[^.]+$/, `.${ext}`);
 }
 
+// TEMPORARY - stress test instrumentation only, remove after the stress test
+// is done (see learnings.md). Opt-in via STRESS_TEST_LOG_PATH so it's a no-op
+// (zero behavior/perf change) unless that env var is explicitly set for the
+// test window. Appends one JSON line per stage completion/failure - each
+// call is a single appendFileSync write, so concurrent jobs writing to the
+// same file don't interleave partial lines.
+const STRESS_TEST_LOG_PATH = process.env.STRESS_TEST_LOG_PATH;
+
+function logStressTestStage(
+  segmentId: string,
+  stage: string,
+  startedAt: Date,
+  status: "ok" | "failed",
+  error?: string,
+): void {
+  if (!STRESS_TEST_LOG_PATH) return;
+  const completedAt = new Date();
+  const entry = {
+    segment_id: segmentId,
+    stage,
+    started_at: startedAt.toISOString(),
+    completed_at: completedAt.toISOString(),
+    duration_ms: completedAt.getTime() - startedAt.getTime(),
+    status,
+    ...(error ? { error } : {}),
+  };
+  try {
+    appendFileSync(STRESS_TEST_LOG_PATH, JSON.stringify(entry) + "\n");
+  } catch (writeErr) {
+    console.error(`[transcribe_segment] failed to write stress test log: ${writeErr}`);
+  }
+}
+
 async function timeStage<T>(
   segmentId: string,
   stage: string,
   fn: () => Promise<T>,
 ): Promise<T> {
   console.log(`[transcribe_segment] segment=${segmentId} stage=${stage} starting`);
+  const startedAt = new Date();
   const start = Date.now();
   try {
-    return await fn();
+    const result = await fn();
+    logStressTestStage(segmentId, stage, startedAt, "ok");
+    return result;
+  } catch (err) {
+    logStressTestStage(segmentId, stage, startedAt, "failed", err instanceof Error ? err.message : String(err));
+    throw err;
   } finally {
     console.log(`[transcribe_segment] segment=${segmentId} stage=${stage} ms=${Date.now() - start}`);
   }
