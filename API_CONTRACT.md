@@ -12,7 +12,7 @@ Every shape below is copied directly from the real route handlers in the
 backend repo (`src/routes/login.ts`, `src/routes/register.ts`,
 `src/routes/loginPhone.ts`, `src/routes/me.ts`, `src/routes/segments.ts`,
 `src/routes/distributors.ts`, `src/routes/dashboard.ts`) as of
-**2026-09-16** — not guessed from the design doc or build notes. You don't
+**2026-09-19** — not guessed from the design doc or build notes. You don't
 need that repo open to use this file. If the backend changes after this
 date, this copy can go stale; re-pull it from the backend side rather than
 editing it here from assumptions.
@@ -392,6 +392,10 @@ origin.
       "neutral": { "count": number, "percentage": number },
       "negative": { "count": number, "percentage": number }
     },
+    "language_mix": {
+      "total_transcribed": number,
+      "languages": [ { "language": string, "count": number, "percentage": number }, ... ]
+    },
     "average_sentiment_by_question": [ { "question_index": number, "count": number, "average_sentiment_score": number|null }, ... ]
   }
   ```
@@ -405,6 +409,18 @@ origin.
   usually ≤ `completion.completed`).
 - `positive`/`negative`/`neutral` thresholds are fixed cutoffs on
   `sentiment_score` (`src/routes/dashboard.ts`), not derived from the data.
+- **`language_mix`** (added 2026-09-19) — a real network-wide rollup of
+  `Transcript.language_detected`, grouped and counted across every segment
+  for this client that has a transcript. `language` values are ElevenLabs'
+  own raw codes (e.g. `"hin"`, not `"hi"`) — same vocabulary already exposed
+  per-row on `/dashboard/highlights` and per-segment on `/dashboard/
+  response/:segment_id`; this endpoint is the first to aggregate it, not a
+  new extraction. `percentage` is of `total_transcribed` (segments with a
+  transcript row), **not** `total_responses` — a segment with no transcript
+  has no `language_detected` value at all to count, same reasoning as
+  `sentiment_split` being denominated against `total_analyzed` rather than
+  `total_responses`. `languages` is ordered by `count` descending; empty
+  array (and `total_transcribed: 0`) if nothing has been transcribed yet.
 
 `GET /dashboard/wordcloud?question_index=N&limit=100`
 - Both query params optional. `question_index` must be a positive integer if
@@ -434,19 +450,34 @@ origin.
   data (no separate valence field).
 
 `GET /dashboard/highlights?question_index=N&theme=<theme_name>&limit=10`
-- `question_index` is **required** — `400` if missing or not a positive
-  integer. `theme` optional, must be one of `THEME_VALUES` (`src/services/
-  gemini.ts`) if given — `400` `{ "error": "theme must be one of: ..." }`
-  otherwise. `limit` optional (default 10, max 50).
-- Success `200`: `{ "question_index": number, "theme": string|null, "highlights": [ { "segment_id": string, "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null }, ... ] }`
-  ordered by `highlight_score` descending.
-- **`theme`** (added 2026-09-18) — filters to segments whose `themes` array
-  contains this value. This is what makes every theme-based dashboard panel
-  (barlists, treemap blocks, ring stats, sentiment-by-theme rows) clickable
-  through to real evidence via the same detail drawer as everything else
-  here — no new endpoint, no new extraction, just a filter on
-  `sentiment_results.themes`, which already exists. `theme` in the response
-  echoes back `null` when the param was omitted, the given value otherwise.
+- `question_index` and `theme` are **both independently optional** filters
+  (changed 2026-09-19 — see below). `question_index`, if given, must be a
+  positive integer (`400` otherwise). `theme`, if given, must be one of
+  `THEME_VALUES` (`src/services/gemini.ts`) (`400` `{ "error": "theme must
+  be one of: ..." }` otherwise). `limit` optional (default 10, max 50).
+  Omitting both returns highlights across the whole client (still capped by
+  `limit`); either one alone scopes by just that filter; both together is
+  the intersection.
+- Success `200`: `{ "question_index": number|null, "theme": string|null, "highlights": [ { "segment_id": string, "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null }, ... ] }`
+  ordered by `highlight_score` descending. Both `question_index` and `theme`
+  in the response echo back `null` when that param was omitted, the given
+  value otherwise.
+- **`question_index` no longer required (changed 2026-09-19)** — until this
+  change, `question_index` was mandatory even when only `theme` was given
+  (a bare `?theme=X` `400`'d asking for `question_index`), which was never
+  the intent: `theme` was meant to work as its own independent filter, not
+  one layered on top of a required `question_index`. A caller wanting "every
+  highlight for this theme, regardless of question" previously had no way to
+  ask for that in one request — it had to fan out one request per known
+  `question_index` and merge client-side. That workaround is no longer
+  necessary.
+- **`theme`** (added 2026-09-18, decoupled from `question_index` 2026-09-19)
+  — filters to segments whose `themes` array contains this value. This is
+  what makes every theme-based dashboard panel (barlists, treemap blocks,
+  ring stats, sentiment-by-theme rows) clickable through to real evidence
+  via the same detail drawer as everything else here, in a single request —
+  no new endpoint, no new extraction, just a filter on
+  `sentiment_results.themes`, which already exists.
 - **`segment_id`** (added 2026-09-17) — pass it to `GET /dashboard/
   response/:segment_id` below to open that segment's full detail.
 - **`distributor_name` is a deliberate, endpoint-specific exception to this

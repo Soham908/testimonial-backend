@@ -97,6 +97,14 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
   });
 
   // GET /dashboard/summary
+  // language_mix: a real network-wide rollup of Transcript.language_detected
+  // (the same raw ElevenLabs code already exposed per-segment on
+  // GET /dashboard/response/:segment_id and per-row on
+  // GET /dashboard/highlights — e.g. "hin", not "hi"; no relabeling here).
+  // Denominated against total_transcribed (segments with a transcript row),
+  // not total_responses — a segment with no transcript has no
+  // language_detected value at all, same reasoning as sentiment_split being
+  // denominated against total_analyzed rather than total_responses.
   dashboardRouter.get("/dashboard/summary", async (req, res) => {
     const { client_id } = req.auth!;
 
@@ -142,6 +150,17 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
     const split = splitRow[0] ?? { total: 0n, positive: 0n, negative: 0n, neutral: 0n };
     const total_analyzed = Number(split.total);
 
+    const languageRows = await prisma.$queryRaw<Array<{ language: string; count: bigint }>>`
+      SELECT t."language_detected" AS language, COUNT(*)::bigint AS count
+      FROM "transcripts" t
+      JOIN "segments" s ON s."id" = t."segment_id"
+      JOIN "distributors" d ON d."id" = s."distributor_id"
+      WHERE d."client_id" = ${client_id}::uuid
+      GROUP BY t."language_detected"
+      ORDER BY count DESC
+    `;
+    const total_transcribed = languageRows.reduce((sum, r) => sum + Number(r.count), 0);
+
     res.json({
       total_responses,
       completion: {
@@ -155,6 +174,14 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
         positive: { count: Number(split.positive), percentage: percentage(Number(split.positive), total_analyzed) },
         neutral: { count: Number(split.neutral), percentage: percentage(Number(split.neutral), total_analyzed) },
         negative: { count: Number(split.negative), percentage: percentage(Number(split.negative), total_analyzed) },
+      },
+      language_mix: {
+        total_transcribed,
+        languages: languageRows.map((r) => ({
+          language: r.language,
+          count: Number(r.count),
+          percentage: percentage(Number(r.count), total_transcribed),
+        })),
       },
       average_sentiment_by_question: sentimentRows.map((r) => ({
         question_index: r.question_index,
@@ -225,11 +252,18 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
   // Includes segment_id — lets the UI link a highlight through to
   // GET /dashboard/response/:segment_id's detail drawer.
   //
-  // theme is optional, one of THEME_VALUES (400 otherwise) — filters to
-  // segments tagged with that theme. This is what makes every theme-based
-  // panel (barlists, treemap blocks, ring stats, sentiment-by-theme rows)
-  // clickable through to real evidence via the same drawer, without a new
-  // endpoint or new extraction — the theme data already exists on
+  // question_index and theme are both independent, optional filters —
+  // omitting both returns highlights across the whole client; question_index
+  // alone scopes to one question; theme alone (one of THEME_VALUES, 400
+  // otherwise) scopes to a theme regardless of question; both together is
+  // the intersection. Previously question_index was required even when only
+  // theme was given (a bare ?theme=X 400'd) — that coupling was never the
+  // intent (see Step 9b) and forced callers wanting "evidence for this
+  // theme" to fan out one request per question_index and merge client-side.
+  // This is what makes every theme-based panel (barlists, treemap blocks,
+  // ring stats, sentiment-by-theme rows) clickable through to real evidence
+  // via the same drawer with a single request, without a new endpoint or
+  // new extraction — the theme data already exists on
   // sentiment_results.themes, this just filters on it.
   //
   // Includes distributor_name and actionable_feedback — a deliberate,
@@ -245,7 +279,7 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
   dashboardRouter.get("/dashboard/highlights", async (req, res) => {
     const { client_id } = req.auth!;
     const question_index = parseOptionalQuestionIndex(req.query.question_index);
-    if (question_index === null || question_index === undefined) {
+    if (question_index === null) {
       res.status(400).json({ error: "question_index must be a positive integer" });
       return;
     }
@@ -276,7 +310,7 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
       JOIN "distributors" d ON d."id" = s."distributor_id"
       JOIN "transcripts" t ON t."segment_id" = s."id"
       WHERE d."client_id" = ${client_id}::uuid
-        AND s."question_index" = ${question_index}::int
+        AND (${question_index ?? null}::int IS NULL OR s."question_index" = ${question_index ?? null}::int)
         AND sr."moderation_flag" = false
         AND (
           ${theme ?? null}::text IS NULL
@@ -289,7 +323,7 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
       LIMIT ${limit}
     `;
 
-    res.json({ question_index, theme: theme ?? null, highlights: rows });
+    res.json({ question_index: question_index ?? null, theme: theme ?? null, highlights: rows });
   });
 
   // GET /dashboard/response/:segment_id

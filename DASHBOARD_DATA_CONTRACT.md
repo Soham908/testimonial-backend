@@ -130,14 +130,18 @@ sit at `status: "transcribed"` forever while its `RenderedVideo.status` is
 |---|---|---|---|---|
 | `id` | `String` (uuid, PK) | no | `transcribeSegment.ts` | Never read back individually |
 | `segment_id` | `String` (unique) | no | same | FK/lookup |
-| `text` | `String` | no | same (ElevenLabs output) | Fed into the Gemini prompt (`transcribeSegment.ts`) — **never returned by any API route** |
-| `language_detected` | `String` | no | same (ElevenLabs `language_code`) | **Never read anywhere after being written.** Free-form string, ElevenLabs' vocabulary, not this repo's. |
+| `text` | `String` | no | same (ElevenLabs output) | Fed into the Gemini prompt (`transcribeSegment.ts`); also returned as `transcript.text` on `GET /dashboard/response/:segment_id` (added 2026-09-17, §10) — still never returned to the mobile app itself |
+| `language_detected` | `String` | no | same (ElevenLabs `language_code`) | Returned per-row as `language` on `GET /dashboard/highlights` (added 2026-09-17) and as `transcript.language_detected` on `GET /dashboard/response/:segment_id`; rolled up network-wide as `GET /dashboard/summary`'s `language_mix` (added 2026-09-19, §10). Free-form string, ElevenLabs' vocabulary (e.g. `"hin"`), not this repo's. |
 | `srt_key` | `String` | no | same | Fetched internally to burn captions onto the video — **never returned by any route** |
 | `vtt_key` | `String` | no | same | **Fully dead after write** — generated and uploaded to S3, stored in this column, but nothing in the codebase ever reads it back. Only the SRT file is actually used (for caption burn-in). |
 | `created_at` | `DateTime` | no | auto | Never read |
 
-**No API route returns any `Transcript` field.** The mobile app has no
-documented way to fetch transcript text or caption files.
+**No mobile-app-facing API route returns any `Transcript` field** — the
+mobile app has no documented way to fetch transcript text or caption files.
+The internal `/dashboard/*` surface (§10) is the exception: `text` and
+`language_detected` are both returned there (`GET /dashboard/response/
+:segment_id`), and `language_detected` alone on `GET /dashboard/highlights`
+and `GET /dashboard/summary`'s `language_mix`.
 
 ### `SentimentResult` → table `sentiment_results`
 
@@ -708,7 +712,7 @@ currently provide, given everything above:
 - **Per-distributor custom question sets** — `Question` is per-`client_id`
   now (§1, §3), so per-*client* variation is real and available; there's
   still no per-*distributor* override within a client's question set.
-- **Transcript text or caption files via any API** — written and stored, never returned by any route (§1).
+- ~~**Transcript text or caption files via any API**~~ **Transcript text now partially available** — `GET /dashboard/response/:segment_id` returns `transcript.text` (§1, §10, added 2026-09-17), and `language_detected` is returned there and on `GET /dashboard/highlights`/`GET /dashboard/summary`'s `language_mix` (§10, added 2026-09-19). Caption files (`srt_key`/`vtt_key`) remain unreturned by any route. None of this reaches the mobile app — internal `/dashboard/*` only.
 - **Job error details via any API** — `Job.last_error` exists in the DB but no route exposes it; only visible in server logs.
 - **A true "stuck" job indicator** — jobs stuck in `processing` after a worker crash are invisible to any query designed around normal status values; nothing marks them as anomalous.
 - **Real invite-token-based onboarding data** — `invite_token` exists but functions only as an internal lookup key today, not an actual invite/redemption flow with its own timestamps or state.
@@ -746,6 +750,19 @@ segment's own video, `null` when `moderation_flag` is `true` — same
 "not individually surfaced" treatment `moderation_flag` already gets for
 the quote on `/dashboard/highlights`) — see their rows below.
 
+**Updated 2026-09-19**: two more changes, both found while wiring the
+dashboard UI's Executive Overview page to real data. First, `question_index`
+on `GET /dashboard/highlights` is no longer required — it and `theme` are
+now both independently optional filters (previously `theme` alone still
+400'd asking for `question_index`, which forced the UI to fan out one
+request per question and merge client-side just to get "evidence for this
+theme" regardless of question). Second, a real network-wide
+`language_mix` rollup was added to `GET /dashboard/summary` — a genuine
+aggregate of the `Transcript.language_detected` field that already existed
+per-segment (on this endpoint's own `/dashboard/response/:segment_id` and
+per-row on `/dashboard/highlights`) but had never been rolled up across all
+of a client's segments before. See both routes' rows below.
+
 **Gating**: `ENABLE_DASHBOARD_ENDPOINTS` (default off — routes not
 registered at all when off, same "404, not 403" treatment as every other
 flag-gated router in this codebase). Deliberately its own flag, split from
@@ -769,10 +786,10 @@ returns the raw count alongside any percentage — small buckets aren't hidden.
 | Route | Returns |
 |---|---|
 | `GET /dashboard/wordcloud?question_index=N&limit=100` | `{ question_index, transcript_count, words: [{word, count}] }` — code-only tokenization (no LLM) across `Transcript.text` for the client, optionally filtered to one question. `src/services/wordFrequency.ts`: Unicode letter-run matching (handles Devanagari as well as Latin), lowercased, English **and** Hindi **and** Marathi stopwords all applied to every transcript regardless of detected language — transcripts here are routinely code-mixed, so a single-language list would under-filter the other two. |
-| `GET /dashboard/summary` | `{ total_responses, completion: {completed, rate, by_status}, sentiment_split: {total_analyzed, thresholds, positive, neutral, negative}, average_sentiment_by_question: [...] }` — `total_responses` counts every `Segment` regardless of status; `completion` is the fraction that reached `status: "transcribed"` (a pipeline-success rate, **not** the Question-count-based completion rate discussed in §6); `sentiment_split` buckets on fixed `sentiment_score` thresholds (`>= 0.3` positive, `<= -0.3` negative), only over segments with a `sentiment_result`. |
+| `GET /dashboard/summary` | `{ total_responses, completion: {completed, rate, by_status}, sentiment_split: {total_analyzed, thresholds, positive, neutral, negative}, language_mix: {total_transcribed, languages: [{language, count, percentage}]}, average_sentiment_by_question: [...] }` — `total_responses` counts every `Segment` regardless of status; `completion` is the fraction that reached `status: "transcribed"` (a pipeline-success rate, **not** the Question-count-based completion rate discussed in §6); `sentiment_split` buckets on fixed `sentiment_score` thresholds (`>= 0.3` positive, `<= -0.3` negative), only over segments with a `sentiment_result`. **`language_mix` (added 2026-09-19)** — a real rollup of `Transcript.language_detected` across every segment with a transcript for this client; `language` is ElevenLabs' own raw code (e.g. `"hin"`, not `"hi"`), same vocabulary already exposed per-row on `/dashboard/highlights` and per-segment on `/dashboard/response/:segment_id` — this is the first endpoint to aggregate it, not a new extraction. `percentage` is of `total_transcribed`, not `total_responses` (same "denominate against the segments that actually have the field" reasoning as `sentiment_split`/`total_analyzed`); `languages` ordered by `count` desc. |
 | `GET /dashboard/themes` | `{ themes: [{theme, count}], themes_with_complaint: [same, filtered to contains_complaint: true] }` — `jsonb_array_elements_text` unnest + `GROUP BY`. `theme` values are the §2 11-item vocabulary for segments analyzed after 2026-09-16; older rows may still carry old freeform strings. |
 | `GET /dashboard/theme-sentiment` | `{ themes: [{theme, count, average_sentiment_score}] }` — per-theme average `sentiment_score`, the positive/negative lean per theme computed from existing data, no separate valence field. |
-| `GET /dashboard/highlights?question_index=N&theme=<theme_name>&limit=10` | `{ question_index, theme: string\|null, highlights: [{segment_id, best_quote, highlight_score, sentiment_score, language, distributor_name, actionable_feedback}] }`, ordered by `highlight_score` desc. `question_index` **required** (`400` if missing/malformed). **Excludes `moderation_flag: true` rows** — the first real consumer of the corrected (§2) semantics. Pre-2026-09-16 rows are still under the old inverted meaning, so until reprocessed this filter under-includes old content (never over-includes/leaks anything), the safe failure direction. **`distributor_name` added 2026-09-17 — a deliberate, endpoint-specific exception to this router's "no identity" design** (internal-only viewing, two known people, most participants already personally known to them); does not extend to any other endpoint or a future client-facing version without a fresh decision. `actionable_feedback` (also added 2026-09-17) is `null` unless `contains_complaint` was true for that segment. **`theme` (added 2026-09-18)** — optional, must be one of `THEME_VALUES` (§2) or `400`; filters to segments whose `themes` array contains it, checked via `jsonb_array_elements_text`, not the `?` jsonb operator. |
+| `GET /dashboard/highlights?question_index=N&theme=<theme_name>&limit=10` | `{ question_index: number\|null, theme: string\|null, highlights: [{segment_id, best_quote, highlight_score, sentiment_score, language, distributor_name, actionable_feedback}] }`, ordered by `highlight_score` desc. **`question_index` and `theme` are both independently optional (changed 2026-09-19 — previously `question_index` was required even with `theme` alone set, forcing per-question fan-out client-side)**: omit both for every highlight for the client, either alone to filter by just that, both for the intersection. Both echo back `null` in the response when omitted. **Excludes `moderation_flag: true` rows** — the first real consumer of the corrected (§2) semantics. Pre-2026-09-16 rows are still under the old inverted meaning, so until reprocessed this filter under-includes old content (never over-includes/leaks anything), the safe failure direction. **`distributor_name` added 2026-09-17 — a deliberate, endpoint-specific exception to this router's "no identity" design** (internal-only viewing, two known people, most participants already personally known to them); does not extend to any other endpoint or a future client-facing version without a fresh decision. `actionable_feedback` (also added 2026-09-17) is `null` unless `contains_complaint` was true for that segment. **`theme` (added 2026-09-18)** — must be one of `THEME_VALUES` (§2) or `400`; filters to segments whose `themes` array contains it, checked via `jsonb_array_elements_text`, not the `?` jsonb operator. |
 | `GET /dashboard/response/:segment_id` | **Added 2026-09-17.** Single-segment lookup, not a list — `{ segment_id, question_index, video_url: string\|null, transcript: {text, language_detected, language_probability}|null, sentiment: {sentiment_score, themes, emotional_tone, summary, best_quote, is_relevant, moderation_flag, contains_profanity, contains_complaint, actionable_feedback, highlight_score, extracted}|null }`. `segment_id` must be a well-formed UUID (`400` otherwise); scoped by `client_id` like every other route here — a segment belonging to a different client is indistinguishable from a nonexistent one (`404` either way). `transcript`/`sentiment` are `null`, not a 404, when that stage just hasn't completed yet. No distributor identity field — unlike `/dashboard/highlights` above, not asked for here. **`video_url` (added 2026-09-18)** — signed S3 GET URL for `Segment.video_key` via the same `getPlaybackUrl` helper mobile playback uses (1hr expiry, generated fresh every request, nothing new stored); `null` when `moderation_flag` is `true`, same internal-only "not individually surfaced" reasoning as `distributor_name` above. |
 | `GET /dashboard/teacher-impact` | `{ total_analyzed, mentions_teacher: {count, percentage}, teacher_contribution: [{teacher_contribution, count, percentage}] }` — reads `extracted->>'mentions_teacher'`/`extracted->>'teacher_contribution'` (Postgres JSON operators). Only populated for segments analyzed after 2026-09-16 — `extracted.mentions_teacher` didn't exist in that shape before. |
 | `GET /dashboard/technical` | `{ devices: [{device_model, os_version, count}], resolutions: [{width, height, count}], average_duration_by_question: [{question_index, average_duration_seconds, count}] }` — from `Segment.capture_metadata` and `Segment.duration_seconds` (§1). Internal/QA use, not participant-facing. |

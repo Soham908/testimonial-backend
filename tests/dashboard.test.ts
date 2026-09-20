@@ -66,12 +66,13 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(res.body).toEqual({ error: "not_found" });
   });
 
-  it("GET /dashboard/summary aggregates status/sentiment rows into counts and percentages when the flag is on", async () => {
+  it("GET /dashboard/summary aggregates status/sentiment/language rows into counts and percentages when the flag is on", async () => {
     const dashboardRouter = await loadDashboardRouter(true);
     queryRawMock
       .mockResolvedValueOnce([{ status: "transcribed", count: 3n }, { status: "failed", count: 1n }])
       .mockResolvedValueOnce([{ question_index: 1, count: 3n, avg_sentiment_score: 0.6 }])
-      .mockResolvedValueOnce([{ total: 3n, positive: 2n, negative: 0n, neutral: 1n }]);
+      .mockResolvedValueOnce([{ total: 3n, positive: 2n, negative: 0n, neutral: 1n }])
+      .mockResolvedValueOnce([{ language: "hin", count: 2n }, { language: "eng", count: 1n }]);
 
     const res = await request(appWith(dashboardRouter)).get("/dashboard/summary");
 
@@ -83,17 +84,49 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
       by_status: { transcribed: 3, failed: 1 },
     });
     expect(res.body.sentiment_split.positive).toEqual({ count: 2, percentage: 66.7 });
+    expect(res.body.language_mix).toEqual({
+      total_transcribed: 3,
+      languages: [
+        { language: "hin", count: 2, percentage: 66.7 },
+        { language: "eng", count: 1, percentage: 33.3 },
+      ],
+    });
     expect(res.body.average_sentiment_by_question).toEqual([
       { question_index: 1, count: 3, average_sentiment_score: 0.6 },
     ]);
   });
 
-  it("GET /dashboard/highlights requires question_index (400, no query issued)", async () => {
+  it("GET /dashboard/highlights with no params returns everything for the client (200, question_index/theme null)", async () => {
     const dashboardRouter = await loadDashboardRouter(true);
+    queryRawMock.mockResolvedValueOnce([]);
+
     const res = await request(appWith(dashboardRouter)).get("/dashboard/highlights");
+
+    expect(res.status).toBe(200);
+    expect(res.body.question_index).toBeNull();
+    expect(res.body.theme).toBeNull();
+    expect(res.body.highlights).toEqual([]);
+    expect(queryRawMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("GET /dashboard/highlights rejects a malformed question_index (400, no query issued)", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    const res = await request(appWith(dashboardRouter)).get("/dashboard/highlights?question_index=not-a-number");
 
     expect(res.status).toBe(400);
     expect(queryRawMock).not.toHaveBeenCalled();
+  });
+
+  it("GET /dashboard/highlights accepts theme alone, with no question_index (200, filters by theme network-wide)", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    queryRawMock.mockResolvedValueOnce([]);
+
+    const res = await request(appWith(dashboardRouter)).get("/dashboard/highlights?theme=teacher_impact");
+
+    expect(res.status).toBe(200);
+    expect(res.body.question_index).toBeNull();
+    expect(res.body.theme).toBe("teacher_impact");
+    expect(queryRawMock).toHaveBeenCalledTimes(1);
   });
 
   it("GET /dashboard/wordcloud rejects a malformed question_index without querying", async () => {
@@ -139,7 +172,7 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(queryRawMock).not.toHaveBeenCalled();
   });
 
-  it("GET /dashboard/highlights accepts a valid theme and echoes it back in the response", async () => {
+  it("GET /dashboard/highlights accepts question_index and theme together as an intersection", async () => {
     const dashboardRouter = await loadDashboardRouter(true);
     queryRawMock.mockResolvedValueOnce([]);
 
