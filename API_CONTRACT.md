@@ -449,19 +449,22 @@ origin.
   appears — the positive/negative lean per theme, computed from existing
   data (no separate valence field).
 
-`GET /dashboard/highlights?question_index=N&theme=<theme_name>&teacher_contribution=<value>&life_skill=<value>&limit=10`
-- `question_index`, `theme`, `teacher_contribution`, and `life_skill` are
-  **all independently optional** filters. `question_index`, if given, must
-  be a positive integer (`400` otherwise). `theme`, if given, must be one of
-  `THEME_VALUES` (`src/services/gemini.ts`) (`400` `{ "error": "theme must
-  be one of: ..." }` otherwise). `teacher_contribution`, if given, must be
-  one of `TEACHER_CONTRIBUTION_VALUES` (`400` otherwise). `life_skill`, if
-  given, must be one of `LIFE_SKILL_VALUES` (`400` otherwise). `limit`
-  optional (default 10, max 50). Omitting all four returns highlights across
-  the whole client (still capped by `limit`); any subset scopes by just
-  those given; combining several is their intersection, never a union.
-- Success `200`: `{ "question_index": number|null, "theme": string|null, "teacher_contribution": string|null, "life_skill": string|null, "highlights": [ { "segment_id": string, "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null, "video_url": string }, ... ] }`
-  ordered by `highlight_score` descending. All four filters in the response
+`GET /dashboard/highlights?question_index=N&theme=<theme_name>&teacher_contribution=<value>&life_skill=<value>&sentiment_category=<value>&limit=10`
+- `question_index`, `theme`, `teacher_contribution`, `life_skill`, and
+  `sentiment_category` are **all independently optional** filters.
+  `question_index`, if given, must be a positive integer (`400` otherwise).
+  `theme`, if given, must be one of `THEME_VALUES` (`src/services/
+  gemini.ts`) (`400` `{ "error": "theme must be one of: ..." }` otherwise).
+  `teacher_contribution`, if given, must be one of
+  `TEACHER_CONTRIBUTION_VALUES` (`400` otherwise). `life_skill`, if given,
+  must be one of `LIFE_SKILL_VALUES` (`400` otherwise). `sentiment_category`,
+  if given, must be one of `positive`/`neutral`/`negative` (`400`
+  otherwise). `limit` optional (default 10, max 50). Omitting all five
+  returns highlights across the whole client (still capped by `limit`); any
+  subset scopes by just those given; combining several is their
+  intersection, never a union.
+- Success `200`: `{ "question_index": number|null, "theme": string|null, "teacher_contribution": string|null, "life_skill": string|null, "sentiment_category": string|null, "highlights": [ { "segment_id": string, "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null, "video_url": string }, ... ] }`
+  ordered by `highlight_score` descending. All five filters in the response
   echo back `null` when that param was omitted, the given value otherwise.
 - **`teacher_contribution`** (added 2026-09-21) — filters to segments where
   `extracted.mentions_teacher` is `true` and `extracted.teacher_contribution`
@@ -475,6 +478,15 @@ origin.
   `extracted.life_skills_mentioned` array contains the given value, same
   `jsonb_array_elements_text` + `EXISTS` pattern as `theme` above and
   `GET /dashboard/life-skills` below.
+- **`sentiment_category`** (added 2026-09-21) — `positive`
+  (`sentiment_score >= 0.3`), `neutral` (strictly between the two
+  thresholds), or `negative` (`sentiment_score <= -0.3`), using the exact
+  same `POSITIVE_THRESHOLD`/`NEGATIVE_THRESHOLD` constants (`src/routes/
+  dashboard.ts`) `GET /dashboard/summary`'s `sentiment_split` computes its
+  percentages from — defined once, shared by both, so the summary donut and
+  the drawer this filter opens can never silently disagree on where
+  "positive" starts. The three buckets are mutually exclusive and
+  exhaustive over every unflagged, analyzed segment.
 - **`video_url`** (added 2026-09-21) — per-item signed S3 GET URL, same
   `getPlaybackUrl` helper and generation-per-request as `GET /dashboard/
   response/:segment_id` below, so a grid of several video thumbnails
