@@ -203,6 +203,52 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(queryRawMock).toHaveBeenCalledTimes(1);
   });
 
+  it("GET /dashboard/highlights rejects a teacher_contribution outside TEACHER_CONTRIBUTION_VALUES (400, no query issued)", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    const res = await request(appWith(dashboardRouter)).get(
+      "/dashboard/highlights?teacher_contribution=not_a_real_value",
+    );
+
+    expect(res.status).toBe(400);
+    expect(queryRawMock).not.toHaveBeenCalled();
+  });
+
+  it("GET /dashboard/highlights rejects a life_skill outside LIFE_SKILL_VALUES (400, no query issued)", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    const res = await request(appWith(dashboardRouter)).get("/dashboard/highlights?life_skill=not_a_real_skill");
+
+    expect(res.status).toBe(400);
+    expect(queryRawMock).not.toHaveBeenCalled();
+  });
+
+  it("GET /dashboard/highlights accepts teacher_contribution and life_skill alone or combined with the other filters", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    queryRawMock.mockResolvedValueOnce([]);
+
+    const res = await request(appWith(dashboardRouter)).get(
+      "/dashboard/highlights?question_index=2&theme=teacher_impact&teacher_contribution=mentorship&life_skill=communication",
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body.question_index).toBe(2);
+    expect(res.body.theme).toBe("teacher_impact");
+    expect(res.body.teacher_contribution).toBe("mentorship");
+    expect(res.body.life_skill).toBe("communication");
+    expect(res.body.highlights).toEqual([]);
+    expect(queryRawMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("GET /dashboard/highlights echoes teacher_contribution/life_skill as null when omitted", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    queryRawMock.mockResolvedValueOnce([]);
+
+    const res = await request(appWith(dashboardRouter)).get("/dashboard/highlights");
+
+    expect(res.status).toBe(200);
+    expect(res.body.teacher_contribution).toBeNull();
+    expect(res.body.life_skill).toBeNull();
+  });
+
   it("GET /dashboard/response/:segment_id rejects a malformed segment_id (400, no query issued)", async () => {
     const dashboardRouter = await loadDashboardRouter(true);
     const res = await request(appWith(dashboardRouter)).get("/dashboard/response/not-a-uuid");

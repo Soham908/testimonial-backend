@@ -2,7 +2,14 @@ import { Router } from "express";
 import { prisma } from "../db/prisma";
 import { config } from "../config/env";
 import { computeWordFrequency } from "../services/wordFrequency";
-import { THEME_VALUES, type Theme } from "../services/gemini";
+import {
+  THEME_VALUES,
+  type Theme,
+  TEACHER_CONTRIBUTION_VALUES,
+  type TeacherContribution,
+  LIFE_SKILL_VALUES,
+  type LifeSkill,
+} from "../services/gemini";
 import { getPlaybackUrl } from "../services/s3";
 
 // Internal/admin dashboard endpoints — the real surface for sentiment_results
@@ -51,6 +58,20 @@ function parseOptionalTheme(raw: unknown): Theme | null | undefined {
   if (raw === undefined) return undefined;
   if (typeof raw !== "string" || !(THEME_VALUES as readonly string[]).includes(raw)) return null;
   return raw as Theme;
+}
+
+// Same undefined/null/value convention as parseOptionalTheme above.
+function parseOptionalTeacherContribution(raw: unknown): TeacherContribution | null | undefined {
+  if (raw === undefined) return undefined;
+  if (typeof raw !== "string" || !(TEACHER_CONTRIBUTION_VALUES as readonly string[]).includes(raw)) return null;
+  return raw as TeacherContribution;
+}
+
+// Same undefined/null/value convention as parseOptionalTheme above.
+function parseOptionalLifeSkill(raw: unknown): LifeSkill | null | undefined {
+  if (raw === undefined) return undefined;
+  if (typeof raw !== "string" || !(LIFE_SKILL_VALUES as readonly string[]).includes(raw)) return null;
+  return raw as LifeSkill;
 }
 
 function parseLimit(raw: unknown, fallback: number, max: number): number {
@@ -244,7 +265,7 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
     });
   });
 
-  // GET /dashboard/highlights?question_index=N&theme=<theme_name>&limit=10
+  // GET /dashboard/highlights?question_index=N&theme=<theme_name>&teacher_contribution=<value>&life_skill=<value>&limit=10
   // Excludes moderation_flag: true segments — this endpoint surfaces
   // quotable highlights, which is exactly the "unsuitable for external use"
   // bar moderation_flag encodes (see src/services/gemini.ts).
@@ -261,19 +282,33 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
   // moderation_flag: true row before it ever reaches this point, so every
   // row video_url is generated for is already guaranteed unflagged.
   //
-  // question_index and theme are both independent, optional filters —
-  // omitting both returns highlights across the whole client; question_index
-  // alone scopes to one question; theme alone (one of THEME_VALUES, 400
-  // otherwise) scopes to a theme regardless of question; both together is
-  // the intersection. Previously question_index was required even when only
-  // theme was given (a bare ?theme=X 400'd) — that coupling was never the
-  // intent (see Step 9b) and forced callers wanting "evidence for this
-  // theme" to fan out one request per question_index and merge client-side.
-  // This is what makes every theme-based panel (barlists, treemap blocks,
-  // ring stats, sentiment-by-theme rows) clickable through to real evidence
-  // via the same drawer with a single request, without a new endpoint or
-  // new extraction — the theme data already exists on
-  // sentiment_results.themes, this just filters on it.
+  // question_index, theme, teacher_contribution, and life_skill are all
+  // independent, optional filters — omitting all returns highlights across
+  // the whole client; any subset scopes by just those given; combining
+  // several is their intersection, never a union. Previously question_index
+  // was required even when only theme was given (a bare ?theme=X 400'd) —
+  // that coupling was never the intent (see Step 9b) and forced callers
+  // wanting "evidence for this theme" to fan out one request per
+  // question_index and merge client-side. This is what makes every
+  // theme/teacher-impact/life-skills panel (barlists, treemap blocks, ring
+  // stats, sentiment-by-theme rows) clickable through to real evidence via
+  // the same drawer with a single request, without a new endpoint or new
+  // extraction — all four fields already exist on sentiment_results, this
+  // just filters on them.
+  //
+  // teacher_contribution (added 2026-09-21) — one of TEACHER_CONTRIBUTION_
+  // VALUES (400 otherwise). Also implicitly requires mentions_teacher: true
+  // — per the Gemini response schema (src/services/gemini.ts),
+  // teacher_contribution is null exactly when mentions_teacher is false and
+  // always one of the 5 fixed values otherwise, so there's no separate
+  // "not specified" value to filter on; the explicit mentions_teacher check
+  // below is a defensive belt-and-suspenders match on that invariant, not
+  // a second independent condition.
+  //
+  // life_skill (added 2026-09-21) — one of LIFE_SKILL_VALUES (400
+  // otherwise). Filters to segments whose extracted.life_skills_mentioned
+  // array contains this value, same jsonb_array_elements_text + EXISTS
+  // pattern as the theme filter above and GET /dashboard/life-skills.
   //
   // Includes distributor_name and actionable_feedback — a deliberate,
   // endpoint-specific reversal of the rest of this router's "no identity"
@@ -295,6 +330,18 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
     const theme = parseOptionalTheme(req.query.theme);
     if (theme === null) {
       res.status(400).json({ error: `theme must be one of: ${THEME_VALUES.join(", ")}` });
+      return;
+    }
+    const teacher_contribution = parseOptionalTeacherContribution(req.query.teacher_contribution);
+    if (teacher_contribution === null) {
+      res.status(400).json({
+        error: `teacher_contribution must be one of: ${TEACHER_CONTRIBUTION_VALUES.join(", ")}`,
+      });
+      return;
+    }
+    const life_skill = parseOptionalLifeSkill(req.query.life_skill);
+    if (life_skill === null) {
+      res.status(400).json({ error: `life_skill must be one of: ${LIFE_SKILL_VALUES.join(", ")}` });
       return;
     }
     const limit = parseLimit(req.query.limit, DEFAULT_HIGHLIGHTS_LIMIT, MAX_HIGHLIGHTS_LIMIT);
@@ -330,6 +377,20 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
             WHERE theme_value = ${theme ?? null}
           )
         )
+        AND (
+          ${teacher_contribution ?? null}::text IS NULL
+          OR (
+            (sr."extracted"->>'mentions_teacher')::boolean = true
+            AND sr."extracted"->>'teacher_contribution' = ${teacher_contribution ?? null}
+          )
+        )
+        AND (
+          ${life_skill ?? null}::text IS NULL
+          OR EXISTS (
+            SELECT 1 FROM jsonb_array_elements_text(sr."extracted"->'life_skills_mentioned') AS skill_value
+            WHERE skill_value = ${life_skill ?? null}
+          )
+        )
       ORDER BY sr."highlight_score" DESC
       LIMIT ${limit}
     `;
@@ -338,7 +399,13 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
       rows.map(async ({ video_key, ...row }) => ({ ...row, video_url: await getPlaybackUrl(video_key) })),
     );
 
-    res.json({ question_index: question_index ?? null, theme: theme ?? null, highlights });
+    res.json({
+      question_index: question_index ?? null,
+      theme: theme ?? null,
+      teacher_contribution: teacher_contribution ?? null,
+      life_skill: life_skill ?? null,
+      highlights,
+    });
   });
 
   // GET /dashboard/response/:segment_id
