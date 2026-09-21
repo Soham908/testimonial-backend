@@ -252,6 +252,15 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
   // Includes segment_id — lets the UI link a highlight through to
   // GET /dashboard/response/:segment_id's detail drawer.
   //
+  // Includes video_url per item (added 2026-09-21) — same signed-URL
+  // generation as GET /dashboard/response/:segment_id (getPlaybackUrl,
+  // fresh every request, 1hr expiry), so a grid of several video
+  // thumbnails doesn't need one request per item. No separate
+  // moderation_flag null-out needed here the way the single-lookup
+  // endpoint has one: this endpoint's WHERE clause already excludes every
+  // moderation_flag: true row before it ever reaches this point, so every
+  // row video_url is generated for is already guaranteed unflagged.
+  //
   // question_index and theme are both independent, optional filters —
   // omitting both returns highlights across the whole client; question_index
   // alone scopes to one question; theme alone (one of THEME_VALUES, 400
@@ -299,12 +308,14 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
         language: string | null;
         distributor_name: string;
         actionable_feedback: string | null;
+        video_key: string;
       }>
     >`
       SELECT sr."segment_id" AS segment_id, sr."best_quote" AS best_quote,
              sr."highlight_score"::float AS highlight_score,
              sr."sentiment_score"::float AS sentiment_score, t."language_detected" AS language,
-             d."name" AS distributor_name, sr."actionable_feedback" AS actionable_feedback
+             d."name" AS distributor_name, sr."actionable_feedback" AS actionable_feedback,
+             s."video_key" AS video_key
       FROM "sentiment_results" sr
       JOIN "segments" s ON s."id" = sr."segment_id"
       JOIN "distributors" d ON d."id" = s."distributor_id"
@@ -323,7 +334,11 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
       LIMIT ${limit}
     `;
 
-    res.json({ question_index: question_index ?? null, theme: theme ?? null, highlights: rows });
+    const highlights = await Promise.all(
+      rows.map(async ({ video_key, ...row }) => ({ ...row, video_url: await getPlaybackUrl(video_key) })),
+    );
+
+    res.json({ question_index: question_index ?? null, theme: theme ?? null, highlights });
   });
 
   // GET /dashboard/response/:segment_id
@@ -459,6 +474,53 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
         teacher_contribution: r.teacher_contribution,
         count: Number(r.count),
         percentage: percentage(Number(r.count), mentions_teacher_count),
+      })),
+    });
+  });
+
+  // GET /dashboard/life-skills — count of segments per life skill mentioned
+  // (extracted.life_skills_mentioned), across the 5 real skills enforced by
+  // Gemini's structured-output schema (LIFE_SKILL_VALUES,
+  // src/services/gemini.ts). Same shape/denominator convention as
+  // GET /dashboard/teacher-impact's contribution breakdown just above, and
+  // its own endpoint for the same reason teacher-impact is its own endpoint
+  // rather than folded into GET /dashboard/summary — this is its own
+  // analytical dimension, not a top-line number. Only populated for
+  // segments analyzed after the 2026-09-16 prompt rewrite
+  // (extracted.life_skills_mentioned didn't exist in that shape before).
+  // Unlike mentions_teacher/teacher_contribution, there's no gating boolean
+  // here — a segment can mention 0, 1, or several skills, so counts don't
+  // sum to total_analyzed and percentages are each independently of
+  // total_analyzed, not of each other.
+  dashboardRouter.get("/dashboard/life-skills", async (req, res) => {
+    const { client_id } = req.auth!;
+
+    const totalsRow = await prisma.$queryRaw<Array<{ total: bigint }>>`
+      SELECT COUNT(*)::bigint AS total
+      FROM "sentiment_results" sr
+      JOIN "segments" s ON s."id" = sr."segment_id"
+      JOIN "distributors" d ON d."id" = s."distributor_id"
+      WHERE d."client_id" = ${client_id}::uuid
+    `;
+    const total_analyzed = Number(totalsRow[0]?.total ?? 0n);
+
+    const skillRows = await prisma.$queryRaw<Array<{ life_skill: string; count: bigint }>>`
+      SELECT skill AS life_skill, COUNT(*)::bigint AS count
+      FROM "sentiment_results" sr
+      JOIN "segments" s ON s."id" = sr."segment_id"
+      JOIN "distributors" d ON d."id" = s."distributor_id"
+      CROSS JOIN LATERAL jsonb_array_elements_text(sr."extracted"->'life_skills_mentioned') AS skill
+      WHERE d."client_id" = ${client_id}::uuid
+      GROUP BY skill
+      ORDER BY count DESC
+    `;
+
+    res.json({
+      total_analyzed,
+      life_skills: skillRows.map((r) => ({
+        life_skill: r.life_skill,
+        count: Number(r.count),
+        percentage: percentage(Number(r.count), total_analyzed),
       })),
     });
   });

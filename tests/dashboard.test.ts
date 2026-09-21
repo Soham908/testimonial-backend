@@ -137,7 +137,19 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(queryRawMock).not.toHaveBeenCalled();
   });
 
-  it("GET /dashboard/highlights excludes moderation_flag rows via the query and returns segment_id/distributor_name/actionable_feedback", async () => {
+  it("GET /dashboard/wordcloud with no question_index aggregates across every question network-wide", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    queryRawMock.mockResolvedValueOnce([{ text: "great teacher" }, { text: "great school" }]);
+
+    const res = await request(appWith(dashboardRouter)).get("/dashboard/wordcloud");
+
+    expect(res.status).toBe(200);
+    expect(res.body.question_index).toBeNull();
+    expect(res.body.transcript_count).toBe(2);
+    expect(queryRawMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("GET /dashboard/highlights excludes moderation_flag rows via the query and returns segment_id/distributor_name/actionable_feedback/video_url", async () => {
     const dashboardRouter = await loadDashboardRouter(true);
     queryRawMock.mockResolvedValueOnce([
       {
@@ -148,6 +160,7 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
         language: "en",
         distributor_name: "Ramesh Traders",
         actionable_feedback: "Wants a faster support response.",
+        video_key: "clients/c1/distributors/d2/segments/2.mp4",
       },
     ]);
 
@@ -160,6 +173,9 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(res.body.highlights[0].segment_id).toBe("22222222-2222-2222-2222-222222222222");
     expect(res.body.highlights[0].distributor_name).toBe("Ramesh Traders");
     expect(res.body.highlights[0].actionable_feedback).toBe("Wants a faster support response.");
+    expect(res.body.highlights[0].video_url).toBe("https://s3.example.com/signed-video-url");
+    expect(res.body.highlights[0].video_key).toBeUndefined();
+    expect(getPlaybackUrlMock).toHaveBeenCalledWith("clients/c1/distributors/d2/segments/2.mp4");
   });
 
   it("GET /dashboard/highlights rejects a theme outside THEME_VALUES (400, no query issued)", async () => {
@@ -276,6 +292,36 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(res.status).toBe(200);
     expect(res.body.video_url).toBeNull();
     expect(getPlaybackUrlMock).not.toHaveBeenCalled();
+  });
+
+  it("GET /dashboard/life-skills counts segments per skill in extracted.life_skills_mentioned", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    queryRawMock
+      .mockResolvedValueOnce([{ total: 10n }])
+      .mockResolvedValueOnce([
+        { life_skill: "communication", count: 6n },
+        { life_skill: "teamwork", count: 3n },
+      ]);
+
+    const res = await request(appWith(dashboardRouter)).get("/dashboard/life-skills");
+
+    expect(res.status).toBe(200);
+    expect(res.body.total_analyzed).toBe(10);
+    expect(res.body.life_skills).toEqual([
+      { life_skill: "communication", count: 6, percentage: 60 },
+      { life_skill: "teamwork", count: 3, percentage: 30 },
+    ]);
+  });
+
+  it("GET /dashboard/life-skills returns an empty breakdown when nothing has been analyzed", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    queryRawMock.mockResolvedValueOnce([{ total: 0n }]).mockResolvedValueOnce([]);
+
+    const res = await request(appWith(dashboardRouter)).get("/dashboard/life-skills");
+
+    expect(res.status).toBe(200);
+    expect(res.body.total_analyzed).toBe(0);
+    expect(res.body.life_skills).toEqual([]);
   });
 
   it("GET /dashboard/questions returns index + per-language text, scoped by client_id", async () => {
