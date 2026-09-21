@@ -458,10 +458,17 @@ origin.
   Omitting both returns highlights across the whole client (still capped by
   `limit`); either one alone scopes by just that filter; both together is
   the intersection.
-- Success `200`: `{ "question_index": number|null, "theme": string|null, "highlights": [ { "segment_id": string, "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null }, ... ] }`
+- Success `200`: `{ "question_index": number|null, "theme": string|null, "highlights": [ { "segment_id": string, "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null, "video_url": string }, ... ] }`
   ordered by `highlight_score` descending. Both `question_index` and `theme`
   in the response echo back `null` when that param was omitted, the given
   value otherwise.
+- **`video_url`** (added 2026-09-21) — per-item signed S3 GET URL, same
+  `getPlaybackUrl` helper and generation-per-request as `GET /dashboard/
+  response/:segment_id` below, so a grid of several video thumbnails
+  doesn't need one request per item. Unlike that endpoint, this field is
+  never `null` here: the query already excludes every `moderation_flag:
+  true` row before any `video_url` is generated (see below), so nothing
+  reaching this array is ever a flagged segment in the first place.
 - **`question_index` no longer required (changed 2026-09-19)** — until this
   change, `question_index` was mandatory even when only `theme` was given
   (a bare `?theme=X` `400`'d asking for `question_index`), which was never
@@ -571,6 +578,25 @@ origin.
   `total_analyzed`. Only populated for segments analyzed after the
   2026-09-16 prompt rewrite (`extracted.mentions_teacher` didn't exist
   before then).
+
+`GET /dashboard/life-skills` (added 2026-09-21)
+- Success `200`: `{ "total_analyzed": number, "life_skills": [ { "life_skill": string, "count": number, "percentage": number }, ... ] }`
+  ordered by `count` descending.
+- Counts segments per skill mentioned in `extracted.life_skills_mentioned`,
+  across the 5 fixed values enforced by Gemini's structured-output schema
+  (`LIFE_SKILL_VALUES` in `src/services/gemini.ts`: `communication`,
+  `financial_literacy`, `leadership`, `teamwork`, `problem_solving`).
+  Same shape/denominator convention as `GET /dashboard/teacher-impact`
+  above, its own endpoint for the same reason teacher-impact is its own
+  endpoint rather than folded into `GET /dashboard/summary` — its own
+  analytical dimension, not a top-line number.
+- **Unlike `teacher_contribution` above, there's no gating boolean here** —
+  a segment can mention 0, 1, or several skills, so `count` values don't
+  sum to `total_analyzed` and each `percentage` is independently of
+  `total_analyzed`, not of another skill's count.
+- Only populated for segments analyzed after the 2026-09-16 prompt rewrite
+  (`extracted.life_skills_mentioned` didn't exist in that shape before) —
+  `life_skills: []` and `total_analyzed: 0` if nothing qualifies yet.
 
 `GET /dashboard/technical`
 - Internal/QA use — not participant-facing content.
