@@ -449,19 +449,32 @@ origin.
   appears — the positive/negative lean per theme, computed from existing
   data (no separate valence field).
 
-`GET /dashboard/highlights?question_index=N&theme=<theme_name>&limit=10`
-- `question_index` and `theme` are **both independently optional** filters
-  (changed 2026-09-19 — see below). `question_index`, if given, must be a
-  positive integer (`400` otherwise). `theme`, if given, must be one of
+`GET /dashboard/highlights?question_index=N&theme=<theme_name>&teacher_contribution=<value>&life_skill=<value>&limit=10`
+- `question_index`, `theme`, `teacher_contribution`, and `life_skill` are
+  **all independently optional** filters. `question_index`, if given, must
+  be a positive integer (`400` otherwise). `theme`, if given, must be one of
   `THEME_VALUES` (`src/services/gemini.ts`) (`400` `{ "error": "theme must
-  be one of: ..." }` otherwise). `limit` optional (default 10, max 50).
-  Omitting both returns highlights across the whole client (still capped by
-  `limit`); either one alone scopes by just that filter; both together is
-  the intersection.
-- Success `200`: `{ "question_index": number|null, "theme": string|null, "highlights": [ { "segment_id": string, "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null, "video_url": string }, ... ] }`
-  ordered by `highlight_score` descending. Both `question_index` and `theme`
-  in the response echo back `null` when that param was omitted, the given
-  value otherwise.
+  be one of: ..." }` otherwise). `teacher_contribution`, if given, must be
+  one of `TEACHER_CONTRIBUTION_VALUES` (`400` otherwise). `life_skill`, if
+  given, must be one of `LIFE_SKILL_VALUES` (`400` otherwise). `limit`
+  optional (default 10, max 50). Omitting all four returns highlights across
+  the whole client (still capped by `limit`); any subset scopes by just
+  those given; combining several is their intersection, never a union.
+- Success `200`: `{ "question_index": number|null, "theme": string|null, "teacher_contribution": string|null, "life_skill": string|null, "highlights": [ { "segment_id": string, "best_quote": string, "highlight_score": number, "sentiment_score": number, "language": string|null, "distributor_name": string, "actionable_feedback": string|null, "video_url": string }, ... ] }`
+  ordered by `highlight_score` descending. All four filters in the response
+  echo back `null` when that param was omitted, the given value otherwise.
+- **`teacher_contribution`** (added 2026-09-21) — filters to segments where
+  `extracted.mentions_teacher` is `true` and `extracted.teacher_contribution`
+  matches the given value. There is no separate "not specified" value to
+  filter on: per the Gemini response schema (`src/services/gemini.ts`),
+  `teacher_contribution` is `null` exactly when `mentions_teacher` is
+  `false`, and always one of the 5 fixed `TEACHER_CONTRIBUTION_VALUES`
+  otherwise — the explicit `mentions_teacher` check in the query is a
+  defensive match on that invariant, not an independent second condition.
+- **`life_skill`** (added 2026-09-21) — filters to segments whose
+  `extracted.life_skills_mentioned` array contains the given value, same
+  `jsonb_array_elements_text` + `EXISTS` pattern as `theme` above and
+  `GET /dashboard/life-skills` below.
 - **`video_url`** (added 2026-09-21) — per-item signed S3 GET URL, same
   `getPlaybackUrl` helper and generation-per-request as `GET /dashboard/
   response/:segment_id` below, so a grid of several video thumbnails
