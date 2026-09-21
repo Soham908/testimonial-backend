@@ -405,12 +405,26 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
     const moderationFlagged = segment.sentiment_result?.moderation_flag === true;
     const video_url = moderationFlagged ? null : await getPlaybackUrl(segment.video_key);
 
+    // sentiment_score/highlight_score are Prisma Decimal here (this is a
+    // plain model query, not $queryRaw with an explicit ::float cast like
+    // every other endpoint in this file uses) - Decimal.toJSON() returns a
+    // string, so res.json() below would otherwise silently send "0.6"
+    // instead of 0.6. Cast at the source rather than leaving it to whatever
+    // consumes this response to coerce.
+    const sentiment = segment.sentiment_result
+      ? {
+          ...segment.sentiment_result,
+          sentiment_score: segment.sentiment_result.sentiment_score.toNumber(),
+          highlight_score: segment.sentiment_result.highlight_score.toNumber(),
+        }
+      : null;
+
     res.json({
       segment_id: segment.id,
       question_index: segment.question_index,
       video_url,
       transcript: segment.transcript,
-      sentiment: segment.sentiment_result,
+      sentiment,
     });
   });
 

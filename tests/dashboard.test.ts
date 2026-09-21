@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import express from "express";
 import request from "supertest";
+import { Prisma } from "@prisma/client";
 
 const queryRawMock = vi.fn();
 const segmentFindFirstMock = vi.fn();
@@ -230,7 +231,7 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
       video_key: "clients/c1/distributors/d1/segments/3.mp4",
       transcript: { text: "Full transcript text.", language_detected: "en", language_probability: 0.99 },
       sentiment_result: {
-        sentiment_score: 0.5,
+        sentiment_score: new Prisma.Decimal(0.5),
         themes: ["teacher_impact"],
         emotional_tone: "heartfelt",
         summary: "A summary.",
@@ -240,7 +241,7 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
         contains_profanity: false,
         contains_complaint: false,
         actionable_feedback: null,
-        highlight_score: 0.6,
+        highlight_score: new Prisma.Decimal(0.6),
         extracted: { mentions_teacher: false, teacher_contribution: null, life_skills_mentioned: [] },
       },
     });
@@ -254,6 +255,13 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(res.body.video_url).toBe("https://s3.example.com/signed-video-url");
     expect(res.body.transcript.text).toBe("Full transcript text.");
     expect(res.body.sentiment.summary).toBe("A summary.");
+    // Prisma Decimal serializes via toJSON() as a string ("0.5") unless
+    // cast at the source - these must come back as real JS numbers, not
+    // strings, or a numeric UI (e.g. a sentiment gauge) breaks downstream.
+    expect(res.body.sentiment.sentiment_score).toBe(0.5);
+    expect(typeof res.body.sentiment.sentiment_score).toBe("number");
+    expect(res.body.sentiment.highlight_score).toBe(0.6);
+    expect(typeof res.body.sentiment.highlight_score).toBe("number");
     expect(getPlaybackUrlMock).toHaveBeenCalledWith("clients/c1/distributors/d1/segments/3.mp4");
     expect(segmentFindFirstMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -270,7 +278,7 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
       video_key: "clients/c1/distributors/d1/segments/1.mp4",
       transcript: { text: "Flagged transcript text.", language_detected: "en", language_probability: 0.9 },
       sentiment_result: {
-        sentiment_score: -0.8,
+        sentiment_score: new Prisma.Decimal(-0.8),
         themes: [],
         emotional_tone: "other",
         summary: "A summary.",
@@ -280,7 +288,7 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
         contains_profanity: true,
         contains_complaint: false,
         actionable_feedback: null,
-        highlight_score: 0.1,
+        highlight_score: new Prisma.Decimal(0.1),
         extracted: { mentions_teacher: false, teacher_contribution: null, life_skills_mentioned: [] },
       },
     });
