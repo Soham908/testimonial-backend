@@ -221,12 +221,22 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(queryRawMock).not.toHaveBeenCalled();
   });
 
-  it("GET /dashboard/highlights accepts teacher_contribution and life_skill alone or combined with the other filters", async () => {
+  it("GET /dashboard/highlights rejects a sentiment_category outside positive/neutral/negative (400, no query issued)", async () => {
+    const dashboardRouter = await loadDashboardRouter(true);
+    const res = await request(appWith(dashboardRouter)).get(
+      "/dashboard/highlights?sentiment_category=mixed",
+    );
+
+    expect(res.status).toBe(400);
+    expect(queryRawMock).not.toHaveBeenCalled();
+  });
+
+  it("GET /dashboard/highlights accepts all five filters together as their intersection", async () => {
     const dashboardRouter = await loadDashboardRouter(true);
     queryRawMock.mockResolvedValueOnce([]);
 
     const res = await request(appWith(dashboardRouter)).get(
-      "/dashboard/highlights?question_index=2&theme=teacher_impact&teacher_contribution=mentorship&life_skill=communication",
+      "/dashboard/highlights?question_index=2&theme=teacher_impact&teacher_contribution=mentorship&life_skill=communication&sentiment_category=positive",
     );
 
     expect(res.status).toBe(200);
@@ -234,11 +244,12 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(res.body.theme).toBe("teacher_impact");
     expect(res.body.teacher_contribution).toBe("mentorship");
     expect(res.body.life_skill).toBe("communication");
+    expect(res.body.sentiment_category).toBe("positive");
     expect(res.body.highlights).toEqual([]);
     expect(queryRawMock).toHaveBeenCalledTimes(1);
   });
 
-  it("GET /dashboard/highlights echoes teacher_contribution/life_skill as null when omitted", async () => {
+  it("GET /dashboard/highlights echoes all optional filters as null when omitted", async () => {
     const dashboardRouter = await loadDashboardRouter(true);
     queryRawMock.mockResolvedValueOnce([]);
 
@@ -247,6 +258,7 @@ describe("dashboard routes (ENABLE_DASHBOARD_ENDPOINTS)", () => {
     expect(res.status).toBe(200);
     expect(res.body.teacher_contribution).toBeNull();
     expect(res.body.life_skill).toBeNull();
+    expect(res.body.sentiment_category).toBeNull();
   });
 
   it("GET /dashboard/response/:segment_id rejects a malformed segment_id (400, no query issued)", async () => {

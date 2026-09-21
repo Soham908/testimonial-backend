@@ -26,10 +26,17 @@ import { getPlaybackUrl } from "../services/s3";
 export const dashboardRouter = Router();
 
 // sentiment_score thresholds used to bucket the "sentiment split" in
-// GET /dashboard/summary — a fixed, documented cutoff (see API_CONTRACT.md),
-// not derived from the data.
+// GET /dashboard/summary, and (added 2026-09-21) the sentiment_category
+// filter on GET /dashboard/highlights — a fixed, documented cutoff (see
+// API_CONTRACT.md), not derived from the data. Defined once here so both
+// consumers share the exact same boundary and can never silently drift
+// apart (the donut on /dashboard/summary and the drawer it opens via
+// /dashboard/highlights must always agree on what "positive" means).
 const POSITIVE_THRESHOLD = 0.3;
 const NEGATIVE_THRESHOLD = -0.3;
+
+const SENTIMENT_CATEGORY_VALUES = ["positive", "neutral", "negative"] as const;
+type SentimentCategory = (typeof SENTIMENT_CATEGORY_VALUES)[number];
 
 // highlight_score thresholds used to bucket the distribution in
 // GET /dashboard/extraction-quality — see API_CONTRACT.md.
@@ -72,6 +79,13 @@ function parseOptionalLifeSkill(raw: unknown): LifeSkill | null | undefined {
   if (raw === undefined) return undefined;
   if (typeof raw !== "string" || !(LIFE_SKILL_VALUES as readonly string[]).includes(raw)) return null;
   return raw as LifeSkill;
+}
+
+// Same undefined/null/value convention as parseOptionalTheme above.
+function parseOptionalSentimentCategory(raw: unknown): SentimentCategory | null | undefined {
+  if (raw === undefined) return undefined;
+  if (typeof raw !== "string" || !(SENTIMENT_CATEGORY_VALUES as readonly string[]).includes(raw)) return null;
+  return raw as SentimentCategory;
 }
 
 function parseLimit(raw: unknown, fallback: number, max: number): number {
@@ -265,7 +279,7 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
     });
   });
 
-  // GET /dashboard/highlights?question_index=N&theme=<theme_name>&teacher_contribution=<value>&life_skill=<value>&limit=10
+  // GET /dashboard/highlights?question_index=N&theme=<theme_name>&teacher_contribution=<value>&life_skill=<value>&sentiment_category=<value>&limit=10
   // Excludes moderation_flag: true segments — this endpoint surfaces
   // quotable highlights, which is exactly the "unsuitable for external use"
   // bar moderation_flag encodes (see src/services/gemini.ts).
@@ -282,19 +296,19 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
   // moderation_flag: true row before it ever reaches this point, so every
   // row video_url is generated for is already guaranteed unflagged.
   //
-  // question_index, theme, teacher_contribution, and life_skill are all
-  // independent, optional filters — omitting all returns highlights across
-  // the whole client; any subset scopes by just those given; combining
-  // several is their intersection, never a union. Previously question_index
-  // was required even when only theme was given (a bare ?theme=X 400'd) —
-  // that coupling was never the intent (see Step 9b) and forced callers
-  // wanting "evidence for this theme" to fan out one request per
-  // question_index and merge client-side. This is what makes every
-  // theme/teacher-impact/life-skills panel (barlists, treemap blocks, ring
-  // stats, sentiment-by-theme rows) clickable through to real evidence via
-  // the same drawer with a single request, without a new endpoint or new
-  // extraction — all four fields already exist on sentiment_results, this
-  // just filters on them.
+  // question_index, theme, teacher_contribution, life_skill, and
+  // sentiment_category are all independent, optional filters — omitting
+  // all returns highlights across the whole client; any subset scopes by
+  // just those given; combining several is their intersection, never a
+  // union. Previously question_index was required even when only theme was
+  // given (a bare ?theme=X 400'd) — that coupling was never the intent (see
+  // Step 9b) and forced callers wanting "evidence for this theme" to fan
+  // out one request per question_index and merge client-side. This is what
+  // makes every theme/teacher-impact/life-skills/sentiment-split panel
+  // (barlists, treemap blocks, ring stats, the summary donut) clickable
+  // through to real evidence via the same drawer with a single request,
+  // without a new endpoint or new extraction — all five fields already
+  // exist on sentiment_results, this just filters on them.
   //
   // teacher_contribution (added 2026-09-21) — one of TEACHER_CONTRIBUTION_
   // VALUES (400 otherwise). Also implicitly requires mentions_teacher: true
@@ -309,6 +323,13 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
   // otherwise). Filters to segments whose extracted.life_skills_mentioned
   // array contains this value, same jsonb_array_elements_text + EXISTS
   // pattern as the theme filter above and GET /dashboard/life-skills.
+  //
+  // sentiment_category (added 2026-09-21) — one of "positive"/"neutral"/
+  // "negative" (400 otherwise), using the exact same POSITIVE_THRESHOLD/
+  // NEGATIVE_THRESHOLD constants GET /dashboard/summary's sentiment_split
+  // computes its percentages from (defined once, above) — the donut there
+  // and the drawer this filter opens must always agree on what "positive"
+  // means, so the boundary is shared, never re-derived.
   //
   // Includes distributor_name and actionable_feedback — a deliberate,
   // endpoint-specific reversal of the rest of this router's "no identity"
@@ -342,6 +363,13 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
     const life_skill = parseOptionalLifeSkill(req.query.life_skill);
     if (life_skill === null) {
       res.status(400).json({ error: `life_skill must be one of: ${LIFE_SKILL_VALUES.join(", ")}` });
+      return;
+    }
+    const sentiment_category = parseOptionalSentimentCategory(req.query.sentiment_category);
+    if (sentiment_category === null) {
+      res.status(400).json({
+        error: `sentiment_category must be one of: ${SENTIMENT_CATEGORY_VALUES.join(", ")}`,
+      });
       return;
     }
     const limit = parseLimit(req.query.limit, DEFAULT_HIGHLIGHTS_LIMIT, MAX_HIGHLIGHTS_LIMIT);
@@ -391,6 +419,16 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
             WHERE skill_value = ${life_skill ?? null}
           )
         )
+        AND (
+          ${sentiment_category ?? null}::text IS NULL
+          OR (${sentiment_category ?? null} = 'positive' AND sr."sentiment_score" >= ${POSITIVE_THRESHOLD})
+          OR (
+            ${sentiment_category ?? null} = 'neutral'
+            AND sr."sentiment_score" > ${NEGATIVE_THRESHOLD}
+            AND sr."sentiment_score" < ${POSITIVE_THRESHOLD}
+          )
+          OR (${sentiment_category ?? null} = 'negative' AND sr."sentiment_score" <= ${NEGATIVE_THRESHOLD})
+        )
       ORDER BY sr."highlight_score" DESC
       LIMIT ${limit}
     `;
@@ -404,6 +442,7 @@ if (config.ENABLE_DASHBOARD_ENDPOINTS) {
       theme: theme ?? null,
       teacher_contribution: teacher_contribution ?? null,
       life_skill: life_skill ?? null,
+      sentiment_category: sentiment_category ?? null,
       highlights,
     });
   });
