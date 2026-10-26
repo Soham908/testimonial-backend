@@ -1,0 +1,1539 @@
+{
+  "run_id": "2026-09-18-full-01",
+  "base_url": "https://insight-backend.thezeist.com",
+  "started_at": "2026-09-18T09:04:49.855Z",
+  "completed_at": "2026-09-18T09:05:34.010Z",
+  "concurrency": 5,
+  "wall_clock_ms": 44154,
+  "processing_waited_for": false,
+  "summary": {
+    "distributors_submitted": 20,
+    "distributors_failed": 0,
+    "videos_submitted": 100,
+    "videos_failed": 0
+  },
+  "distributor_ids": [
+    {
+      "distributor_name": "Aakash Mehra, Mehra Home Solutions",
+      "distributor_id": "e6e83aff-f963-4b5f-882c-f76da99f8dc5",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Anjali Verma, Verma Baby Care Distributors",
+      "distributor_id": "23d333d2-b5e5-4d68-84f9-3775d24762bc",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Dinesh Pawar, Pawar Sanitary Stores",
+      "distributor_id": "c3877da3-5822-4f16-a63b-4a7ef2085477",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Farah Siddiqui, Siddiqui Kitchenware",
+      "distributor_id": "75db6860-8e08-4999-ae60-3c2e8dd0d272",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Gaurav Malhotra, Malhotra Sports Supply",
+      "distributor_id": "585177ea-6d1c-4732-8f7f-6a368e747982",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Harpreet Singh, Singh Hardware Point",
+      "distributor_id": "69818bac-bd19-4ccd-9a91-9faa11a2e834",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Imran Qureshi, Qureshi Mobile Hub",
+      "distributor_id": "34d152ba-e641-4e12-ade2-3796cd3de6e9",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Kavita Deshmukh, Deshmukh Consumer Links",
+      "distributor_id": "ea15d490-bde6-45ce-b7ed-371b3dd2ed89",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Meena Iyer, Iyer Electrical Mart",
+      "distributor_id": "e420c03d-ed39-4ec9-aab4-2babf48f5200",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Neha Kapoor, Kapoor Medical Traders",
+      "distributor_id": "6e2e3035-2a08-4e0e-9ab5-5fcbeb391b1a",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Nitin Arora, Arora Paint Traders",
+      "distributor_id": "d74e344a-25a5-4471-ac9b-16af950d6856",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Pooja Chatterjee, Chatterjee Office Supply",
+      "distributor_id": "62439f8f-0050-464c-8a7f-bb4bbdfa4a85",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Prakash Jadhav, Jadhav Auto Parts",
+      "distributor_id": "9aa72af5-b120-48dd-94e5-e56a5ef658e2",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Rajiv Bansal, Bansal Cooling House",
+      "distributor_id": "95dc56e8-6268-4c40-bc90-3d5433ca1e6e",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Rukmini Nair, Nair Hospitality Supply",
+      "distributor_id": "e6478649-d1b1-4fc7-a584-c2148ac17383",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Saira Khan, Khan Stationery & Gifts",
+      "distributor_id": "ea57b0d1-c07b-49f1-9a17-1d3ed426e336",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Sandeep Kulkarni, Kulkarni Packaging Works",
+      "distributor_id": "9f834172-3cbd-49f7-a575-b003d2e26fdd",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Shalini Gupta, Gupta Agro Distributors",
+      "distributor_id": "bbc0339e-8fde-46dc-a63b-19adeaeb94fd",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Vivek Sethi, Sethi Renewable Systems",
+      "distributor_id": "5b8b36dd-b114-40eb-b1da-e86f085d8c8a",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Yasmeen Ali, Ali Beauty Essentials",
+      "distributor_id": "6c63bb28-987e-433b-bd03-7a7ed14252c9",
+      "status": "submitted"
+    }
+  ],
+  "distributors": [
+    {
+      "distributor_name": "Aakash Mehra, Mehra Home Solutions",
+      "distributor_id": "e6e83aff-f963-4b5f-882c-f76da99f8dc5",
+      "total_ms": 11100,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\001-aakash-mehra-mehra-home-solutions-q1.mp4",
+          "local_bytes": 12491280,
+          "duration_seconds": 56.099,
+          "upload_url_ms": 79,
+          "put_ms": 3378,
+          "confirm_ms": 365,
+          "total_ms": 3857,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e6e83aff-f963-4b5f-882c-f76da99f8dc5/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\002-aakash-mehra-mehra-home-solutions-q2.mp4",
+          "local_bytes": 11865717,
+          "duration_seconds": 53.545,
+          "upload_url_ms": 93,
+          "put_ms": 1151,
+          "confirm_ms": 344,
+          "total_ms": 1604,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e6e83aff-f963-4b5f-882c-f76da99f8dc5/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\003-aakash-mehra-mehra-home-solutions-q3.mp4",
+          "local_bytes": 13197837,
+          "duration_seconds": 59.211,
+          "upload_url_ms": 109,
+          "put_ms": 679,
+          "confirm_ms": 361,
+          "total_ms": 1167,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e6e83aff-f963-4b5f-882c-f76da99f8dc5/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\004-aakash-mehra-mehra-home-solutions-q4.mp4",
+          "local_bytes": 11064216,
+          "duration_seconds": 49.969,
+          "upload_url_ms": 89,
+          "put_ms": 770,
+          "confirm_ms": 377,
+          "total_ms": 1250,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e6e83aff-f963-4b5f-882c-f76da99f8dc5/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\005-aakash-mehra-mehra-home-solutions-q5.mp4",
+          "local_bytes": 14754350,
+          "duration_seconds": 66.223,
+          "upload_url_ms": 86,
+          "put_ms": 931,
+          "confirm_ms": 434,
+          "total_ms": 1470,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e6e83aff-f963-4b5f-882c-f76da99f8dc5/segments/5.mp4"
+        }
+      ],
+      "register_ms": 1487,
+      "profile_ms": 88,
+      "questions_catalog_ms": 174
+    },
+    {
+      "distributor_name": "Anjali Verma, Verma Baby Care Distributors",
+      "distributor_id": "23d333d2-b5e5-4d68-84f9-3775d24762bc",
+      "total_ms": 11658,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\086-anjali-verma-verma-baby-care-distributors-q1.mp4",
+          "local_bytes": 12612508,
+          "duration_seconds": 56.749,
+          "upload_url_ms": 74,
+          "put_ms": 1147,
+          "confirm_ms": 392,
+          "total_ms": 1665,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/23d333d2-b5e5-4d68-84f9-3775d24762bc/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\087-anjali-verma-verma-baby-care-distributors-q2.mp4",
+          "local_bytes": 11544797,
+          "duration_seconds": 52.012,
+          "upload_url_ms": 85,
+          "put_ms": 1590,
+          "confirm_ms": 347,
+          "total_ms": 2052,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/23d333d2-b5e5-4d68-84f9-3775d24762bc/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\088-anjali-verma-verma-baby-care-distributors-q3.mp4",
+          "local_bytes": 13924142,
+          "duration_seconds": 62.136,
+          "upload_url_ms": 81,
+          "put_ms": 1794,
+          "confirm_ms": 389,
+          "total_ms": 2286,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/23d333d2-b5e5-4d68-84f9-3775d24762bc/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\089-anjali-verma-verma-baby-care-distributors-q4.mp4",
+          "local_bytes": 13757027,
+          "duration_seconds": 61.44,
+          "upload_url_ms": 131,
+          "put_ms": 1515,
+          "confirm_ms": 366,
+          "total_ms": 2030,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/23d333d2-b5e5-4d68-84f9-3775d24762bc/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\090-anjali-verma-verma-baby-care-distributors-q5.mp4",
+          "local_bytes": 13488126,
+          "duration_seconds": 60.464,
+          "upload_url_ms": 93,
+          "put_ms": 1445,
+          "confirm_ms": 346,
+          "total_ms": 1903,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/23d333d2-b5e5-4d68-84f9-3775d24762bc/segments/5.mp4"
+        }
+      ],
+      "register_ms": 1492,
+      "profile_ms": 74,
+      "questions_catalog_ms": 155
+    },
+    {
+      "distributor_name": "Dinesh Pawar, Pawar Sanitary Stores",
+      "distributor_id": "c3877da3-5822-4f16-a63b-4a7ef2085477",
+      "total_ms": 9999,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\021-dinesh-pawar-pawar-sanitary-stores-q1.mp4",
+          "local_bytes": 12251882,
+          "duration_seconds": 55.077,
+          "upload_url_ms": 98,
+          "put_ms": 1151,
+          "confirm_ms": 394,
+          "total_ms": 1684,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/c3877da3-5822-4f16-a63b-4a7ef2085477/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\022-dinesh-pawar-pawar-sanitary-stores-q2.mp4",
+          "local_bytes": 12900921,
+          "duration_seconds": 58.05,
+          "upload_url_ms": 86,
+          "put_ms": 1786,
+          "confirm_ms": 354,
+          "total_ms": 2293,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/c3877da3-5822-4f16-a63b-4a7ef2085477/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\023-dinesh-pawar-pawar-sanitary-stores-q3.mp4",
+          "local_bytes": 12645463,
+          "duration_seconds": 56.842,
+          "upload_url_ms": 97,
+          "put_ms": 756,
+          "confirm_ms": 375,
+          "total_ms": 1243,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/c3877da3-5822-4f16-a63b-4a7ef2085477/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\024-dinesh-pawar-pawar-sanitary-stores-q4.mp4",
+          "local_bytes": 13417409,
+          "duration_seconds": 60.186,
+          "upload_url_ms": 99,
+          "put_ms": 1355,
+          "confirm_ms": 375,
+          "total_ms": 1846,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/c3877da3-5822-4f16-a63b-4a7ef2085477/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\025-dinesh-pawar-pawar-sanitary-stores-q5.mp4",
+          "local_bytes": 12531422,
+          "duration_seconds": 56.378,
+          "upload_url_ms": 103,
+          "put_ms": 773,
+          "confirm_ms": 342,
+          "total_ms": 1232,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/c3877da3-5822-4f16-a63b-4a7ef2085477/segments/5.mp4"
+        }
+      ],
+      "register_ms": 1445,
+      "profile_ms": 90,
+      "questions_catalog_ms": 164
+    },
+    {
+      "distributor_name": "Farah Siddiqui, Siddiqui Kitchenware",
+      "distributor_id": "75db6860-8e08-4999-ae60-3c2e8dd0d272",
+      "total_ms": 14347,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\016-farah-siddiqui-siddiqui-kitchenware-q1.mp4",
+          "local_bytes": 11214282,
+          "duration_seconds": 50.573,
+          "upload_url_ms": 85,
+          "put_ms": 1616,
+          "confirm_ms": 351,
+          "total_ms": 2090,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/75db6860-8e08-4999-ae60-3c2e8dd0d272/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\017-farah-siddiqui-siddiqui-kitchenware-q2.mp4",
+          "local_bytes": 11336154,
+          "duration_seconds": 51.084,
+          "upload_url_ms": 100,
+          "put_ms": 1110,
+          "confirm_ms": 363,
+          "total_ms": 1592,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/75db6860-8e08-4999-ae60-3c2e8dd0d272/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\018-farah-siddiqui-siddiqui-kitchenware-q3.mp4",
+          "local_bytes": 14008438,
+          "duration_seconds": 62.601,
+          "upload_url_ms": 78,
+          "put_ms": 4192,
+          "confirm_ms": 351,
+          "total_ms": 4637,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/75db6860-8e08-4999-ae60-3c2e8dd0d272/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\019-farah-siddiqui-siddiqui-kitchenware-q4.mp4",
+          "local_bytes": 10890412,
+          "duration_seconds": 49.18,
+          "upload_url_ms": 170,
+          "put_ms": 1399,
+          "confirm_ms": 427,
+          "total_ms": 2010,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/75db6860-8e08-4999-ae60-3c2e8dd0d272/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\020-farah-siddiqui-siddiqui-kitchenware-q5.mp4",
+          "local_bytes": 12731882,
+          "duration_seconds": 57.214,
+          "upload_url_ms": 88,
+          "put_ms": 1852,
+          "confirm_ms": 353,
+          "total_ms": 2309,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/75db6860-8e08-4999-ae60-3c2e8dd0d272/segments/5.mp4"
+        }
+      ],
+      "register_ms": 1436,
+      "profile_ms": 95,
+      "questions_catalog_ms": 175
+    },
+    {
+      "distributor_name": "Gaurav Malhotra, Malhotra Sports Supply",
+      "distributor_id": "585177ea-6d1c-4732-8f7f-6a368e747982",
+      "total_ms": 10536,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\061-gaurav-malhotra-malhotra-sports-supply-q1.mp4",
+          "local_bytes": 13101545,
+          "duration_seconds": 58.839,
+          "upload_url_ms": 90,
+          "put_ms": 1642,
+          "confirm_ms": 346,
+          "total_ms": 2101,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/585177ea-6d1c-4732-8f7f-6a368e747982/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\062-gaurav-malhotra-malhotra-sports-supply-q2.mp4",
+          "local_bytes": 13557805,
+          "duration_seconds": 60.65,
+          "upload_url_ms": 105,
+          "put_ms": 895,
+          "confirm_ms": 367,
+          "total_ms": 1407,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/585177ea-6d1c-4732-8f7f-6a368e747982/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\063-gaurav-malhotra-malhotra-sports-supply-q3.mp4",
+          "local_bytes": 13485933,
+          "duration_seconds": 60.372,
+          "upload_url_ms": 72,
+          "put_ms": 1099,
+          "confirm_ms": 405,
+          "total_ms": 1595,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/585177ea-6d1c-4732-8f7f-6a368e747982/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\064-gaurav-malhotra-malhotra-sports-supply-q4.mp4",
+          "local_bytes": 11845509,
+          "duration_seconds": 53.406,
+          "upload_url_ms": 85,
+          "put_ms": 1397,
+          "confirm_ms": 367,
+          "total_ms": 1865,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/585177ea-6d1c-4732-8f7f-6a368e747982/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\065-gaurav-malhotra-malhotra-sports-supply-q5.mp4",
+          "local_bytes": 12781424,
+          "duration_seconds": 57.585,
+          "upload_url_ms": 106,
+          "put_ms": 1349,
+          "confirm_ms": 403,
+          "total_ms": 1877,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/585177ea-6d1c-4732-8f7f-6a368e747982/segments/5.mp4"
+        }
+      ],
+      "register_ms": 1440,
+      "profile_ms": 79,
+      "questions_catalog_ms": 170
+    },
+    {
+      "distributor_name": "Harpreet Singh, Singh Hardware Point",
+      "distributor_id": "69818bac-bd19-4ccd-9a91-9faa11a2e834",
+      "total_ms": 9389,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\051-harpreet-singh-singh-hardware-point-q1.mp4",
+          "local_bytes": 12931842,
+          "duration_seconds": 58.189,
+          "upload_url_ms": 84,
+          "put_ms": 963,
+          "confirm_ms": 410,
+          "total_ms": 1473,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/69818bac-bd19-4ccd-9a91-9faa11a2e834/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\052-harpreet-singh-singh-hardware-point-q2.mp4",
+          "local_bytes": 12405532,
+          "duration_seconds": 55.867,
+          "upload_url_ms": 78,
+          "put_ms": 1348,
+          "confirm_ms": 368,
+          "total_ms": 1812,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/69818bac-bd19-4ccd-9a91-9faa11a2e834/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\053-harpreet-singh-singh-hardware-point-q3.mp4",
+          "local_bytes": 13224805,
+          "duration_seconds": 59.396,
+          "upload_url_ms": 78,
+          "put_ms": 1648,
+          "confirm_ms": 353,
+          "total_ms": 2101,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/69818bac-bd19-4ccd-9a91-9faa11a2e834/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\054-harpreet-singh-singh-hardware-point-q4.mp4",
+          "local_bytes": 13098803,
+          "duration_seconds": 58.839,
+          "upload_url_ms": 88,
+          "put_ms": 1720,
+          "confirm_ms": 360,
+          "total_ms": 2183,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/69818bac-bd19-4ccd-9a91-9faa11a2e834/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\055-harpreet-singh-singh-hardware-point-q5.mp4",
+          "local_bytes": 13952338,
+          "duration_seconds": 62.276,
+          "upload_url_ms": 84,
+          "put_ms": 835,
+          "confirm_ms": 364,
+          "total_ms": 1300,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/69818bac-bd19-4ccd-9a91-9faa11a2e834/segments/5.mp4"
+        }
+      ],
+      "register_ms": 265,
+      "profile_ms": 82,
+      "questions_catalog_ms": 153
+    },
+    {
+      "distributor_name": "Imran Qureshi, Qureshi Mobile Hub",
+      "distributor_id": "34d152ba-e641-4e12-ade2-3796cd3de6e9",
+      "total_ms": 10175,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\031-imran-qureshi-qureshi-mobile-hub-q1.mp4",
+          "local_bytes": 14939451,
+          "duration_seconds": 67.152,
+          "upload_url_ms": 82,
+          "put_ms": 929,
+          "confirm_ms": 346,
+          "total_ms": 1389,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/34d152ba-e641-4e12-ade2-3796cd3de6e9/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\032-imran-qureshi-qureshi-mobile-hub-q2.mp4",
+          "local_bytes": 12512891,
+          "duration_seconds": 56.192,
+          "upload_url_ms": 124,
+          "put_ms": 1024,
+          "confirm_ms": 356,
+          "total_ms": 1520,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/34d152ba-e641-4e12-ade2-3796cd3de6e9/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\033-imran-qureshi-qureshi-mobile-hub-q3.mp4",
+          "local_bytes": 12211668,
+          "duration_seconds": 54.938,
+          "upload_url_ms": 89,
+          "put_ms": 1664,
+          "confirm_ms": 353,
+          "total_ms": 2129,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/34d152ba-e641-4e12-ade2-3796cd3de6e9/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\034-imran-qureshi-qureshi-mobile-hub-q4.mp4",
+          "local_bytes": 11939498,
+          "duration_seconds": 53.777,
+          "upload_url_ms": 76,
+          "put_ms": 1927,
+          "confirm_ms": 360,
+          "total_ms": 2383,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/34d152ba-e641-4e12-ade2-3796cd3de6e9/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\035-imran-qureshi-qureshi-mobile-hub-q5.mp4",
+          "local_bytes": 12781772,
+          "duration_seconds": 57.539,
+          "upload_url_ms": 111,
+          "put_ms": 1775,
+          "confirm_ms": 369,
+          "total_ms": 2270,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/34d152ba-e641-4e12-ade2-3796cd3de6e9/segments/5.mp4"
+        }
+      ],
+      "register_ms": 253,
+      "profile_ms": 82,
+      "questions_catalog_ms": 146
+    },
+    {
+      "distributor_name": "Kavita Deshmukh, Deshmukh Consumer Links",
+      "distributor_id": "ea15d490-bde6-45ce-b7ed-371b3dd2ed89",
+      "total_ms": 11881,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\026-kavita-deshmukh-deshmukh-consumer-links-q1.mp4",
+          "local_bytes": 12535117,
+          "duration_seconds": 56.331,
+          "upload_url_ms": 80,
+          "put_ms": 1860,
+          "confirm_ms": 377,
+          "total_ms": 2341,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/ea15d490-bde6-45ce-b7ed-371b3dd2ed89/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\027-kavita-deshmukh-deshmukh-consumer-links-q2.mp4",
+          "local_bytes": 11547938,
+          "duration_seconds": 52.105,
+          "upload_url_ms": 81,
+          "put_ms": 1889,
+          "confirm_ms": 351,
+          "total_ms": 2375,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/ea15d490-bde6-45ce-b7ed-371b3dd2ed89/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\028-kavita-deshmukh-deshmukh-consumer-links-q3.mp4",
+          "local_bytes": 13392365,
+          "duration_seconds": 60.047,
+          "upload_url_ms": 90,
+          "put_ms": 1811,
+          "confirm_ms": 374,
+          "total_ms": 2300,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/ea15d490-bde6-45ce-b7ed-371b3dd2ed89/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\029-kavita-deshmukh-deshmukh-consumer-links-q4.mp4",
+          "local_bytes": 11873955,
+          "duration_seconds": 53.591,
+          "upload_url_ms": 87,
+          "put_ms": 1522,
+          "confirm_ms": 345,
+          "total_ms": 1971,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/ea15d490-bde6-45ce-b7ed-371b3dd2ed89/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\030-kavita-deshmukh-deshmukh-consumer-links-q5.mp4",
+          "local_bytes": 12970178,
+          "duration_seconds": 58.328,
+          "upload_url_ms": 77,
+          "put_ms": 1865,
+          "confirm_ms": 387,
+          "total_ms": 2344,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/ea15d490-bde6-45ce-b7ed-371b3dd2ed89/segments/5.mp4"
+        }
+      ],
+      "register_ms": 298,
+      "profile_ms": 82,
+      "questions_catalog_ms": 166
+    },
+    {
+      "distributor_name": "Meena Iyer, Iyer Electrical Mart",
+      "distributor_id": "e420c03d-ed39-4ec9-aab4-2babf48f5200",
+      "total_ms": 11254,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\006-meena-iyer-iyer-electrical-mart-q1.mp4",
+          "local_bytes": 13067605,
+          "duration_seconds": 58.793,
+          "upload_url_ms": 85,
+          "put_ms": 1610,
+          "confirm_ms": 346,
+          "total_ms": 2067,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e420c03d-ed39-4ec9-aab4-2babf48f5200/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\007-meena-iyer-iyer-electrical-mart-q2.mp4",
+          "local_bytes": 11273190,
+          "duration_seconds": 50.851,
+          "upload_url_ms": 89,
+          "put_ms": 1179,
+          "confirm_ms": 345,
+          "total_ms": 1631,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e420c03d-ed39-4ec9-aab4-2babf48f5200/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\008-meena-iyer-iyer-electrical-mart-q3.mp4",
+          "local_bytes": 12540347,
+          "duration_seconds": 56.331,
+          "upload_url_ms": 94,
+          "put_ms": 2223,
+          "confirm_ms": 345,
+          "total_ms": 2685,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e420c03d-ed39-4ec9-aab4-2babf48f5200/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\009-meena-iyer-iyer-electrical-mart-q4.mp4",
+          "local_bytes": 11504846,
+          "duration_seconds": 51.92,
+          "upload_url_ms": 79,
+          "put_ms": 1513,
+          "confirm_ms": 364,
+          "total_ms": 1996,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e420c03d-ed39-4ec9-aab4-2babf48f5200/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\010-meena-iyer-iyer-electrical-mart-q5.mp4",
+          "local_bytes": 14379874,
+          "duration_seconds": 64.319,
+          "upload_url_ms": 90,
+          "put_ms": 1934,
+          "confirm_ms": 356,
+          "total_ms": 2397,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e420c03d-ed39-4ec9-aab4-2babf48f5200/segments/5.mp4"
+        }
+      ],
+      "register_ms": 250,
+      "profile_ms": 79,
+      "questions_catalog_ms": 147
+    },
+    {
+      "distributor_name": "Neha Kapoor, Kapoor Medical Traders",
+      "distributor_id": "6e2e3035-2a08-4e0e-9ab5-5fcbeb391b1a",
+      "total_ms": 10946,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\076-neha-kapoor-kapoor-medical-traders-q1.mp4",
+          "local_bytes": 13310948,
+          "duration_seconds": 59.814,
+          "upload_url_ms": 85,
+          "put_ms": 1010,
+          "confirm_ms": 353,
+          "total_ms": 1465,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/6e2e3035-2a08-4e0e-9ab5-5fcbeb391b1a/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\077-neha-kapoor-kapoor-medical-traders-q2.mp4",
+          "local_bytes": 13201158,
+          "duration_seconds": 59.257,
+          "upload_url_ms": 90,
+          "put_ms": 1659,
+          "confirm_ms": 349,
+          "total_ms": 2161,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/6e2e3035-2a08-4e0e-9ab5-5fcbeb391b1a/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\078-neha-kapoor-kapoor-medical-traders-q3.mp4",
+          "local_bytes": 11720829,
+          "duration_seconds": 52.895,
+          "upload_url_ms": 72,
+          "put_ms": 1976,
+          "confirm_ms": 458,
+          "total_ms": 2549,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/6e2e3035-2a08-4e0e-9ab5-5fcbeb391b1a/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\079-neha-kapoor-kapoor-medical-traders-q4.mp4",
+          "local_bytes": 14009923,
+          "duration_seconds": 62.508,
+          "upload_url_ms": 77,
+          "put_ms": 1575,
+          "confirm_ms": 626,
+          "total_ms": 2295,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/6e2e3035-2a08-4e0e-9ab5-5fcbeb391b1a/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\080-neha-kapoor-kapoor-medical-traders-q5.mp4",
+          "local_bytes": 14762928,
+          "duration_seconds": 66.223,
+          "upload_url_ms": 111,
+          "put_ms": 1450,
+          "confirm_ms": 370,
+          "total_ms": 1959,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/6e2e3035-2a08-4e0e-9ab5-5fcbeb391b1a/segments/5.mp4"
+        }
+      ],
+      "register_ms": 263,
+      "profile_ms": 87,
+      "questions_catalog_ms": 164
+    },
+    {
+      "distributor_name": "Nitin Arora, Arora Paint Traders",
+      "distributor_id": "d74e344a-25a5-4471-ac9b-16af950d6856",
+      "total_ms": 11306,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\041-nitin-arora-arora-paint-traders-q1.mp4",
+          "local_bytes": 11710823,
+          "duration_seconds": 52.848,
+          "upload_url_ms": 108,
+          "put_ms": 870,
+          "confirm_ms": 352,
+          "total_ms": 1347,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/d74e344a-25a5-4471-ac9b-16af950d6856/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\042-nitin-arora-arora-paint-traders-q2.mp4",
+          "local_bytes": 11842368,
+          "duration_seconds": 53.406,
+          "upload_url_ms": 97,
+          "put_ms": 1549,
+          "confirm_ms": 1047,
+          "total_ms": 2709,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/d74e344a-25a5-4471-ac9b-16af950d6856/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\043-nitin-arora-arora-paint-traders-q3.mp4",
+          "local_bytes": 12508745,
+          "duration_seconds": 56.146,
+          "upload_url_ms": 92,
+          "put_ms": 1282,
+          "confirm_ms": 429,
+          "total_ms": 1818,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/d74e344a-25a5-4471-ac9b-16af950d6856/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\044-nitin-arora-arora-paint-traders-q4.mp4",
+          "local_bytes": 13524767,
+          "duration_seconds": 60.511,
+          "upload_url_ms": 81,
+          "put_ms": 1548,
+          "confirm_ms": 348,
+          "total_ms": 1993,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/d74e344a-25a5-4471-ac9b-16af950d6856/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\045-nitin-arora-arora-paint-traders-q5.mp4",
+          "local_bytes": 15219852,
+          "duration_seconds": 68.591,
+          "upload_url_ms": 78,
+          "put_ms": 2302,
+          "confirm_ms": 455,
+          "total_ms": 2888,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/d74e344a-25a5-4471-ac9b-16af950d6856/segments/5.mp4"
+        }
+      ],
+      "register_ms": 275,
+      "profile_ms": 109,
+      "questions_catalog_ms": 164
+    },
+    {
+      "distributor_name": "Pooja Chatterjee, Chatterjee Office Supply",
+      "distributor_id": "62439f8f-0050-464c-8a7f-bb4bbdfa4a85",
+      "total_ms": 9722,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\036-pooja-chatterjee-chatterjee-office-supply-q1.mp4",
+          "local_bytes": 14098917,
+          "duration_seconds": 62.972,
+          "upload_url_ms": 84,
+          "put_ms": 1546,
+          "confirm_ms": 612,
+          "total_ms": 2259,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/62439f8f-0050-464c-8a7f-bb4bbdfa4a85/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\037-pooja-chatterjee-chatterjee-office-supply-q2.mp4",
+          "local_bytes": 10372543,
+          "duration_seconds": 47.09,
+          "upload_url_ms": 77,
+          "put_ms": 1492,
+          "confirm_ms": 441,
+          "total_ms": 2024,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/62439f8f-0050-464c-8a7f-bb4bbdfa4a85/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\038-pooja-chatterjee-chatterjee-office-supply-q3.mp4",
+          "local_bytes": 12805374,
+          "duration_seconds": 57.725,
+          "upload_url_ms": 71,
+          "put_ms": 954,
+          "confirm_ms": 365,
+          "total_ms": 1409,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/62439f8f-0050-464c-8a7f-bb4bbdfa4a85/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\039-pooja-chatterjee-chatterjee-office-supply-q4.mp4",
+          "local_bytes": 13562810,
+          "duration_seconds": 60.697,
+          "upload_url_ms": 83,
+          "put_ms": 1016,
+          "confirm_ms": 360,
+          "total_ms": 1478,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/62439f8f-0050-464c-8a7f-bb4bbdfa4a85/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\040-pooja-chatterjee-chatterjee-office-supply-q5.mp4",
+          "local_bytes": 12130494,
+          "duration_seconds": 54.613,
+          "upload_url_ms": 97,
+          "put_ms": 1593,
+          "confirm_ms": 358,
+          "total_ms": 2062,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/62439f8f-0050-464c-8a7f-bb4bbdfa4a85/segments/5.mp4"
+        }
+      ],
+      "register_ms": 256,
+      "profile_ms": 77,
+      "questions_catalog_ms": 156
+    },
+    {
+      "distributor_name": "Prakash Jadhav, Jadhav Auto Parts",
+      "distributor_id": "9aa72af5-b120-48dd-94e5-e56a5ef658e2",
+      "total_ms": 9777,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\071-prakash-jadhav-jadhav-auto-parts-q1.mp4",
+          "local_bytes": 12803355,
+          "duration_seconds": 57.678,
+          "upload_url_ms": 83,
+          "put_ms": 1739,
+          "confirm_ms": 406,
+          "total_ms": 2247,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/9aa72af5-b120-48dd-94e5-e56a5ef658e2/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\072-prakash-jadhav-jadhav-auto-parts-q2.mp4",
+          "local_bytes": 12768971,
+          "duration_seconds": 57.446,
+          "upload_url_ms": 79,
+          "put_ms": 1542,
+          "confirm_ms": 350,
+          "total_ms": 2021,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/9aa72af5-b120-48dd-94e5-e56a5ef658e2/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\073-prakash-jadhav-jadhav-auto-parts-q3.mp4",
+          "local_bytes": 12358675,
+          "duration_seconds": 55.681,
+          "upload_url_ms": 91,
+          "put_ms": 1350,
+          "confirm_ms": 347,
+          "total_ms": 1841,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/9aa72af5-b120-48dd-94e5-e56a5ef658e2/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\074-prakash-jadhav-jadhav-auto-parts-q4.mp4",
+          "local_bytes": 12106614,
+          "duration_seconds": 54.52,
+          "upload_url_ms": 103,
+          "put_ms": 665,
+          "confirm_ms": 489,
+          "total_ms": 1274,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/9aa72af5-b120-48dd-94e5-e56a5ef658e2/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\075-prakash-jadhav-jadhav-auto-parts-q5.mp4",
+          "local_bytes": 12162463,
+          "duration_seconds": 54.706,
+          "upload_url_ms": 85,
+          "put_ms": 1258,
+          "confirm_ms": 366,
+          "total_ms": 1726,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/9aa72af5-b120-48dd-94e5-e56a5ef658e2/segments/5.mp4"
+        }
+      ],
+      "register_ms": 429,
+      "profile_ms": 74,
+      "questions_catalog_ms": 164
+    },
+    {
+      "distributor_name": "Rajiv Bansal, Bansal Cooling House",
+      "distributor_id": "95dc56e8-6268-4c40-bc90-3d5433ca1e6e",
+      "total_ms": 12244,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\011-rajiv-bansal-bansal-cooling-house-q1.mp4",
+          "local_bytes": 12128193,
+          "duration_seconds": 54.567,
+          "upload_url_ms": 88,
+          "put_ms": 1487,
+          "confirm_ms": 408,
+          "total_ms": 2006,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/95dc56e8-6268-4c40-bc90-3d5433ca1e6e/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\012-rajiv-bansal-bansal-cooling-house-q2.mp4",
+          "local_bytes": 12012931,
+          "duration_seconds": 54.102,
+          "upload_url_ms": 80,
+          "put_ms": 1742,
+          "confirm_ms": 347,
+          "total_ms": 2184,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/95dc56e8-6268-4c40-bc90-3d5433ca1e6e/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\013-rajiv-bansal-bansal-cooling-house-q3.mp4",
+          "local_bytes": 13205200,
+          "duration_seconds": 59.211,
+          "upload_url_ms": 80,
+          "put_ms": 1819,
+          "confirm_ms": 364,
+          "total_ms": 2285,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/95dc56e8-6268-4c40-bc90-3d5433ca1e6e/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\014-rajiv-bansal-bansal-cooling-house-q4.mp4",
+          "local_bytes": 14826892,
+          "duration_seconds": 66.595,
+          "upload_url_ms": 84,
+          "put_ms": 1496,
+          "confirm_ms": 365,
+          "total_ms": 1967,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/95dc56e8-6268-4c40-bc90-3d5433ca1e6e/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\015-rajiv-bansal-bansal-cooling-house-q5.mp4",
+          "local_bytes": 13894952,
+          "duration_seconds": 62.043,
+          "upload_url_ms": 101,
+          "put_ms": 2613,
+          "confirm_ms": 382,
+          "total_ms": 3114,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/95dc56e8-6268-4c40-bc90-3d5433ca1e6e/segments/5.mp4"
+        }
+      ],
+      "register_ms": 456,
+      "profile_ms": 72,
+      "questions_catalog_ms": 144
+    },
+    {
+      "distributor_name": "Rukmini Nair, Nair Hospitality Supply",
+      "distributor_id": "e6478649-d1b1-4fc7-a584-c2148ac17383",
+      "total_ms": 10435,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\056-rukmini-nair-nair-hospitality-supply-q1.mp4",
+          "local_bytes": 11778113,
+          "duration_seconds": 53.081,
+          "upload_url_ms": 82,
+          "put_ms": 1687,
+          "confirm_ms": 347,
+          "total_ms": 2133,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e6478649-d1b1-4fc7-a584-c2148ac17383/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\057-rukmini-nair-nair-hospitality-supply-q2.mp4",
+          "local_bytes": 14207683,
+          "duration_seconds": 63.483,
+          "upload_url_ms": 81,
+          "put_ms": 1860,
+          "confirm_ms": 356,
+          "total_ms": 2338,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e6478649-d1b1-4fc7-a584-c2148ac17383/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\058-rukmini-nair-nair-hospitality-supply-q3.mp4",
+          "local_bytes": 13040755,
+          "duration_seconds": 58.607,
+          "upload_url_ms": 86,
+          "put_ms": 1398,
+          "confirm_ms": 367,
+          "total_ms": 1866,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e6478649-d1b1-4fc7-a584-c2148ac17383/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\059-rukmini-nair-nair-hospitality-supply-q4.mp4",
+          "local_bytes": 13288525,
+          "duration_seconds": 59.721,
+          "upload_url_ms": 103,
+          "put_ms": 1484,
+          "confirm_ms": 364,
+          "total_ms": 1974,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e6478649-d1b1-4fc7-a584-c2148ac17383/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\060-rukmini-nair-nair-hospitality-supply-q5.mp4",
+          "local_bytes": 13794804,
+          "duration_seconds": 61.579,
+          "upload_url_ms": 93,
+          "put_ms": 1121,
+          "confirm_ms": 415,
+          "total_ms": 1648,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/e6478649-d1b1-4fc7-a584-c2148ac17383/segments/5.mp4"
+        }
+      ],
+      "register_ms": 254,
+      "profile_ms": 72,
+      "questions_catalog_ms": 149
+    },
+    {
+      "distributor_name": "Saira Khan, Khan Stationery & Gifts",
+      "distributor_id": "ea57b0d1-c07b-49f1-9a17-1d3ed426e336",
+      "total_ms": 10495,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\096-saira-khan-khan-stationery-gifts-q1.mp4",
+          "local_bytes": 13000142,
+          "duration_seconds": 58.468,
+          "upload_url_ms": 82,
+          "put_ms": 1598,
+          "confirm_ms": 432,
+          "total_ms": 2127,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/ea57b0d1-c07b-49f1-9a17-1d3ed426e336/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\097-saira-khan-khan-stationery-gifts-q2.mp4",
+          "local_bytes": 12587011,
+          "duration_seconds": 56.656,
+          "upload_url_ms": 79,
+          "put_ms": 1435,
+          "confirm_ms": 358,
+          "total_ms": 1889,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/ea57b0d1-c07b-49f1-9a17-1d3ed426e336/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\098-saira-khan-khan-stationery-gifts-q3.mp4",
+          "local_bytes": 13737312,
+          "duration_seconds": 61.393,
+          "upload_url_ms": 78,
+          "put_ms": 1669,
+          "confirm_ms": 371,
+          "total_ms": 2136,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/ea57b0d1-c07b-49f1-9a17-1d3ed426e336/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\099-saira-khan-khan-stationery-gifts-q4.mp4",
+          "local_bytes": 13698486,
+          "duration_seconds": 61.208,
+          "upload_url_ms": 92,
+          "put_ms": 1631,
+          "confirm_ms": 367,
+          "total_ms": 2110,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/ea57b0d1-c07b-49f1-9a17-1d3ed426e336/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\100-saira-khan-khan-stationery-gifts-q5.mp4",
+          "local_bytes": 14132462,
+          "duration_seconds": 63.158,
+          "upload_url_ms": 116,
+          "put_ms": 1139,
+          "confirm_ms": 375,
+          "total_ms": 1648,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/ea57b0d1-c07b-49f1-9a17-1d3ed426e336/segments/5.mp4"
+        }
+      ],
+      "register_ms": 259,
+      "profile_ms": 82,
+      "questions_catalog_ms": 243
+    },
+    {
+      "distributor_name": "Sandeep Kulkarni, Kulkarni Packaging Works",
+      "distributor_id": "9f834172-3cbd-49f7-a575-b003d2e26fdd",
+      "total_ms": 9717,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\081-sandeep-kulkarni-kulkarni-packaging-works-q1.mp4",
+          "local_bytes": 15289077,
+          "duration_seconds": 69.009,
+          "upload_url_ms": 95,
+          "put_ms": 1719,
+          "confirm_ms": 354,
+          "total_ms": 2192,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/9f834172-3cbd-49f7-a575-b003d2e26fdd/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\082-sandeep-kulkarni-kulkarni-packaging-works-q2.mp4",
+          "local_bytes": 12537860,
+          "duration_seconds": 56.378,
+          "upload_url_ms": 86,
+          "put_ms": 1260,
+          "confirm_ms": 354,
+          "total_ms": 1715,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/9f834172-3cbd-49f7-a575-b003d2e26fdd/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\083-sandeep-kulkarni-kulkarni-packaging-works-q3.mp4",
+          "local_bytes": 13203629,
+          "duration_seconds": 59.303,
+          "upload_url_ms": 80,
+          "put_ms": 1262,
+          "confirm_ms": 358,
+          "total_ms": 1737,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/9f834172-3cbd-49f7-a575-b003d2e26fdd/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\084-sandeep-kulkarni-kulkarni-packaging-works-q4.mp4",
+          "local_bytes": 14360388,
+          "duration_seconds": 64.18,
+          "upload_url_ms": 96,
+          "put_ms": 1257,
+          "confirm_ms": 357,
+          "total_ms": 1727,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/9f834172-3cbd-49f7-a575-b003d2e26fdd/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\085-sandeep-kulkarni-kulkarni-packaging-works-q5.mp4",
+          "local_bytes": 12973244,
+          "duration_seconds": 58.375,
+          "upload_url_ms": 94,
+          "put_ms": 1352,
+          "confirm_ms": 379,
+          "total_ms": 1840,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/9f834172-3cbd-49f7-a575-b003d2e26fdd/segments/5.mp4"
+        }
+      ],
+      "register_ms": 265,
+      "profile_ms": 91,
+      "questions_catalog_ms": 148
+    },
+    {
+      "distributor_name": "Shalini Gupta, Gupta Agro Distributors",
+      "distributor_id": "bbc0339e-8fde-46dc-a63b-19adeaeb94fd",
+      "total_ms": 9784,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\046-shalini-gupta-gupta-agro-distributors-q1.mp4",
+          "local_bytes": 13250723,
+          "duration_seconds": 59.536,
+          "upload_url_ms": 83,
+          "put_ms": 1564,
+          "confirm_ms": 337,
+          "total_ms": 2001,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/bbc0339e-8fde-46dc-a63b-19adeaeb94fd/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\047-shalini-gupta-gupta-agro-distributors-q2.mp4",
+          "local_bytes": 10721876,
+          "duration_seconds": 48.483,
+          "upload_url_ms": 81,
+          "put_ms": 937,
+          "confirm_ms": 384,
+          "total_ms": 1415,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/bbc0339e-8fde-46dc-a63b-19adeaeb94fd/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\048-shalini-gupta-gupta-agro-distributors-q3.mp4",
+          "local_bytes": 11816037,
+          "duration_seconds": 53.22,
+          "upload_url_ms": 95,
+          "put_ms": 1189,
+          "confirm_ms": 359,
+          "total_ms": 1657,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/bbc0339e-8fde-46dc-a63b-19adeaeb94fd/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\049-shalini-gupta-gupta-agro-distributors-q4.mp4",
+          "local_bytes": 14129767,
+          "duration_seconds": 63.158,
+          "upload_url_ms": 84,
+          "put_ms": 1303,
+          "confirm_ms": 367,
+          "total_ms": 1771,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/bbc0339e-8fde-46dc-a63b-19adeaeb94fd/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\050-shalini-gupta-gupta-agro-distributors-q5.mp4",
+          "local_bytes": 14033224,
+          "duration_seconds": 62.74,
+          "upload_url_ms": 108,
+          "put_ms": 1897,
+          "confirm_ms": 357,
+          "total_ms": 2427,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/bbc0339e-8fde-46dc-a63b-19adeaeb94fd/segments/5.mp4"
+        }
+      ],
+      "register_ms": 256,
+      "profile_ms": 93,
+      "questions_catalog_ms": 151
+    },
+    {
+      "distributor_name": "Vivek Sethi, Sethi Renewable Systems",
+      "distributor_id": "5b8b36dd-b114-40eb-b1da-e86f085d8c8a",
+      "total_ms": 8130,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\091-vivek-sethi-sethi-renewable-systems-q1.mp4",
+          "local_bytes": 13033374,
+          "duration_seconds": 58.607,
+          "upload_url_ms": 88,
+          "put_ms": 1459,
+          "confirm_ms": 360,
+          "total_ms": 1929,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/5b8b36dd-b114-40eb-b1da-e86f085d8c8a/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\092-vivek-sethi-sethi-renewable-systems-q2.mp4",
+          "local_bytes": 12590390,
+          "duration_seconds": 56.656,
+          "upload_url_ms": 93,
+          "put_ms": 2000,
+          "confirm_ms": 352,
+          "total_ms": 2460,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/5b8b36dd-b114-40eb-b1da-e86f085d8c8a/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\093-vivek-sethi-sethi-renewable-systems-q3.mp4",
+          "local_bytes": 13555319,
+          "duration_seconds": 60.65,
+          "upload_url_ms": 79,
+          "put_ms": 781,
+          "confirm_ms": 356,
+          "total_ms": 1237,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/5b8b36dd-b114-40eb-b1da-e86f085d8c8a/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\094-vivek-sethi-sethi-renewable-systems-q4.mp4",
+          "local_bytes": 13952798,
+          "duration_seconds": 62.276,
+          "upload_url_ms": 92,
+          "put_ms": 642,
+          "confirm_ms": 351,
+          "total_ms": 1101,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/5b8b36dd-b114-40eb-b1da-e86f085d8c8a/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\095-vivek-sethi-sethi-renewable-systems-q5.mp4",
+          "local_bytes": 14357797,
+          "duration_seconds": 64.226,
+          "upload_url_ms": 78,
+          "put_ms": 483,
+          "confirm_ms": 341,
+          "total_ms": 922,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/5b8b36dd-b114-40eb-b1da-e86f085d8c8a/segments/5.mp4"
+        }
+      ],
+      "register_ms": 256,
+      "profile_ms": 78,
+      "questions_catalog_ms": 145
+    },
+    {
+      "distributor_name": "Yasmeen Ali, Ali Beauty Essentials",
+      "distributor_id": "6c63bb28-987e-433b-bd03-7a7ed14252c9",
+      "total_ms": 8379,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\066-yasmeen-ali-ali-beauty-essentials-q1.mp4",
+          "local_bytes": 13032280,
+          "duration_seconds": 58.56,
+          "upload_url_ms": 81,
+          "put_ms": 1345,
+          "confirm_ms": 369,
+          "total_ms": 1812,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/6c63bb28-987e-433b-bd03-7a7ed14252c9/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "videos\\067-yasmeen-ali-ali-beauty-essentials-q2.mp4",
+          "local_bytes": 12125003,
+          "duration_seconds": 54.567,
+          "upload_url_ms": 99,
+          "put_ms": 1777,
+          "confirm_ms": 347,
+          "total_ms": 2238,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/6c63bb28-987e-433b-bd03-7a7ed14252c9/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "videos\\068-yasmeen-ali-ali-beauty-essentials-q3.mp4",
+          "local_bytes": 14331097,
+          "duration_seconds": 64.04,
+          "upload_url_ms": 102,
+          "put_ms": 1180,
+          "confirm_ms": 362,
+          "total_ms": 1665,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/6c63bb28-987e-433b-bd03-7a7ed14252c9/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "videos\\069-yasmeen-ali-ali-beauty-essentials-q4.mp4",
+          "local_bytes": 12491109,
+          "duration_seconds": 56.053,
+          "upload_url_ms": 87,
+          "put_ms": 431,
+          "confirm_ms": 347,
+          "total_ms": 885,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/6c63bb28-987e-433b-bd03-7a7ed14252c9/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "videos\\070-yasmeen-ali-ali-beauty-essentials-q5.mp4",
+          "local_bytes": 14505929,
+          "duration_seconds": 65.016,
+          "upload_url_ms": 85,
+          "put_ms": 815,
+          "confirm_ms": 344,
+          "total_ms": 1260,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/6c63bb28-987e-433b-bd03-7a7ed14252c9/segments/5.mp4"
+        }
+      ],
+      "register_ms": 262,
+      "profile_ms": 97,
+      "questions_catalog_ms": 159
+    }
+  ]
+}

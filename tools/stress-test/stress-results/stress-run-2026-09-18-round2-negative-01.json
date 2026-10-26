@@ -1,0 +1,779 @@
+{
+  "run_id": "2026-09-18-round2-negative-01",
+  "base_url": "https://insight-backend.thezeist.com",
+  "started_at": "2026-09-18T14:07:30.438Z",
+  "completed_at": "2026-09-18T14:07:53.291Z",
+  "concurrency": 5,
+  "wall_clock_ms": 22852,
+  "processing_waited_for": false,
+  "summary": {
+    "distributors_submitted": 10,
+    "distributors_failed": 0,
+    "videos_submitted": 50,
+    "videos_failed": 0
+  },
+  "distributor_ids": [
+    {
+      "distributor_name": "Anjali Nair, Nair Beverage Supply",
+      "distributor_id": "4c650d06-a4c4-4226-8b86-43c965a4a45f",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Deepak Bose, Bose Retail Link",
+      "distributor_id": "79a7ddee-a8aa-4064-9d80-eb8eee2bf76a",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Harpreet Singh, Singh Cold Chain Distributors",
+      "distributor_id": "78468984-3d72-4889-ae9e-faa1f641c49f",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Imran Khan, Khan General Stores Network",
+      "distributor_id": "0a8f91c6-b1a6-477c-9fae-5d858185cbc9",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Kavita Deshpande, Deshpande Consumer Goods",
+      "distributor_id": "a1848efa-9cf2-47d9-997c-838c7d663724",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Nitin Chawla, Chawla Home Appliances",
+      "distributor_id": "c78637bc-9420-4d89-9230-1e033981a5a2",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Pooja Rathore, Rathore Kirana and FMCG",
+      "distributor_id": "182d6ff8-95ca-4e22-b75a-00f43a730429",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Ritu Shah, Shah Personal Care Distribution",
+      "distributor_id": "50d6430f-a348-4338-a70e-e34c47e786e3",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Sameer Kulkarni, Kulkarni Agro Supplies",
+      "distributor_id": "0cb0e13e-8030-4a43-a6e9-8d1a46e52962",
+      "status": "submitted"
+    },
+    {
+      "distributor_name": "Suresh Yadav, Yadav Electrical Wholesale",
+      "distributor_id": "cc950fae-5944-4bbd-a22e-c23bcf4e0d26",
+      "status": "submitted"
+    }
+  ],
+  "distributors": [
+    {
+      "distributor_name": "Anjali Nair, Nair Beverage Supply",
+      "distributor_id": "4c650d06-a4c4-4226-8b86-43c965a4a45f",
+      "total_ms": 11653,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "round-2\\videos\\r2-041-anjali-nair-nair-beverage-supply-q1.mp4",
+          "local_bytes": 12619199,
+          "duration_seconds": 56.749,
+          "upload_url_ms": 71,
+          "put_ms": 792,
+          "confirm_ms": 388,
+          "total_ms": 1287,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/4c650d06-a4c4-4226-8b86-43c965a4a45f/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "round-2\\videos\\r2-042-anjali-nair-nair-beverage-supply-q2.mp4",
+          "local_bytes": 14966656,
+          "duration_seconds": 67.245,
+          "upload_url_ms": 93,
+          "put_ms": 839,
+          "confirm_ms": 392,
+          "total_ms": 1334,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/4c650d06-a4c4-4226-8b86-43c965a4a45f/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "round-2\\videos\\r2-043-anjali-nair-nair-beverage-supply-q3.mp4",
+          "local_bytes": 14474705,
+          "duration_seconds": 64.876,
+          "upload_url_ms": 105,
+          "put_ms": 2962,
+          "confirm_ms": 367,
+          "total_ms": 3445,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/4c650d06-a4c4-4226-8b86-43c965a4a45f/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "round-2\\videos\\r2-044-anjali-nair-nair-beverage-supply-q4.mp4",
+          "local_bytes": 15242274,
+          "duration_seconds": 68.638,
+          "upload_url_ms": 109,
+          "put_ms": 766,
+          "confirm_ms": 389,
+          "total_ms": 1273,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/4c650d06-a4c4-4226-8b86-43c965a4a45f/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "round-2\\videos\\r2-045-anjali-nair-nair-beverage-supply-q5.mp4",
+          "local_bytes": 15739715,
+          "duration_seconds": 71.053,
+          "upload_url_ms": 104,
+          "put_ms": 2355,
+          "confirm_ms": 485,
+          "total_ms": 2954,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/4c650d06-a4c4-4226-8b86-43c965a4a45f/segments/5.mp4"
+        }
+      ],
+      "register_ms": 1138,
+      "profile_ms": 81,
+      "questions_catalog_ms": 139
+    },
+    {
+      "distributor_name": "Deepak Bose, Bose Retail Link",
+      "distributor_id": "79a7ddee-a8aa-4064-9d80-eb8eee2bf76a",
+      "total_ms": 10035,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "round-2\\videos\\r2-046-deepak-bose-bose-retail-link-q1.mp4",
+          "local_bytes": 13729230,
+          "duration_seconds": 61.3,
+          "upload_url_ms": 74,
+          "put_ms": 1794,
+          "confirm_ms": 398,
+          "total_ms": 2308,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/79a7ddee-a8aa-4064-9d80-eb8eee2bf76a/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "round-2\\videos\\r2-047-deepak-bose-bose-retail-link-q2.mp4",
+          "local_bytes": 12671612,
+          "duration_seconds": 56.981,
+          "upload_url_ms": 108,
+          "put_ms": 829,
+          "confirm_ms": 411,
+          "total_ms": 1357,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/79a7ddee-a8aa-4064-9d80-eb8eee2bf76a/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "round-2\\videos\\r2-048-deepak-bose-bose-retail-link-q3.mp4",
+          "local_bytes": 14755938,
+          "duration_seconds": 66.13,
+          "upload_url_ms": 89,
+          "put_ms": 724,
+          "confirm_ms": 348,
+          "total_ms": 1170,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/79a7ddee-a8aa-4064-9d80-eb8eee2bf76a/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "round-2\\videos\\r2-049-deepak-bose-bose-retail-link-q4.mp4",
+          "local_bytes": 14428698,
+          "duration_seconds": 64.551,
+          "upload_url_ms": 111,
+          "put_ms": 698,
+          "confirm_ms": 345,
+          "total_ms": 1164,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/79a7ddee-a8aa-4064-9d80-eb8eee2bf76a/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "round-2\\videos\\r2-050-deepak-bose-bose-retail-link-q5.mp4",
+          "local_bytes": 15949835,
+          "duration_seconds": 72.121,
+          "upload_url_ms": 102,
+          "put_ms": 2214,
+          "confirm_ms": 387,
+          "total_ms": 2713,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/79a7ddee-a8aa-4064-9d80-eb8eee2bf76a/segments/5.mp4"
+        }
+      ],
+      "register_ms": 1104,
+      "profile_ms": 83,
+      "questions_catalog_ms": 136
+    },
+    {
+      "distributor_name": "Harpreet Singh, Singh Cold Chain Distributors",
+      "distributor_id": "78468984-3d72-4889-ae9e-faa1f641c49f",
+      "total_ms": 14704,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "round-2\\videos\\r2-026-harpreet-singh-singh-cold-chain-distributors-q1.mp4",
+          "local_bytes": 13764088,
+          "duration_seconds": 61.486,
+          "upload_url_ms": 73,
+          "put_ms": 3597,
+          "confirm_ms": 351,
+          "total_ms": 4062,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/78468984-3d72-4889-ae9e-faa1f641c49f/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "round-2\\videos\\r2-027-harpreet-singh-singh-cold-chain-distributors-q2.mp4",
+          "local_bytes": 14806078,
+          "duration_seconds": 66.409,
+          "upload_url_ms": 99,
+          "put_ms": 2468,
+          "confirm_ms": 411,
+          "total_ms": 2987,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/78468984-3d72-4889-ae9e-faa1f641c49f/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "round-2\\videos\\r2-028-harpreet-singh-singh-cold-chain-distributors-q3.mp4",
+          "local_bytes": 14470326,
+          "duration_seconds": 64.876,
+          "upload_url_ms": 109,
+          "put_ms": 1965,
+          "confirm_ms": 357,
+          "total_ms": 2441,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/78468984-3d72-4889-ae9e-faa1f641c49f/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "round-2\\videos\\r2-029-harpreet-singh-singh-cold-chain-distributors-q4.mp4",
+          "local_bytes": 14565959,
+          "duration_seconds": 65.248,
+          "upload_url_ms": 104,
+          "put_ms": 1326,
+          "confirm_ms": 372,
+          "total_ms": 1815,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/78468984-3d72-4889-ae9e-faa1f641c49f/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "round-2\\videos\\r2-030-harpreet-singh-singh-cold-chain-distributors-q5.mp4",
+          "local_bytes": 15359497,
+          "duration_seconds": 69.335,
+          "upload_url_ms": 96,
+          "put_ms": 1616,
+          "confirm_ms": 345,
+          "total_ms": 2067,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/78468984-3d72-4889-ae9e-faa1f641c49f/segments/5.mp4"
+        }
+      ],
+      "register_ms": 1096,
+      "profile_ms": 88,
+      "questions_catalog_ms": 147
+    },
+    {
+      "distributor_name": "Imran Khan, Khan General Stores Network",
+      "distributor_id": "0a8f91c6-b1a6-477c-9fae-5d858185cbc9",
+      "total_ms": 10078,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "round-2\\videos\\r2-021-imran-khan-khan-general-stores-network-q1.mp4",
+          "local_bytes": 12647404,
+          "duration_seconds": 56.842,
+          "upload_url_ms": 77,
+          "put_ms": 1067,
+          "confirm_ms": 341,
+          "total_ms": 1610,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/0a8f91c6-b1a6-477c-9fae-5d858185cbc9/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "round-2\\videos\\r2-022-imran-khan-khan-general-stores-network-q2.mp4",
+          "local_bytes": 11869749,
+          "duration_seconds": 53.498,
+          "upload_url_ms": 107,
+          "put_ms": 588,
+          "confirm_ms": 340,
+          "total_ms": 1044,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/0a8f91c6-b1a6-477c-9fae-5d858185cbc9/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "round-2\\videos\\r2-023-imran-khan-khan-general-stores-network-q3.mp4",
+          "local_bytes": 13421408,
+          "duration_seconds": 60.186,
+          "upload_url_ms": 119,
+          "put_ms": 664,
+          "confirm_ms": 349,
+          "total_ms": 1141,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/0a8f91c6-b1a6-477c-9fae-5d858185cbc9/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "round-2\\videos\\r2-024-imran-khan-khan-general-stores-network-q4.mp4",
+          "local_bytes": 13823127,
+          "duration_seconds": 61.765,
+          "upload_url_ms": 114,
+          "put_ms": 2773,
+          "confirm_ms": 432,
+          "total_ms": 3328,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/0a8f91c6-b1a6-477c-9fae-5d858185cbc9/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "round-2\\videos\\r2-025-imran-khan-khan-general-stores-network-q5.mp4",
+          "local_bytes": 14904401,
+          "duration_seconds": 67.013,
+          "upload_url_ms": 91,
+          "put_ms": 1112,
+          "confirm_ms": 344,
+          "total_ms": 1589,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/0a8f91c6-b1a6-477c-9fae-5d858185cbc9/segments/5.mp4"
+        }
+      ],
+      "register_ms": 1153,
+      "profile_ms": 70,
+      "questions_catalog_ms": 142
+    },
+    {
+      "distributor_name": "Kavita Deshpande, Deshpande Consumer Goods",
+      "distributor_id": "a1848efa-9cf2-47d9-997c-838c7d663724",
+      "total_ms": 11051,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "round-2\\videos\\r2-016-kavita-deshpande-deshpande-consumer-goods-q1.mp4",
+          "local_bytes": 14450107,
+          "duration_seconds": 64.737,
+          "upload_url_ms": 77,
+          "put_ms": 3916,
+          "confirm_ms": 384,
+          "total_ms": 4412,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/a1848efa-9cf2-47d9-997c-838c7d663724/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "round-2\\videos\\r2-017-kavita-deshpande-deshpande-consumer-goods-q2.mp4",
+          "local_bytes": 12411335,
+          "duration_seconds": 55.867,
+          "upload_url_ms": 125,
+          "put_ms": 909,
+          "confirm_ms": 391,
+          "total_ms": 1433,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/a1848efa-9cf2-47d9-997c-838c7d663724/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "round-2\\videos\\r2-018-kavita-deshpande-deshpande-consumer-goods-q3.mp4",
+          "local_bytes": 13100845,
+          "duration_seconds": 58.839,
+          "upload_url_ms": 124,
+          "put_ms": 1040,
+          "confirm_ms": 353,
+          "total_ms": 1525,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/a1848efa-9cf2-47d9-997c-838c7d663724/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "round-2\\videos\\r2-019-kavita-deshpande-deshpande-consumer-goods-q4.mp4",
+          "local_bytes": 14904905,
+          "duration_seconds": 67.013,
+          "upload_url_ms": 132,
+          "put_ms": 822,
+          "confirm_ms": 361,
+          "total_ms": 1329,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/a1848efa-9cf2-47d9-997c-838c7d663724/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "round-2\\videos\\r2-020-kavita-deshpande-deshpande-consumer-goods-q5.mp4",
+          "local_bytes": 13521256,
+          "duration_seconds": 60.604,
+          "upload_url_ms": 81,
+          "put_ms": 598,
+          "confirm_ms": 356,
+          "total_ms": 1045,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/a1848efa-9cf2-47d9-997c-838c7d663724/segments/5.mp4"
+        }
+      ],
+      "register_ms": 1100,
+      "profile_ms": 69,
+      "questions_catalog_ms": 137
+    },
+    {
+      "distributor_name": "Nitin Chawla, Chawla Home Appliances",
+      "distributor_id": "c78637bc-9420-4d89-9230-1e033981a5a2",
+      "total_ms": 9539,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "round-2\\videos\\r2-001-nitin-chawla-chawla-home-appliances-q1.mp4",
+          "local_bytes": 11573072,
+          "duration_seconds": 52.245,
+          "upload_url_ms": 94,
+          "put_ms": 1166,
+          "confirm_ms": 365,
+          "total_ms": 1636,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/c78637bc-9420-4d89-9230-1e033981a5a2/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "round-2\\videos\\r2-002-nitin-chawla-chawla-home-appliances-q2.mp4",
+          "local_bytes": 11542641,
+          "duration_seconds": 52.059,
+          "upload_url_ms": 88,
+          "put_ms": 1657,
+          "confirm_ms": 377,
+          "total_ms": 2132,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/c78637bc-9420-4d89-9230-1e033981a5a2/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "round-2\\videos\\r2-003-nitin-chawla-chawla-home-appliances-q3.mp4",
+          "local_bytes": 14066444,
+          "duration_seconds": 62.833,
+          "upload_url_ms": 87,
+          "put_ms": 1428,
+          "confirm_ms": 386,
+          "total_ms": 1909,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/c78637bc-9420-4d89-9230-1e033981a5a2/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "round-2\\videos\\r2-004-nitin-chawla-chawla-home-appliances-q4.mp4",
+          "local_bytes": 13254614,
+          "duration_seconds": 59.582,
+          "upload_url_ms": 102,
+          "put_ms": 1488,
+          "confirm_ms": 361,
+          "total_ms": 1962,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/c78637bc-9420-4d89-9230-1e033981a5a2/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "round-2\\videos\\r2-005-nitin-chawla-chawla-home-appliances-q5.mp4",
+          "local_bytes": 13124221,
+          "duration_seconds": 59.025,
+          "upload_url_ms": 98,
+          "put_ms": 884,
+          "confirm_ms": 348,
+          "total_ms": 1340,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/c78637bc-9420-4d89-9230-1e033981a5a2/segments/5.mp4"
+        }
+      ],
+      "register_ms": 302,
+      "profile_ms": 106,
+      "questions_catalog_ms": 151
+    },
+    {
+      "distributor_name": "Pooja Rathore, Rathore Kirana and FMCG",
+      "distributor_id": "182d6ff8-95ca-4e22-b75a-00f43a730429",
+      "total_ms": 8770,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "round-2\\videos\\r2-006-pooja-rathore-rathore-kirana-and-fmcg-q1.mp4",
+          "local_bytes": 13004898,
+          "duration_seconds": 58.421,
+          "upload_url_ms": 99,
+          "put_ms": 764,
+          "confirm_ms": 406,
+          "total_ms": 1277,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/182d6ff8-95ca-4e22-b75a-00f43a730429/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "round-2\\videos\\r2-007-pooja-rathore-rathore-kirana-and-fmcg-q2.mp4",
+          "local_bytes": 12612453,
+          "duration_seconds": 56.703,
+          "upload_url_ms": 86,
+          "put_ms": 1242,
+          "confirm_ms": 408,
+          "total_ms": 1744,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/182d6ff8-95ca-4e22-b75a-00f43a730429/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "round-2\\videos\\r2-008-pooja-rathore-rathore-kirana-and-fmcg-q3.mp4",
+          "local_bytes": 13524887,
+          "duration_seconds": 60.557,
+          "upload_url_ms": 110,
+          "put_ms": 1179,
+          "confirm_ms": 379,
+          "total_ms": 1684,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/182d6ff8-95ca-4e22-b75a-00f43a730429/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "round-2\\videos\\r2-009-pooja-rathore-rathore-kirana-and-fmcg-q4.mp4",
+          "local_bytes": 13523527,
+          "duration_seconds": 60.604,
+          "upload_url_ms": 109,
+          "put_ms": 933,
+          "confirm_ms": 360,
+          "total_ms": 1410,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/182d6ff8-95ca-4e22-b75a-00f43a730429/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "round-2\\videos\\r2-010-pooja-rathore-rathore-kirana-and-fmcg-q5.mp4",
+          "local_bytes": 13120522,
+          "duration_seconds": 58.978,
+          "upload_url_ms": 86,
+          "put_ms": 1636,
+          "confirm_ms": 337,
+          "total_ms": 2070,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/182d6ff8-95ca-4e22-b75a-00f43a730429/segments/5.mp4"
+        }
+      ],
+      "register_ms": 329,
+      "profile_ms": 92,
+      "questions_catalog_ms": 164
+    },
+    {
+      "distributor_name": "Ritu Shah, Shah Personal Care Distribution",
+      "distributor_id": "50d6430f-a348-4338-a70e-e34c47e786e3",
+      "total_ms": 9331,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "round-2\\videos\\r2-031-ritu-shah-shah-personal-care-distribution-q1.mp4",
+          "local_bytes": 13730410,
+          "duration_seconds": 61.347,
+          "upload_url_ms": 92,
+          "put_ms": 935,
+          "confirm_ms": 363,
+          "total_ms": 1398,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/50d6430f-a348-4338-a70e-e34c47e786e3/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "round-2\\videos\\r2-032-ritu-shah-shah-personal-care-distribution-q2.mp4",
+          "local_bytes": 13161704,
+          "duration_seconds": 59.071,
+          "upload_url_ms": 107,
+          "put_ms": 900,
+          "confirm_ms": 377,
+          "total_ms": 1395,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/50d6430f-a348-4338-a70e-e34c47e786e3/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "round-2\\videos\\r2-033-ritu-shah-shah-personal-care-distribution-q3.mp4",
+          "local_bytes": 14374931,
+          "duration_seconds": 64.273,
+          "upload_url_ms": 91,
+          "put_ms": 1630,
+          "confirm_ms": 365,
+          "total_ms": 2099,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/50d6430f-a348-4338-a70e-e34c47e786e3/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "round-2\\videos\\r2-034-ritu-shah-shah-personal-care-distribution-q4.mp4",
+          "local_bytes": 14791542,
+          "duration_seconds": 66.316,
+          "upload_url_ms": 87,
+          "put_ms": 1925,
+          "confirm_ms": 352,
+          "total_ms": 2373,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/50d6430f-a348-4338-a70e-e34c47e786e3/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "round-2\\videos\\r2-035-ritu-shah-shah-personal-care-distribution-q5.mp4",
+          "local_bytes": 14375382,
+          "duration_seconds": 64.273,
+          "upload_url_ms": 79,
+          "put_ms": 1078,
+          "confirm_ms": 344,
+          "total_ms": 1511,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/50d6430f-a348-4338-a70e-e34c47e786e3/segments/5.mp4"
+        }
+      ],
+      "register_ms": 297,
+      "profile_ms": 99,
+      "questions_catalog_ms": 158
+    },
+    {
+      "distributor_name": "Sameer Kulkarni, Kulkarni Agro Supplies",
+      "distributor_id": "0cb0e13e-8030-4a43-a6e9-8d1a46e52962",
+      "total_ms": 9429,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "round-2\\videos\\r2-011-sameer-kulkarni-kulkarni-agro-supplies-q1.mp4",
+          "local_bytes": 14037094,
+          "duration_seconds": 62.694,
+          "upload_url_ms": 99,
+          "put_ms": 2298,
+          "confirm_ms": 449,
+          "total_ms": 2859,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/0cb0e13e-8030-4a43-a6e9-8d1a46e52962/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "round-2\\videos\\r2-012-sameer-kulkarni-kulkarni-agro-supplies-q2.mp4",
+          "local_bytes": 13163109,
+          "duration_seconds": 59.118,
+          "upload_url_ms": 88,
+          "put_ms": 1958,
+          "confirm_ms": 366,
+          "total_ms": 2424,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/0cb0e13e-8030-4a43-a6e9-8d1a46e52962/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "round-2\\videos\\r2-013-sameer-kulkarni-kulkarni-agro-supplies-q3.mp4",
+          "local_bytes": 12104855,
+          "duration_seconds": 54.52,
+          "upload_url_ms": 92,
+          "put_ms": 938,
+          "confirm_ms": 363,
+          "total_ms": 1401,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/0cb0e13e-8030-4a43-a6e9-8d1a46e52962/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "round-2\\videos\\r2-014-sameer-kulkarni-kulkarni-agro-supplies-q4.mp4",
+          "local_bytes": 13888169,
+          "duration_seconds": 62.09,
+          "upload_url_ms": 99,
+          "put_ms": 816,
+          "confirm_ms": 352,
+          "total_ms": 1276,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/0cb0e13e-8030-4a43-a6e9-8d1a46e52962/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "round-2\\videos\\r2-015-sameer-kulkarni-kulkarni-agro-supplies-q5.mp4",
+          "local_bytes": 12754307,
+          "duration_seconds": 57.399,
+          "upload_url_ms": 76,
+          "put_ms": 529,
+          "confirm_ms": 352,
+          "total_ms": 969,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/0cb0e13e-8030-4a43-a6e9-8d1a46e52962/segments/5.mp4"
+        }
+      ],
+      "register_ms": 252,
+      "profile_ms": 90,
+      "questions_catalog_ms": 157
+    },
+    {
+      "distributor_name": "Suresh Yadav, Yadav Electrical Wholesale",
+      "distributor_id": "cc950fae-5944-4bbd-a22e-c23bcf4e0d26",
+      "total_ms": 8112,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "round-2\\videos\\r2-036-suresh-yadav-yadav-electrical-wholesale-q1.mp4",
+          "local_bytes": 13485755,
+          "duration_seconds": 60.372,
+          "upload_url_ms": 92,
+          "put_ms": 1469,
+          "confirm_ms": 348,
+          "total_ms": 1921,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/cc950fae-5944-4bbd-a22e-c23bcf4e0d26/segments/1.mp4"
+        },
+        {
+          "question_index": 2,
+          "video_file": "round-2\\videos\\r2-037-suresh-yadav-yadav-electrical-wholesale-q2.mp4",
+          "local_bytes": 14041998,
+          "duration_seconds": 62.647,
+          "upload_url_ms": 82,
+          "put_ms": 1517,
+          "confirm_ms": 733,
+          "total_ms": 2395,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/cc950fae-5944-4bbd-a22e-c23bcf4e0d26/segments/2.mp4"
+        },
+        {
+          "question_index": 3,
+          "video_file": "round-2\\videos\\r2-038-suresh-yadav-yadav-electrical-wholesale-q3.mp4",
+          "local_bytes": 14262957,
+          "duration_seconds": 63.715,
+          "upload_url_ms": 86,
+          "put_ms": 882,
+          "confirm_ms": 340,
+          "total_ms": 1318,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/cc950fae-5944-4bbd-a22e-c23bcf4e0d26/segments/3.mp4"
+        },
+        {
+          "question_index": 4,
+          "video_file": "round-2\\videos\\r2-039-suresh-yadav-yadav-electrical-wholesale-q4.mp4",
+          "local_bytes": 14431048,
+          "duration_seconds": 64.598,
+          "upload_url_ms": 71,
+          "put_ms": 528,
+          "confirm_ms": 362,
+          "total_ms": 971,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/cc950fae-5944-4bbd-a22e-c23bcf4e0d26/segments/4.mp4"
+        },
+        {
+          "question_index": 5,
+          "video_file": "round-2\\videos\\r2-040-suresh-yadav-yadav-electrical-wholesale-q5.mp4",
+          "local_bytes": 15655199,
+          "duration_seconds": 70.635,
+          "upload_url_ms": 74,
+          "put_ms": 577,
+          "confirm_ms": 346,
+          "total_ms": 1009,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/cc950fae-5944-4bbd-a22e-c23bcf4e0d26/segments/5.mp4"
+        }
+      ],
+      "register_ms": 272,
+      "profile_ms": 75,
+      "questions_catalog_ms": 150
+    }
+  ]
+}

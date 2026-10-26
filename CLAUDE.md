@@ -100,6 +100,9 @@ reasoning about this codebase — none of it applies here.
    that's already made there.
 2. `BUILD_STEPS.md` — the build sequence, one verifiable `/goal` per step.
    Check which steps are already marked done before starting new work.
+3. `BACKEND_HANDOVER.md` — current laptop-migration context, setup, dashboard
+   API status, deployed-test history, portable fixtures, and corrections to
+   historical notes above. Updated from the source checkout on 2026-10-26.
 
 ## Stack
 Express + TypeScript · Postgres + Prisma · Postgres-backed jobs table (no

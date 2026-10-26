@@ -1,0 +1,902 @@
+[
+  {
+    "distributor_name": "Aakash Mehra, Mehra Home Solutions",
+    "question_index": 1,
+    "filename": "001-aakash-mehra-mehra-home-solutions-q1.mp3",
+    "characters": 894,
+    "estimated_usd": 0.0447,
+    "bytes": 898656,
+    "generated_at": "2026-09-17T08:01:41.827Z"
+  },
+  {
+    "distributor_name": "Aakash Mehra, Mehra Home Solutions",
+    "question_index": 2,
+    "filename": "002-aakash-mehra-mehra-home-solutions-q2.mp3",
+    "characters": 790,
+    "estimated_usd": 0.0395,
+    "bytes": 857696,
+    "generated_at": "2026-09-17T08:02:07.080Z"
+  },
+  {
+    "distributor_name": "Aakash Mehra, Mehra Home Solutions",
+    "question_index": 3,
+    "filename": "003-aakash-mehra-mehra-home-solutions-q3.mp3",
+    "characters": 926,
+    "estimated_usd": 0.0463,
+    "bytes": 948393,
+    "generated_at": "2026-09-17T08:02:08.794Z"
+  },
+  {
+    "distributor_name": "Aakash Mehra, Mehra Home Solutions",
+    "question_index": 4,
+    "filename": "004-aakash-mehra-mehra-home-solutions-q4.mp3",
+    "characters": 905,
+    "estimated_usd": 0.0453,
+    "bytes": 800435,
+    "generated_at": "2026-09-17T08:02:10.240Z"
+  },
+  {
+    "distributor_name": "Aakash Mehra, Mehra Home Solutions",
+    "question_index": 5,
+    "filename": "005-aakash-mehra-mehra-home-solutions-q5.mp3",
+    "characters": 958,
+    "estimated_usd": 0.0479,
+    "bytes": 1060824,
+    "generated_at": "2026-09-17T08:02:12.055Z"
+  },
+  {
+    "distributor_name": "Meena Iyer, Iyer Electrical Mart",
+    "question_index": 1,
+    "filename": "006-meena-iyer-iyer-electrical-mart-q1.mp3",
+    "characters": 940,
+    "estimated_usd": 0.047,
+    "bytes": 941706,
+    "generated_at": "2026-09-17T08:02:13.653Z"
+  },
+  {
+    "distributor_name": "Meena Iyer, Iyer Electrical Mart",
+    "question_index": 2,
+    "filename": "007-meena-iyer-iyer-electrical-mart-q2.mp3",
+    "characters": 813,
+    "estimated_usd": 0.0406,
+    "bytes": 814646,
+    "generated_at": "2026-09-17T08:02:15.459Z"
+  },
+  {
+    "distributor_name": "Meena Iyer, Iyer Electrical Mart",
+    "question_index": 3,
+    "filename": "008-meena-iyer-iyer-electrical-mart-q3.mp3",
+    "characters": 949,
+    "estimated_usd": 0.0474,
+    "bytes": 902417,
+    "generated_at": "2026-09-17T08:02:16.979Z"
+  },
+  {
+    "distributor_name": "Meena Iyer, Iyer Electrical Mart",
+    "question_index": 4,
+    "filename": "009-meena-iyer-iyer-electrical-mart-q4.mp3",
+    "characters": 904,
+    "estimated_usd": 0.0452,
+    "bytes": 831782,
+    "generated_at": "2026-09-17T08:02:18.563Z"
+  },
+  {
+    "distributor_name": "Meena Iyer, Iyer Electrical Mart",
+    "question_index": 5,
+    "filename": "010-meena-iyer-iyer-electrical-mart-q5.mp3",
+    "characters": 931,
+    "estimated_usd": 0.0466,
+    "bytes": 1030313,
+    "generated_at": "2026-09-17T08:02:20.345Z"
+  },
+  {
+    "distributor_name": "Rajiv Bansal, Bansal Cooling House",
+    "question_index": 1,
+    "filename": "011-rajiv-bansal-bansal-cooling-house-q1.mp3",
+    "characters": 858,
+    "estimated_usd": 0.0429,
+    "bytes": 873996,
+    "generated_at": "2026-09-17T08:02:21.767Z"
+  },
+  {
+    "distributor_name": "Rajiv Bansal, Bansal Cooling House",
+    "question_index": 2,
+    "filename": "012-rajiv-bansal-bansal-cooling-house-q2.mp3",
+    "characters": 918,
+    "estimated_usd": 0.0459,
+    "bytes": 866891,
+    "generated_at": "2026-09-17T08:02:23.199Z"
+  },
+  {
+    "distributor_name": "Rajiv Bansal, Bansal Cooling House",
+    "question_index": 3,
+    "filename": "013-rajiv-bansal-bansal-cooling-house-q3.mp3",
+    "characters": 973,
+    "estimated_usd": 0.0486,
+    "bytes": 948393,
+    "generated_at": "2026-09-17T08:02:24.894Z"
+  },
+  {
+    "distributor_name": "Rajiv Bansal, Bansal Cooling House",
+    "question_index": 4,
+    "filename": "014-rajiv-bansal-bansal-cooling-house-q4.mp3",
+    "characters": 968,
+    "estimated_usd": 0.0484,
+    "bytes": 1066675,
+    "generated_at": "2026-09-17T08:02:26.921Z"
+  },
+  {
+    "distributor_name": "Rajiv Bansal, Bansal Cooling House",
+    "question_index": 5,
+    "filename": "015-rajiv-bansal-bansal-cooling-house-q5.mp3",
+    "characters": 971,
+    "estimated_usd": 0.0486,
+    "bytes": 993951,
+    "generated_at": "2026-09-17T08:02:28.757Z"
+  },
+  {
+    "distributor_name": "Farah Siddiqui, Siddiqui Kitchenware",
+    "question_index": 1,
+    "filename": "016-farah-siddiqui-siddiqui-kitchenware-q1.mp3",
+    "characters": 884,
+    "estimated_usd": 0.0442,
+    "bytes": 810048,
+    "generated_at": "2026-09-17T08:02:30.201Z"
+  },
+  {
+    "distributor_name": "Farah Siddiqui, Siddiqui Kitchenware",
+    "question_index": 2,
+    "filename": "017-farah-siddiqui-siddiqui-kitchenware-q2.mp3",
+    "characters": 899,
+    "estimated_usd": 0.045,
+    "bytes": 818408,
+    "generated_at": "2026-09-17T08:02:31.640Z"
+  },
+  {
+    "distributor_name": "Farah Siddiqui, Siddiqui Kitchenware",
+    "question_index": 3,
+    "filename": "018-farah-siddiqui-siddiqui-kitchenware-q3.mp3",
+    "characters": 932,
+    "estimated_usd": 0.0466,
+    "bytes": 1002728,
+    "generated_at": "2026-09-17T08:02:33.822Z"
+  },
+  {
+    "distributor_name": "Farah Siddiqui, Siddiqui Kitchenware",
+    "question_index": 4,
+    "filename": "019-farah-siddiqui-siddiqui-kitchenware-q4.mp3",
+    "characters": 835,
+    "estimated_usd": 0.0418,
+    "bytes": 787897,
+    "generated_at": "2026-09-17T08:02:35.363Z"
+  },
+  {
+    "distributor_name": "Farah Siddiqui, Siddiqui Kitchenware",
+    "question_index": 5,
+    "filename": "020-farah-siddiqui-siddiqui-kitchenware-q5.mp3",
+    "characters": 951,
+    "estimated_usd": 0.0476,
+    "bytes": 916628,
+    "generated_at": "2026-09-17T08:02:36.964Z"
+  },
+  {
+    "distributor_name": "Dinesh Pawar, Pawar Sanitary Stores",
+    "question_index": 1,
+    "filename": "021-dinesh-pawar-pawar-sanitary-stores-q1.mp3",
+    "characters": 884,
+    "estimated_usd": 0.0442,
+    "bytes": 882355,
+    "generated_at": "2026-09-17T08:02:38.542Z"
+  },
+  {
+    "distributor_name": "Dinesh Pawar, Pawar Sanitary Stores",
+    "question_index": 2,
+    "filename": "022-dinesh-pawar-pawar-sanitary-stores-q2.mp3",
+    "characters": 916,
+    "estimated_usd": 0.0458,
+    "bytes": 930003,
+    "generated_at": "2026-09-17T08:02:40.074Z"
+  },
+  {
+    "distributor_name": "Dinesh Pawar, Pawar Sanitary Stores",
+    "question_index": 3,
+    "filename": "023-dinesh-pawar-pawar-sanitary-stores-q3.mp3",
+    "characters": 917,
+    "estimated_usd": 0.0459,
+    "bytes": 910359,
+    "generated_at": "2026-09-17T08:02:41.535Z"
+  },
+  {
+    "distributor_name": "Dinesh Pawar, Pawar Sanitary Stores",
+    "question_index": 4,
+    "filename": "024-dinesh-pawar-pawar-sanitary-stores-q4.mp3",
+    "characters": 934,
+    "estimated_usd": 0.0467,
+    "bytes": 963857,
+    "generated_at": "2026-09-17T08:02:43.416Z"
+  },
+  {
+    "distributor_name": "Dinesh Pawar, Pawar Sanitary Stores",
+    "question_index": 5,
+    "filename": "025-dinesh-pawar-pawar-sanitary-stores-q5.mp3",
+    "characters": 908,
+    "estimated_usd": 0.0454,
+    "bytes": 903253,
+    "generated_at": "2026-09-17T08:02:44.865Z"
+  },
+  {
+    "distributor_name": "Kavita Deshmukh, Deshmukh Consumer Links",
+    "question_index": 1,
+    "filename": "026-kavita-deshmukh-deshmukh-consumer-links-q1.mp3",
+    "characters": 899,
+    "estimated_usd": 0.045,
+    "bytes": 902417,
+    "generated_at": "2026-09-17T08:02:46.417Z"
+  },
+  {
+    "distributor_name": "Kavita Deshmukh, Deshmukh Consumer Links",
+    "question_index": 2,
+    "filename": "027-kavita-deshmukh-deshmukh-consumer-links-q2.mp3",
+    "characters": 896,
+    "estimated_usd": 0.0448,
+    "bytes": 834708,
+    "generated_at": "2026-09-17T08:02:47.922Z"
+  },
+  {
+    "distributor_name": "Kavita Deshmukh, Deshmukh Consumer Links",
+    "question_index": 3,
+    "filename": "028-kavita-deshmukh-deshmukh-consumer-links-q3.mp3",
+    "characters": 893,
+    "estimated_usd": 0.0447,
+    "bytes": 961768,
+    "generated_at": "2026-09-17T08:02:49.734Z"
+  },
+  {
+    "distributor_name": "Kavita Deshmukh, Deshmukh Consumer Links",
+    "question_index": 4,
+    "filename": "029-kavita-deshmukh-deshmukh-consumer-links-q4.mp3",
+    "characters": 852,
+    "estimated_usd": 0.0426,
+    "bytes": 858532,
+    "generated_at": "2026-09-17T08:02:51.193Z"
+  },
+  {
+    "distributor_name": "Kavita Deshmukh, Deshmukh Consumer Links",
+    "question_index": 5,
+    "filename": "030-kavita-deshmukh-deshmukh-consumer-links-q5.mp3",
+    "characters": 916,
+    "estimated_usd": 0.0458,
+    "bytes": 934182,
+    "generated_at": "2026-09-17T08:02:52.894Z"
+  },
+  {
+    "distributor_name": "Imran Qureshi, Qureshi Mobile Hub",
+    "question_index": 1,
+    "filename": "031-imran-qureshi-qureshi-mobile-hub-q1.mp3",
+    "characters": 948,
+    "estimated_usd": 0.0474,
+    "bytes": 1075453,
+    "generated_at": "2026-09-17T08:02:54.637Z"
+  },
+  {
+    "distributor_name": "Imran Qureshi, Qureshi Mobile Hub",
+    "question_index": 2,
+    "filename": "032-imran-qureshi-qureshi-mobile-hub-q2.mp3",
+    "characters": 883,
+    "estimated_usd": 0.0442,
+    "bytes": 900328,
+    "generated_at": "2026-09-17T08:02:56.304Z"
+  },
+  {
+    "distributor_name": "Imran Qureshi, Qureshi Mobile Hub",
+    "question_index": 3,
+    "filename": "033-imran-qureshi-qureshi-mobile-hub-q3.mp3",
+    "characters": 907,
+    "estimated_usd": 0.0454,
+    "bytes": 957170,
+    "generated_at": "2026-09-17T08:02:57.798Z"
+  },
+  {
+    "distributor_name": "Imran Qureshi, Qureshi Mobile Hub",
+    "question_index": 4,
+    "filename": "034-imran-qureshi-qureshi-mobile-hub-q4.mp3",
+    "characters": 882,
+    "estimated_usd": 0.0441,
+    "bytes": 888207,
+    "generated_at": "2026-09-17T08:02:59.340Z"
+  },
+  {
+    "distributor_name": "Imran Qureshi, Qureshi Mobile Hub",
+    "question_index": 5,
+    "filename": "035-imran-qureshi-qureshi-mobile-hub-q5.mp3",
+    "characters": 893,
+    "estimated_usd": 0.0447,
+    "bytes": 997294,
+    "generated_at": "2026-09-17T08:03:01.114Z"
+  },
+  {
+    "distributor_name": "Pooja Chatterjee, Chatterjee Office Supply",
+    "question_index": 1,
+    "filename": "036-pooja-chatterjee-chatterjee-office-supply-q1.mp3",
+    "characters": 933,
+    "estimated_usd": 0.0467,
+    "bytes": 1027805,
+    "generated_at": "2026-09-17T08:03:03.024Z"
+  },
+  {
+    "distributor_name": "Pooja Chatterjee, Chatterjee Office Supply",
+    "question_index": 2,
+    "filename": "037-pooja-chatterjee-chatterjee-office-supply-q2.mp3",
+    "characters": 788,
+    "estimated_usd": 0.0394,
+    "bytes": 731472,
+    "generated_at": "2026-09-17T08:03:04.344Z"
+  },
+  {
+    "distributor_name": "Pooja Chatterjee, Chatterjee Office Supply",
+    "question_index": 3,
+    "filename": "038-pooja-chatterjee-chatterjee-office-supply-q3.mp3",
+    "characters": 902,
+    "estimated_usd": 0.0451,
+    "bytes": 931257,
+    "generated_at": "2026-09-17T08:03:05.969Z"
+  },
+  {
+    "distributor_name": "Pooja Chatterjee, Chatterjee Office Supply",
+    "question_index": 4,
+    "filename": "039-pooja-chatterjee-chatterjee-office-supply-q4.mp3",
+    "characters": 925,
+    "estimated_usd": 0.0463,
+    "bytes": 1003564,
+    "generated_at": "2026-09-17T08:03:07.740Z"
+  },
+  {
+    "distributor_name": "Pooja Chatterjee, Chatterjee Office Supply",
+    "question_index": 5,
+    "filename": "040-pooja-chatterjee-chatterjee-office-supply-q5.mp3",
+    "characters": 864,
+    "estimated_usd": 0.0432,
+    "bytes": 920390,
+    "generated_at": "2026-09-17T08:03:09.452Z"
+  },
+  {
+    "distributor_name": "Nitin Arora, Arora Paint Traders",
+    "question_index": 1,
+    "filename": "041-nitin-arora-arora-paint-traders-q1.mp3",
+    "characters": 831,
+    "estimated_usd": 0.0416,
+    "bytes": 846829,
+    "generated_at": "2026-09-17T08:03:11.084Z"
+  },
+  {
+    "distributor_name": "Nitin Arora, Arora Paint Traders",
+    "question_index": 2,
+    "filename": "042-nitin-arora-arora-paint-traders-q2.mp3",
+    "characters": 891,
+    "estimated_usd": 0.0446,
+    "bytes": 855606,
+    "generated_at": "2026-09-17T08:03:12.631Z"
+  },
+  {
+    "distributor_name": "Nitin Arora, Arora Paint Traders",
+    "question_index": 3,
+    "filename": "043-nitin-arora-arora-paint-traders-q3.mp3",
+    "characters": 956,
+    "estimated_usd": 0.0478,
+    "bytes": 899492,
+    "generated_at": "2026-09-17T08:03:14.459Z"
+  },
+  {
+    "distributor_name": "Nitin Arora, Arora Paint Traders",
+    "question_index": 4,
+    "filename": "044-nitin-arora-arora-paint-traders-q4.mp3",
+    "characters": 931,
+    "estimated_usd": 0.0466,
+    "bytes": 969291,
+    "generated_at": "2026-09-17T08:03:16.033Z"
+  },
+  {
+    "distributor_name": "Nitin Arora, Arora Paint Traders",
+    "question_index": 5,
+    "filename": "045-nitin-arora-arora-paint-traders-q5.mp3",
+    "characters": 1022,
+    "estimated_usd": 0.0511,
+    "bytes": 1098440,
+    "generated_at": "2026-09-17T08:03:18.116Z"
+  },
+  {
+    "distributor_name": "Shalini Gupta, Gupta Agro Distributors",
+    "question_index": 1,
+    "filename": "046-shalini-gupta-gupta-agro-distributors-q1.mp3",
+    "characters": 882,
+    "estimated_usd": 0.0441,
+    "bytes": 953826,
+    "generated_at": "2026-09-17T08:03:19.895Z"
+  },
+  {
+    "distributor_name": "Shalini Gupta, Gupta Agro Distributors",
+    "question_index": 2,
+    "filename": "047-shalini-gupta-gupta-agro-distributors-q2.mp3",
+    "characters": 816,
+    "estimated_usd": 0.0408,
+    "bytes": 776612,
+    "generated_at": "2026-09-17T08:03:21.229Z"
+  },
+  {
+    "distributor_name": "Shalini Gupta, Gupta Agro Distributors",
+    "question_index": 3,
+    "filename": "048-shalini-gupta-gupta-agro-distributors-q3.mp3",
+    "characters": 923,
+    "estimated_usd": 0.0462,
+    "bytes": 852680,
+    "generated_at": "2026-09-17T08:03:22.646Z"
+  },
+  {
+    "distributor_name": "Shalini Gupta, Gupta Agro Distributors",
+    "question_index": 4,
+    "filename": "049-shalini-gupta-gupta-agro-distributors-q4.mp3",
+    "characters": 938,
+    "estimated_usd": 0.0469,
+    "bytes": 1011505,
+    "generated_at": "2026-09-17T08:03:24.548Z"
+  },
+  {
+    "distributor_name": "Shalini Gupta, Gupta Agro Distributors",
+    "question_index": 5,
+    "filename": "050-shalini-gupta-gupta-agro-distributors-q5.mp3",
+    "characters": 956,
+    "estimated_usd": 0.0478,
+    "bytes": 1004817,
+    "generated_at": "2026-09-17T08:03:26.212Z"
+  },
+  {
+    "distributor_name": "Harpreet Singh, Singh Hardware Point",
+    "question_index": 1,
+    "filename": "051-harpreet-singh-singh-hardware-point-q1.mp3",
+    "characters": 918,
+    "estimated_usd": 0.0459,
+    "bytes": 932093,
+    "generated_at": "2026-09-17T08:03:27.759Z"
+  },
+  {
+    "distributor_name": "Harpreet Singh, Singh Hardware Point",
+    "question_index": 2,
+    "filename": "052-harpreet-singh-singh-hardware-point-q2.mp3",
+    "characters": 930,
+    "estimated_usd": 0.0465,
+    "bytes": 894894,
+    "generated_at": "2026-09-17T08:03:29.255Z"
+  },
+  {
+    "distributor_name": "Harpreet Singh, Singh Hardware Point",
+    "question_index": 3,
+    "filename": "053-harpreet-singh-singh-hardware-point-q3.mp3",
+    "characters": 961,
+    "estimated_usd": 0.0481,
+    "bytes": 951319,
+    "generated_at": "2026-09-17T08:03:30.796Z"
+  },
+  {
+    "distributor_name": "Harpreet Singh, Singh Hardware Point",
+    "question_index": 4,
+    "filename": "054-harpreet-singh-singh-hardware-point-q4.mp3",
+    "characters": 940,
+    "estimated_usd": 0.047,
+    "bytes": 942542,
+    "generated_at": "2026-09-17T08:03:32.495Z"
+  },
+  {
+    "distributor_name": "Harpreet Singh, Singh Hardware Point",
+    "question_index": 5,
+    "filename": "055-harpreet-singh-singh-hardware-point-q5.mp3",
+    "characters": 935,
+    "estimated_usd": 0.0468,
+    "bytes": 997294,
+    "generated_at": "2026-09-17T08:03:34.065Z"
+  },
+  {
+    "distributor_name": "Rukmini Nair, Nair Hospitality Supply",
+    "question_index": 1,
+    "filename": "056-rukmini-nair-nair-hospitality-supply-q1.mp3",
+    "characters": 877,
+    "estimated_usd": 0.0439,
+    "bytes": 850173,
+    "generated_at": "2026-09-17T08:03:35.630Z"
+  },
+  {
+    "distributor_name": "Rukmini Nair, Nair Hospitality Supply",
+    "question_index": 2,
+    "filename": "057-rukmini-nair-nair-hospitality-supply-q2.mp3",
+    "characters": 926,
+    "estimated_usd": 0.0463,
+    "bytes": 1016938,
+    "generated_at": "2026-09-17T08:03:37.372Z"
+  },
+  {
+    "distributor_name": "Rukmini Nair, Nair Hospitality Supply",
+    "question_index": 3,
+    "filename": "058-rukmini-nair-nair-hospitality-supply-q3.mp3",
+    "characters": 952,
+    "estimated_usd": 0.0476,
+    "bytes": 938780,
+    "generated_at": "2026-09-17T08:03:39.147Z"
+  },
+  {
+    "distributor_name": "Rukmini Nair, Nair Hospitality Supply",
+    "question_index": 4,
+    "filename": "059-rukmini-nair-nair-hospitality-supply-q4.mp3",
+    "characters": 964,
+    "estimated_usd": 0.0482,
+    "bytes": 956752,
+    "generated_at": "2026-09-17T08:03:40.788Z"
+  },
+  {
+    "distributor_name": "Rukmini Nair, Nair Hospitality Supply",
+    "question_index": 5,
+    "filename": "060-rukmini-nair-nair-hospitality-supply-q5.mp3",
+    "characters": 949,
+    "estimated_usd": 0.0474,
+    "bytes": 986427,
+    "generated_at": "2026-09-17T08:03:42.546Z"
+  },
+  {
+    "distributor_name": "Gaurav Malhotra, Malhotra Sports Supply",
+    "question_index": 1,
+    "filename": "061-gaurav-malhotra-malhotra-sports-supply-q1.mp3",
+    "characters": 915,
+    "estimated_usd": 0.0458,
+    "bytes": 942542,
+    "generated_at": "2026-09-17T08:03:44.230Z"
+  },
+  {
+    "distributor_name": "Gaurav Malhotra, Malhotra Sports Supply",
+    "question_index": 2,
+    "filename": "062-gaurav-malhotra-malhotra-sports-supply-q2.mp3",
+    "characters": 887,
+    "estimated_usd": 0.0444,
+    "bytes": 971381,
+    "generated_at": "2026-09-17T08:03:46.180Z"
+  },
+  {
+    "distributor_name": "Gaurav Malhotra, Malhotra Sports Supply",
+    "question_index": 3,
+    "filename": "063-gaurav-malhotra-malhotra-sports-supply-q3.mp3",
+    "characters": 912,
+    "estimated_usd": 0.0456,
+    "bytes": 967201,
+    "generated_at": "2026-09-17T08:03:47.708Z"
+  },
+  {
+    "distributor_name": "Gaurav Malhotra, Malhotra Sports Supply",
+    "question_index": 4,
+    "filename": "064-gaurav-malhotra-malhotra-sports-supply-q4.mp3",
+    "characters": 912,
+    "estimated_usd": 0.0456,
+    "bytes": 855606,
+    "generated_at": "2026-09-17T08:03:49.367Z"
+  },
+  {
+    "distributor_name": "Gaurav Malhotra, Malhotra Sports Supply",
+    "question_index": 5,
+    "filename": "065-gaurav-malhotra-malhotra-sports-supply-q5.mp3",
+    "characters": 907,
+    "estimated_usd": 0.0454,
+    "bytes": 922479,
+    "generated_at": "2026-09-17T08:03:50.880Z"
+  },
+  {
+    "distributor_name": "Yasmeen Ali, Ali Beauty Essentials",
+    "question_index": 1,
+    "filename": "066-yasmeen-ali-ali-beauty-essentials-q1.mp3",
+    "characters": 911,
+    "estimated_usd": 0.0456,
+    "bytes": 937944,
+    "generated_at": "2026-09-17T08:03:52.609Z"
+  },
+  {
+    "distributor_name": "Yasmeen Ali, Ali Beauty Essentials",
+    "question_index": 2,
+    "filename": "067-yasmeen-ali-ali-beauty-essentials-q2.mp3",
+    "characters": 836,
+    "estimated_usd": 0.0418,
+    "bytes": 873996,
+    "generated_at": "2026-09-17T08:03:54.314Z"
+  },
+  {
+    "distributor_name": "Yasmeen Ali, Ali Beauty Essentials",
+    "question_index": 3,
+    "filename": "068-yasmeen-ali-ali-beauty-essentials-q3.mp3",
+    "characters": 954,
+    "estimated_usd": 0.0477,
+    "bytes": 1025715,
+    "generated_at": "2026-09-17T08:03:56.457Z"
+  },
+  {
+    "distributor_name": "Yasmeen Ali, Ali Beauty Essentials",
+    "question_index": 4,
+    "filename": "069-yasmeen-ali-ali-beauty-essentials-q4.mp3",
+    "characters": 928,
+    "estimated_usd": 0.0464,
+    "bytes": 897820,
+    "generated_at": "2026-09-17T08:03:57.958Z"
+  },
+  {
+    "distributor_name": "Yasmeen Ali, Ali Beauty Essentials",
+    "question_index": 5,
+    "filename": "070-yasmeen-ali-ali-beauty-essentials-q5.mp3",
+    "characters": 964,
+    "estimated_usd": 0.0482,
+    "bytes": 1041180,
+    "generated_at": "2026-09-17T08:04:00.137Z"
+  },
+  {
+    "distributor_name": "Prakash Jadhav, Jadhav Auto Parts",
+    "question_index": 2,
+    "filename": "072-prakash-jadhav-jadhav-auto-parts-q2.mp3",
+    "characters": 900,
+    "estimated_usd": 0.045,
+    "bytes": 884445,
+    "generated_at": "2026-09-17T08:04:01.839Z"
+  },
+  {
+    "distributor_name": "Prakash Jadhav, Jadhav Auto Parts",
+    "question_index": 3,
+    "filename": "073-prakash-jadhav-jadhav-auto-parts-q3.mp3",
+    "characters": 877,
+    "estimated_usd": 0.0439,
+    "bytes": 908269,
+    "generated_at": "2026-09-17T08:04:03.487Z"
+  },
+  {
+    "distributor_name": "Prakash Jadhav, Jadhav Auto Parts",
+    "question_index": 4,
+    "filename": "074-prakash-jadhav-jadhav-auto-parts-q4.mp3",
+    "characters": 919,
+    "estimated_usd": 0.046,
+    "bytes": 847247,
+    "generated_at": "2026-09-17T08:04:05.218Z"
+  },
+  {
+    "distributor_name": "Prakash Jadhav, Jadhav Auto Parts",
+    "question_index": 5,
+    "filename": "075-prakash-jadhav-jadhav-auto-parts-q5.mp3",
+    "characters": 899,
+    "estimated_usd": 0.045,
+    "bytes": 856442,
+    "generated_at": "2026-09-17T08:04:06.831Z"
+  },
+  {
+    "distributor_name": "Neha Kapoor, Kapoor Medical Traders",
+    "question_index": 1,
+    "filename": "076-neha-kapoor-kapoor-medical-traders-q1.mp3",
+    "characters": 903,
+    "estimated_usd": 0.0452,
+    "bytes": 876504,
+    "generated_at": "2026-09-17T08:04:08.278Z"
+  },
+  {
+    "distributor_name": "Neha Kapoor, Kapoor Medical Traders",
+    "question_index": 2,
+    "filename": "077-neha-kapoor-kapoor-medical-traders-q2.mp3",
+    "characters": 929,
+    "estimated_usd": 0.0465,
+    "bytes": 970127,
+    "generated_at": "2026-09-17T08:04:09.941Z"
+  },
+  {
+    "distributor_name": "Neha Kapoor, Kapoor Medical Traders",
+    "question_index": 3,
+    "filename": "078-neha-kapoor-kapoor-medical-traders-q3.mp3",
+    "characters": 910,
+    "estimated_usd": 0.0455,
+    "bytes": 889043,
+    "generated_at": "2026-09-17T08:04:11.887Z"
+  },
+  {
+    "distributor_name": "Neha Kapoor, Kapoor Medical Traders",
+    "question_index": 4,
+    "filename": "079-neha-kapoor-kapoor-medical-traders-q4.mp3",
+    "characters": 937,
+    "estimated_usd": 0.0469,
+    "bytes": 1001056,
+    "generated_at": "2026-09-17T08:04:13.869Z"
+  },
+  {
+    "distributor_name": "Neha Kapoor, Kapoor Medical Traders",
+    "question_index": 5,
+    "filename": "080-neha-kapoor-kapoor-medical-traders-q5.mp3",
+    "characters": 991,
+    "estimated_usd": 0.0496,
+    "bytes": 1060824,
+    "generated_at": "2026-09-17T08:04:15.933Z"
+  },
+  {
+    "distributor_name": "Sandeep Kulkarni, Kulkarni Packaging Works",
+    "question_index": 1,
+    "filename": "081-sandeep-kulkarni-kulkarni-packaging-works-q1.mp3",
+    "characters": 939,
+    "estimated_usd": 0.0469,
+    "bytes": 1105128,
+    "generated_at": "2026-09-17T08:04:17.825Z"
+  },
+  {
+    "distributor_name": "Sandeep Kulkarni, Kulkarni Packaging Works",
+    "question_index": 3,
+    "filename": "083-sandeep-kulkarni-kulkarni-packaging-works-q3.mp3",
+    "characters": 896,
+    "estimated_usd": 0.0448,
+    "bytes": 907433,
+    "generated_at": "2026-09-17T08:04:19.430Z"
+  },
+  {
+    "distributor_name": "Sandeep Kulkarni, Kulkarni Packaging Works",
+    "question_index": 4,
+    "filename": "084-sandeep-kulkarni-kulkarni-packaging-works-q4.mp3",
+    "characters": 987,
+    "estimated_usd": 0.0494,
+    "bytes": 1044106,
+    "generated_at": "2026-09-17T08:04:21.225Z"
+  },
+  {
+    "distributor_name": "Sandeep Kulkarni, Kulkarni Packaging Works",
+    "question_index": 5,
+    "filename": "085-sandeep-kulkarni-kulkarni-packaging-works-q5.mp3",
+    "characters": 917,
+    "estimated_usd": 0.0459,
+    "bytes": 994368,
+    "generated_at": "2026-09-17T08:04:22.946Z"
+  },
+  {
+    "distributor_name": "Anjali Verma, Verma Baby Care Distributors",
+    "question_index": 1,
+    "filename": "086-anjali-verma-verma-baby-care-distributors-q1.mp3",
+    "characters": 899,
+    "estimated_usd": 0.045,
+    "bytes": 863129,
+    "generated_at": "2026-09-17T08:04:24.360Z"
+  },
+  {
+    "distributor_name": "Anjali Verma, Verma Baby Care Distributors",
+    "question_index": 2,
+    "filename": "087-anjali-verma-verma-baby-care-distributors-q2.mp3",
+    "characters": 812,
+    "estimated_usd": 0.0406,
+    "bytes": 808795,
+    "generated_at": "2026-09-17T08:04:25.962Z"
+  },
+  {
+    "distributor_name": "Anjali Verma, Verma Baby Care Distributors",
+    "question_index": 3,
+    "filename": "088-anjali-verma-verma-baby-care-distributors-q3.mp3",
+    "characters": 927,
+    "estimated_usd": 0.0464,
+    "bytes": 1001892,
+    "generated_at": "2026-09-17T08:04:27.716Z"
+  },
+  {
+    "distributor_name": "Anjali Verma, Verma Baby Care Distributors",
+    "question_index": 4,
+    "filename": "089-anjali-verma-verma-baby-care-distributors-q4.mp3",
+    "characters": 912,
+    "estimated_usd": 0.0456,
+    "bytes": 897820,
+    "generated_at": "2026-09-17T08:04:29.351Z"
+  },
+  {
+    "distributor_name": "Anjali Verma, Verma Baby Care Distributors",
+    "question_index": 5,
+    "filename": "090-anjali-verma-verma-baby-care-distributors-q5.mp3",
+    "characters": 935,
+    "estimated_usd": 0.0468,
+    "bytes": 960514,
+    "generated_at": "2026-09-17T08:04:31.105Z"
+  },
+  {
+    "distributor_name": "Vivek Sethi, Sethi Renewable Systems",
+    "question_index": 1,
+    "filename": "091-vivek-sethi-sethi-renewable-systems-q1.mp3",
+    "characters": 921,
+    "estimated_usd": 0.0461,
+    "bytes": 1039926,
+    "generated_at": "2026-09-17T08:04:33.005Z"
+  },
+  {
+    "distributor_name": "Vivek Sethi, Sethi Renewable Systems",
+    "question_index": 2,
+    "filename": "092-vivek-sethi-sethi-renewable-systems-q2.mp3",
+    "characters": 913,
+    "estimated_usd": 0.0457,
+    "bytes": 963857,
+    "generated_at": "2026-09-17T08:04:34.736Z"
+  },
+  {
+    "distributor_name": "Vivek Sethi, Sethi Renewable Systems",
+    "question_index": 3,
+    "filename": "093-vivek-sethi-sethi-renewable-systems-q3.mp3",
+    "characters": 932,
+    "estimated_usd": 0.0466,
+    "bytes": 973053,
+    "generated_at": "2026-09-17T08:04:36.570Z"
+  },
+  {
+    "distributor_name": "Vivek Sethi, Sethi Renewable Systems",
+    "question_index": 4,
+    "filename": "094-vivek-sethi-sethi-renewable-systems-q4.mp3",
+    "characters": 961,
+    "estimated_usd": 0.0481,
+    "bytes": 1031567,
+    "generated_at": "2026-09-17T08:04:38.366Z"
+  },
+  {
+    "distributor_name": "Vivek Sethi, Sethi Renewable Systems",
+    "question_index": 5,
+    "filename": "095-vivek-sethi-sethi-renewable-systems-q5.mp3",
+    "characters": 942,
+    "estimated_usd": 0.0471,
+    "bytes": 1026551,
+    "generated_at": "2026-09-17T08:04:39.913Z"
+  },
+  {
+    "distributor_name": "Saira Khan, Khan Stationery & Gifts",
+    "question_index": 1,
+    "filename": "096-saira-khan-khan-stationery-gifts-q1.mp3",
+    "characters": 894,
+    "estimated_usd": 0.0447,
+    "bytes": 974306,
+    "generated_at": "2026-09-17T08:04:41.640Z"
+  },
+  {
+    "distributor_name": "Saira Khan, Khan Stationery & Gifts",
+    "question_index": 2,
+    "filename": "097-saira-khan-khan-stationery-gifts-q2.mp3",
+    "characters": 885,
+    "estimated_usd": 0.0443,
+    "bytes": 894894,
+    "generated_at": "2026-09-17T08:04:43.109Z"
+  },
+  {
+    "distributor_name": "Saira Khan, Khan Stationery & Gifts",
+    "question_index": 3,
+    "filename": "098-saira-khan-khan-stationery-gifts-q3.mp3",
+    "characters": 958,
+    "estimated_usd": 0.0479,
+    "bytes": 940870,
+    "generated_at": "2026-09-17T08:04:44.859Z"
+  },
+  {
+    "distributor_name": "Saira Khan, Khan Stationery & Gifts",
+    "question_index": 4,
+    "filename": "099-saira-khan-khan-stationery-gifts-q4.mp3",
+    "characters": 942,
+    "estimated_usd": 0.0471,
+    "bytes": 980576,
+    "generated_at": "2026-09-17T08:04:46.627Z"
+  },
+  {
+    "distributor_name": "Saira Khan, Khan Stationery & Gifts",
+    "question_index": 5,
+    "filename": "100-saira-khan-khan-stationery-gifts-q5.mp3",
+    "characters": 953,
+    "estimated_usd": 0.0476,
+    "bytes": 1011505,
+    "generated_at": "2026-09-17T08:04:48.266Z"
+  },
+  {
+    "distributor_name": "Prakash Jadhav, Jadhav Auto Parts",
+    "question_index": 1,
+    "filename": "071-prakash-jadhav-jadhav-auto-parts-q1.mp3",
+    "characters": 879,
+    "estimated_usd": 0.044,
+    "bytes": 923733,
+    "generated_at": "2026-09-17T08:05:32.796Z"
+  },
+  {
+    "distributor_name": "Sandeep Kulkarni, Kulkarni Packaging Works",
+    "question_index": 2,
+    "filename": "082-sandeep-kulkarni-kulkarni-packaging-works-q2.mp3",
+    "characters": 860,
+    "estimated_usd": 0.043,
+    "bytes": 903253,
+    "generated_at": "2026-09-17T08:05:32.801Z"
+  }
+]

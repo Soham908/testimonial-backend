@@ -1,0 +1,47 @@
+{
+  "run_id": "2026-09-17_13-29-52-500",
+  "base_url": "https://insight-backend.thezeist.com",
+  "started_at": "2026-09-17T13:29:52.536Z",
+  "completed_at": "2026-09-17T13:29:54.875Z",
+  "concurrency": 1,
+  "wall_clock_ms": 2339,
+  "processing_waited_for": false,
+  "summary": {
+    "distributors_submitted": 1,
+    "distributors_failed": 0,
+    "videos_submitted": 1,
+    "videos_failed": 0
+  },
+  "distributor_ids": [
+    {
+      "distributor_name": "Aakash Mehra, Mehra Home Solutions",
+      "distributor_id": "f56cc027-a0e9-4feb-9133-0c14b2e3c067",
+      "status": "submitted"
+    }
+  ],
+  "distributors": [
+    {
+      "distributor_name": "Aakash Mehra, Mehra Home Solutions",
+      "distributor_id": "f56cc027-a0e9-4feb-9133-0c14b2e3c067",
+      "total_ms": 2338,
+      "status": "submitted",
+      "questions": [
+        {
+          "question_index": 1,
+          "video_file": "videos\\001-aakash-mehra-mehra-home-solutions-q1.mp4",
+          "local_bytes": 12491280,
+          "duration_seconds": 56.099,
+          "upload_url_ms": 83,
+          "put_ms": 476,
+          "confirm_ms": 385,
+          "total_ms": 981,
+          "status": "submitted",
+          "video_key": "clients/3cad9ac2-6656-45e3-aee1-9aaffb67f25e/distributors/f56cc027-a0e9-4feb-9133-0c14b2e3c067/segments/1.mp4"
+        }
+      ],
+      "register_ms": 1092,
+      "profile_ms": 88,
+      "questions_catalog_ms": 175
+    }
+  ]
+}
